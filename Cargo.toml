@@ -1,0 +1,6 @@
+[package]
+name = "x86intrin"
+version = "0.1.0"
+authors = ["mayah"]
+
+[dependencies]
