@@ -7,6 +7,7 @@
 
 extern "platform-intrinsic" {
     fn simd_and<T>(x: T, y: T) -> T;
+    fn simd_or<T>(x: T, y: T) -> T;
     fn simd_cast<T, U>(x: T) -> U;
     fn simd_extract<T, U>(x: T, idx: u32) -> U;
 }
@@ -90,6 +91,11 @@ pub fn mm_and_si128(a: m128i, b: m128i) -> m128i {
     unsafe { simd_and(a, b) }
 }
 
+#[inline]
+pub fn mm_or_si128(a: m128i, b: m128i) -> m128i {
+    unsafe { simd_or(a, b) }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -137,5 +143,16 @@ mod tests {
         assert_eq!(z.extract(1), 0x7E & 0x8C);
         assert_eq!(z.extract(2), 0x13 & 0xFF);
         assert_eq!(z.extract(3), 0xFF & 0x17);
+    }
+
+    #[test]
+    fn test_mm_or_si128() {
+        let x = mm_setr_epi32(0x3F, 0x7E, 0x13, 0xFF);
+        let y = mm_setr_epi32(0x53, 0x8C, 0xFF, 0x17);
+        let z = mm_or_si128(x, y).as_i32x4();
+        assert_eq!(z.extract(0), 0x3F | 0x53);
+        assert_eq!(z.extract(1), 0x7E | 0x8C);
+        assert_eq!(z.extract(2), 0x13 | 0xFF);
+        assert_eq!(z.extract(3), 0xFF | 0x17);
     }
 }
