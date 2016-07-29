@@ -62,6 +62,30 @@ impl i32x4 {
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(simd)]
+pub struct i16x8(i16, i16, i16, i16, i16, i16, i16, i16);
+
+impl i16x8 {
+    #[inline]
+    pub fn new(r0: i16, r1: i16, r2: i16, r3: i16,
+               r4: i16, r5: i16, r6: i16, r7: i16) -> i16x8 {
+        i16x8(r0, r1, r2, r3, r4, r5, r6, r7)
+    }
+
+    #[inline]
+    pub fn extract(self, idx: usize) -> i16 {
+        debug_assert!(idx < 8);
+        unsafe { simd_extract(self, idx as u32) }
+    }
+
+    #[inline]
+    pub fn as_m128i(self) -> m128i {
+        unsafe { bitcast(self) }
+    }
+}
+
+#[allow(non_camel_case_types)]
+#[derive(Debug, Copy, Clone)]
+#[repr(simd)]
 pub struct m128i(i64, i64);
 
 impl m128i {
@@ -74,6 +98,11 @@ impl m128i {
     pub fn as_i32x4(self) -> i32x4 {
         unsafe { bitcast(self) }
     }
+
+    #[inline]
+    pub fn as_i16x8(self) -> i16x8 {
+        unsafe { bitcast(self) }
+    }
 }
 
 #[inline]
@@ -84,6 +113,18 @@ pub fn mm_set_epi32(r3: i32, r2: i32, r1: i32, r0: i32) -> m128i {
 #[inline]
 pub fn mm_setr_epi32(r0: i32, r1: i32, r2: i32, r3: i32) -> m128i {
     i32x4(r0, r1, r2, r3).as_m128i()
+}
+
+#[inline]
+pub fn mm_set_epi16(r7: i16, r6: i16, r5: i16, r4: i16,
+                    r3: i16, r2: i16, r1: i16, r0: i16) -> m128i {
+    i16x8(r0, r1, r2, r3, r4, r5, r6, r7).as_m128i()
+}
+
+#[inline]
+pub fn mm_setr_epi16(r0: i16, r1: i16, r2: i16, r3: i16,
+                     r4: i16, r5: i16, r6: i16, r7: i16) -> m128i {
+    i16x8(r0, r1, r2, r3, r4, r5, r6, r7).as_m128i()
 }
 
 #[inline]
@@ -101,6 +142,13 @@ mod tests {
     use super::*;
 
     #[test]
+    fn basic_i64x2() {
+        let x = i64x2::new(3, 9);
+        assert_eq!(x.extract(0), 3);
+        assert_eq!(x.extract(1), 9);
+    }
+
+    #[test]
     fn base_i32x4() {
         let x = i32x4::new(1, 2, 3, 4);
         assert_eq!(x.extract(0), 1);
@@ -110,10 +158,16 @@ mod tests {
     }
 
     #[test]
-    fn basic_i64x2() {
-        let x = i64x2::new(3, 9);
-        assert_eq!(x.extract(0), 3);
-        assert_eq!(x.extract(1), 9);
+    fn base_i16x8() {
+        let x = i16x8::new(1, 2, 3, 4, 5, 6, 7, 8);
+        assert_eq!(x.extract(0), 1);
+        assert_eq!(x.extract(1), 2);
+        assert_eq!(x.extract(2), 3);
+        assert_eq!(x.extract(3), 4);
+        assert_eq!(x.extract(4), 5);
+        assert_eq!(x.extract(5), 6);
+        assert_eq!(x.extract(6), 7);
+        assert_eq!(x.extract(7), 8);
     }
 
     #[test]
@@ -132,6 +186,32 @@ mod tests {
         assert_eq!(x.extract(1), 2);
         assert_eq!(x.extract(2), 3);
         assert_eq!(x.extract(3), 4);
+    }
+
+    #[test]
+    fn test_mm_set_epi16() {
+        let x = mm_set_epi16(1, 2, 3, 4, 5, 6, 7, 8).as_i16x8();
+        assert_eq!(x.extract(0), 8);
+        assert_eq!(x.extract(1), 7);
+        assert_eq!(x.extract(2), 6);
+        assert_eq!(x.extract(3), 5);
+        assert_eq!(x.extract(4), 4);
+        assert_eq!(x.extract(5), 3);
+        assert_eq!(x.extract(6), 2);
+        assert_eq!(x.extract(7), 1);
+    }
+
+    #[test]
+    fn test_mm_setr_epi16() {
+        let x = mm_setr_epi16(1, 2, 3, 4, 5, 6, 7, 8).as_i16x8();
+        assert_eq!(x.extract(0), 1);
+        assert_eq!(x.extract(1), 2);
+        assert_eq!(x.extract(2), 3);
+        assert_eq!(x.extract(3), 4);
+        assert_eq!(x.extract(4), 5);
+        assert_eq!(x.extract(5), 6);
+        assert_eq!(x.extract(6), 7);
+        assert_eq!(x.extract(7), 8);
     }
 
     #[test]
