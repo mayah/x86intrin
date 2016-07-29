@@ -2,8 +2,10 @@
 // Web: https://software.intel.com/sites/landingpage/IntrinsicsGuide/#expand=133
 // XML: https://software.intel.com/sites/landingpage/IntrinsicsGuide/files/data-3.3.14.xml
 
-#![feature(repr_simd)]
+#![feature(link_llvm_intrinsics)]
 #![feature(platform_intrinsics)]
+#![feature(repr_simd)]
+#![feature(simd_ffi)]
 
 extern "platform-intrinsic" {
     fn simd_and<T>(x: T, y: T) -> T;
@@ -135,6 +137,13 @@ impl m128i {
     }
 }
 
+extern {
+    #[link_name = "llvm.x86.sse2.pslli.w"]
+    pub fn sse2_pslli_w(a: i16x8, b: i32) -> i16x8;
+    #[link_name = "llvm.x86.sse2.psrli.w"]
+    pub fn sse2_psrli_w(a: i16x8, b: i32) -> i16x8;
+}
+
 #[inline]
 pub fn mm_set_epi32(r3: i32, r2: i32, r1: i32, r0: i32) -> m128i {
     i32x4(r0, r1, r2, r3).as_m128i()
@@ -176,6 +185,16 @@ pub fn mm_xor_si128(a: m128i, b: m128i) -> m128i {
 pub fn mm_andnot_si128(a: m128i, b: m128i) -> m128i {
     let ones = i64x2::new(!0, !0).as_m128i();
     mm_and_si128(mm_xor_si128(a, ones), b)
+}
+
+#[inline]
+pub fn mm_slli_epi16(a: m128i, imm8: i32) -> m128i {
+    unsafe { bitcast(sse2_pslli_w(a.as_i16x8(), imm8)) }
+}
+
+#[inline]
+pub fn mm_srli_epi16(a: m128i, imm8: i32) -> m128i {
+    unsafe { bitcast(sse2_psrli_w(a.as_i16x8(), imm8)) }
 }
 
 #[cfg(test)]
@@ -299,5 +318,33 @@ mod tests {
         assert_eq!(z.extract(1), 0x7E ^ 0x8C);
         assert_eq!(z.extract(2), 0x13 ^ 0xFF);
         assert_eq!(z.extract(3), 0xFF ^ 0x17);
+    }
+
+    #[test]
+    fn test_mm_slli_epi16() {
+        let x = mm_setr_epi16(1, 2, 3, 4, 5, 6, 7, 8);
+        let x0 = mm_slli_epi16(x, 0).as_i16x8();
+        let x1 = mm_slli_epi16(x, 1).as_i16x8();
+        let x2 = mm_slli_epi16(x, 2).as_i16x8();
+
+        for i in 0 .. 8 {
+            assert_eq!(x0.extract(i) as usize, (i + 1) << 0);
+            assert_eq!(x1.extract(i) as usize, (i + 1) << 1);
+            assert_eq!(x2.extract(i) as usize, (i + 1) << 2);
+        }
+    }
+
+    #[test]
+    fn test_mm_srli_epi16() {
+        let x = mm_setr_epi16(11, 12, 13, 14, 15, 16, 17, 18);
+        let x0 = mm_srli_epi16(x, 0).as_i16x8();
+        let x1 = mm_srli_epi16(x, 1).as_i16x8();
+        let x2 = mm_srli_epi16(x, 2).as_i16x8();
+
+        for i in 0 .. 8 {
+            assert_eq!(x0.extract(i) as usize, (i + 11) >> 0);
+            assert_eq!(x1.extract(i) as usize, (i + 11) >> 1);
+            assert_eq!(x2.extract(i) as usize, (i + 11) >> 2);
+        }
     }
 }
