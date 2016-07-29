@@ -145,6 +145,11 @@ extern {
 }
 
 #[inline]
+pub fn mm_setzero_si128() -> m128i {
+    m128i(0, 0)
+}
+
+#[inline]
 pub fn mm_set_epi32(r3: i32, r2: i32, r1: i32, r0: i32) -> m128i {
     i32x4(r0, r1, r2, r3).as_m128i()
 }
@@ -241,6 +246,13 @@ mod tests {
         assert_eq!(x.extract(5), 6);
         assert_eq!(x.extract(6), 7);
         assert_eq!(x.extract(7), 8);
+    }
+
+    #[test]
+    fn test_mm_setzero_si128() {
+        let zero = mm_setzero_si128().as_i64x2();
+        assert_eq!(zero.extract(0), 0);
+        assert_eq!(zero.extract(1), 0);
     }
 
     #[test]
