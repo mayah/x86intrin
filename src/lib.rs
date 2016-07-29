@@ -92,6 +92,30 @@ impl i16x8 {
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(C, simd)]
+pub struct u16x8(u16, u16, u16, u16, u16, u16, u16, u16);
+
+impl u16x8 {
+    #[inline]
+    pub fn new(r0: u16, r1: u16, r2: u16, r3: u16,
+               r4: u16, r5: u16, r6: u16, r7: u16) -> u16x8 {
+        u16x8(r0, r1, r2, r3, r4, r5, r6, r7)
+    }
+
+    #[inline]
+    pub fn extract(self, idx: usize) -> u16 {
+        debug_assert!(idx < 8);
+        unsafe { simd_extract(self, idx as u32) }
+    }
+
+    #[inline]
+    pub fn as_m128i(self) -> m128i {
+        unsafe { bitcast(self) }
+    }
+}
+
+#[allow(non_camel_case_types)]
+#[derive(Debug, Copy, Clone)]
+#[repr(C, simd)]
 pub struct m128i(i64, i64);
 
 impl m128i {
@@ -177,6 +201,19 @@ mod tests {
     #[test]
     fn base_i16x8() {
         let x = i16x8::new(1, 2, 3, 4, 5, 6, 7, 8);
+        assert_eq!(x.extract(0), 1);
+        assert_eq!(x.extract(1), 2);
+        assert_eq!(x.extract(2), 3);
+        assert_eq!(x.extract(3), 4);
+        assert_eq!(x.extract(4), 5);
+        assert_eq!(x.extract(5), 6);
+        assert_eq!(x.extract(6), 7);
+        assert_eq!(x.extract(7), 8);
+    }
+
+    #[test]
+    fn base_u16x8() {
+        let x = u16x8::new(1, 2, 3, 4, 5, 6, 7, 8);
         assert_eq!(x.extract(0), 1);
         assert_eq!(x.extract(1), 2);
         assert_eq!(x.extract(2), 3);
