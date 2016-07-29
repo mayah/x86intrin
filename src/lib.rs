@@ -35,6 +35,11 @@ impl i64x2 {
         debug_assert!(idx < 2);
         unsafe { simd_extract(self, idx as u32) }
     }
+
+    #[inline]
+    pub fn as_m128i(self) -> m128i {
+        unsafe { bitcast(self) }
+    }
 }
 
 #[allow(non_camel_case_types)]
@@ -141,6 +146,12 @@ pub fn mm_or_si128(a: m128i, b: m128i) -> m128i {
 #[inline]
 pub fn mm_xor_si128(a: m128i, b: m128i) -> m128i {
     unsafe { simd_xor(a, b) }
+}
+
+#[inline]
+pub fn mm_andnot_si128(a: m128i, b: m128i) -> m128i {
+    let ones = i64x2::new(!0, !0).as_m128i();
+    mm_and_si128(mm_xor_si128(a, ones), b)
 }
 
 #[cfg(test)]
