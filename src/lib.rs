@@ -21,7 +21,7 @@ unsafe fn bitcast<T, U>(x: T) -> U {
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
-#[repr(simd)]
+#[repr(C, simd)]
 pub struct i64x2(i64, i64);
 
 impl i64x2 {
@@ -44,7 +44,7 @@ impl i64x2 {
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
-#[repr(simd)]
+#[repr(C, simd)]
 pub struct i32x4(i32, i32, i32, i32);
 
 impl i32x4 {
@@ -67,7 +67,7 @@ impl i32x4 {
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
-#[repr(simd)]
+#[repr(C, simd)]
 pub struct i16x8(i16, i16, i16, i16, i16, i16, i16, i16);
 
 impl i16x8 {
@@ -91,7 +91,7 @@ impl i16x8 {
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
-#[repr(simd)]
+#[repr(C, simd)]
 pub struct m128i(i64, i64);
 
 impl m128i {
