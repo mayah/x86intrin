@@ -177,12 +177,12 @@ pub use ssse3::*;
 
 #[cfg(any(feature = "doc", target_feature = "sse4.1"))]
 pub mod sse41;
-#[cfg(any(feature = "doc", target_feature = "sss4.1"))]
+#[cfg(any(feature = "doc", target_feature = "sse4.1"))]
 pub use sse41::*;
 
 #[cfg(any(feature = "doc", target_feature = "sse4.2"))]
 pub mod sse42;
-#[cfg(any(feature = "doc", target_feature = "sss4.2"))]
+#[cfg(any(feature = "doc", target_feature = "sse4.2"))]
 pub use sse42::*;
 
 #[cfg(any(feature = "doc", target_feature = "avx"))]
