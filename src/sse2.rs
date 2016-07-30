@@ -8,7 +8,6 @@ extern {
     pub fn sse2_psrli_w(a: i16x8, b: i32) -> i16x8;
 }
 
-
 // paddw
 // __m128i _mm_add_epi16 (__m128i a, __m128i b)
 // paddd
@@ -33,12 +32,25 @@ extern {
 // __m128i _mm_adds_epu8 (__m128i a, __m128i b)
 // andpd
 // __m128d _mm_and_pd (__m128d a, __m128d b)
+
 // pand
 // __m128i _mm_and_si128 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_and_si128(a: m128i, b: m128i) -> m128i {
+    unsafe { simd_and(a, b) }
+}
+
 // andnpd
 // __m128d _mm_andnot_pd (__m128d a, __m128d b)
+
 // pandn
 // __m128i _mm_andnot_si128 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_andnot_si128(a: m128i, b: m128i) -> m128i {
+    let ones = i64x2(!0, !0).as_m128i();
+    mm_and_si128(mm_xor_si128(a, ones), b)
+}
+
 // pavgw
 // __m128i _mm_avg_epu16 (__m128i a, __m128i b)
 // pavgb
@@ -273,8 +285,14 @@ extern {
 // __m128i _mm_mullo_epi16 (__m128i a, __m128i b)
 // orpd
 // __m128d _mm_or_pd (__m128d a, __m128d b)
+
 // por
 // __m128i _mm_or_si128 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_or_si128(a: m128i, b: m128i) -> m128i {
+    unsafe { simd_or(a, b) }
+}
+
 // packsswb
 // __m128i _mm_packs_epi16 (__m128i a, __m128i b)
 // packssdw
@@ -285,16 +303,35 @@ extern {
 // void _mm_pause (void)
 // psadbw
 // __m128i _mm_sad_epu8 (__m128i a, __m128i b)
+
 // ...
 // __m128i _mm_set_epi16 (short e7, short e6, short e5, short e4, short e3, short e2, short e1, short e0)
+#[inline]
+pub fn mm_set_epi16(r7: i16, r6: i16, r5: i16, r4: i16,
+                    r3: i16, r2: i16, r1: i16, r0: i16) -> m128i {
+    i16x8(r0, r1, r2, r3, r4, r5, r6, r7).as_m128i()
+}
+
 // ...
 // __m128i _mm_set_epi32 (int e3, int e2, int e1, int e0)
+#[inline]
+pub fn mm_set_epi32(r3: i32, r2: i32, r1: i32, r0: i32) -> m128i {
+    i32x4(r0, r1, r2, r3).as_m128i()
+}
+
 // ...
 // __m128i _mm_set_epi64 (__m64 e1, __m64 e0)
 // ...
 // __m128i _mm_set_epi64x (__int64 e1, __int64 e0)
+
 // ...
 // __m128i _mm_set_epi8 (char e15, char e14, char e13, char e12, char e11, char e10, char e9, char e8, char e7, char e6, char e5, char e4, char e3, char e2, char e1, char e0)
+#[inline]
+pub fn mm_set_epi8(r15: i8, r14: i8, r13: i8, r12: i8, r11: i8, r10: i8, r9: i8, r8: i8,
+                   r7: i8, r6: i8, r5: i8, r4: i8, r3: i8, r2: i8, r1: i8, r0: i8) -> m128i {
+    i8x16(r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15).as_m128i()
+}
+
 // ...
 // __m128d _mm_set_pd (double e1, double e0)
 // ...
@@ -313,20 +350,45 @@ extern {
 // __m128i _mm_set1_epi8 (char a)
 // ...
 // __m128d _mm_set1_pd (double a)
+
 // ...
 // __m128i _mm_setr_epi16 (short e7, short e6, short e5, short e4, short e3, short e2, short e1, short e0)
+#[inline]
+pub fn mm_setr_epi16(r0: i16, r1: i16, r2: i16, r3: i16,
+                     r4: i16, r5: i16, r6: i16, r7: i16) -> m128i {
+    i16x8(r0, r1, r2, r3, r4, r5, r6, r7).as_m128i()
+}
+
 // ...
 // __m128i _mm_setr_epi32 (int e3, int e2, int e1, int e0)
+#[inline]
+pub fn mm_setr_epi32(r0: i32, r1: i32, r2: i32, r3: i32) -> m128i {
+    i32x4(r0, r1, r2, r3).as_m128i()
+}
+
 // ...
 // __m128i _mm_setr_epi64 (__m64 e1, __m64 e0)
+
 // ...
 // __m128i _mm_setr_epi8 (char e15, char e14, char e13, char e12, char e11, char e10, char e9, char e8, char e7, char e6, char e5, char e4, char e3, char e2, char e1, char e0)
+#[inline]
+pub fn mm_setr_epi8(r0: i8, r1: i8, r2: i8, r3: i8, r4: i8, r5: i8, r6: i8, r7: i8,
+                    r8: i8, r9: i8, r10: i8, r11: i8, r12: i8, r13: i8, r14: i8, r15: i8) -> m128i {
+    i8x16(r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15).as_m128i()
+}
+
 // ...
 // __m128d _mm_setr_pd (double e1, double e0)
 // xorpd
 // __m128d _mm_setzero_pd (void)
+
 // pxor
 // __m128i _mm_setzero_si128 ()
+#[inline]
+pub fn mm_setzero_si128() -> m128i {
+    m128i(0, 0)
+}
+
 // pshufd
 // __m128i _mm_shuffle_epi32 (__m128i a, int imm8)
 // shufpd
@@ -341,14 +403,49 @@ extern {
 // __m128i _mm_sll_epi32 (__m128i a, __m128i count)
 // psllq
 // __m128i _mm_sll_epi64 (__m128i a, __m128i count)
+
 // psllw
 // __m128i _mm_slli_epi16 (__m128i a, int imm8)
+#[inline]
+pub fn mm_slli_epi16(a: m128i, imm8: i32) -> m128i {
+    unsafe { bitcast(sse2_pslli_w(a.as_i16x8(), imm8)) }
+}
+
 // pslld
 // __m128i _mm_slli_epi32 (__m128i a, int imm8)
 // psllq
 // __m128i _mm_slli_epi64 (__m128i a, int imm8)
+
 // pslldq
 // __m128i _mm_slli_si128 (__m128i a, int imm8)
+#[inline]
+pub fn mm_slli_si128(a: m128i, imm8: i32) -> m128i {
+    let zero = mm_setzero_si128().as_i8x16();
+    let aa = a.as_i8x16();
+    let x: i8x16 = unsafe {
+        match imm8 & 0xFF {
+            0x0 => simd_shuffle16(zero, aa, [16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]),
+            0x1 => simd_shuffle16(zero, aa, [15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]),
+            0x2 => simd_shuffle16(zero, aa, [14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]),
+            0x3 => simd_shuffle16(zero, aa, [13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28]),
+            0x4 => simd_shuffle16(zero, aa, [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27]),
+            0x5 => simd_shuffle16(zero, aa, [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26]),
+            0x6 => simd_shuffle16(zero, aa, [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]),
+            0x7 => simd_shuffle16(zero, aa, [ 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]),
+            0x8 => simd_shuffle16(zero, aa, [ 8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]),
+            0x9 => simd_shuffle16(zero, aa, [ 7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]),
+            0xA => simd_shuffle16(zero, aa, [ 6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]),
+            0xB => simd_shuffle16(zero, aa, [ 5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]),
+            0xC => simd_shuffle16(zero, aa, [ 4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]),
+            0xD => simd_shuffle16(zero, aa, [ 3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18]),
+            0xE => simd_shuffle16(zero, aa, [ 2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17]),
+            0xF => simd_shuffle16(zero, aa, [ 1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16]),
+              _ => simd_shuffle16(zero, aa, [ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15]),
+        }
+    };
+    x.as_m128i()
+}
+
 // sqrtpd
 // __m128d _mm_sqrt_pd (__m128d a)
 // sqrtsd
@@ -367,14 +464,49 @@ extern {
 // __m128i _mm_srl_epi32 (__m128i a, __m128i count)
 // psrlq
 // __m128i _mm_srl_epi64 (__m128i a, __m128i count)
+
 // psrlw
 // __m128i _mm_srli_epi16 (__m128i a, int imm8)
+#[inline]
+pub fn mm_srli_epi16(a: m128i, imm8: i32) -> m128i {
+    unsafe { bitcast(sse2_psrli_w(a.as_i16x8(), imm8)) }
+}
+
 // psrld
 // __m128i _mm_srli_epi32 (__m128i a, int imm8)
 // psrlq
 // __m128i _mm_srli_epi64 (__m128i a, int imm8)
+
 // psrldq
 // __m128i _mm_srli_si128 (__m128i a, int imm8)
+#[inline]
+pub fn mm_srli_si128(a: m128i, imm8: i32) -> m128i {
+    let zero = mm_setzero_si128().as_i8x16();
+    let aa = a.as_i8x16();
+    let x: i8x16 = unsafe {
+        match imm8 & 0xFF {
+            0x0 => simd_shuffle16(aa, zero, [ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15]),
+            0x1 => simd_shuffle16(aa, zero, [ 1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16]),
+            0x2 => simd_shuffle16(aa, zero, [ 2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17]),
+            0x3 => simd_shuffle16(aa, zero, [ 3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18]),
+            0x4 => simd_shuffle16(aa, zero, [ 4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]),
+            0x5 => simd_shuffle16(aa, zero, [ 5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]),
+            0x6 => simd_shuffle16(aa, zero, [ 6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]),
+            0x7 => simd_shuffle16(aa, zero, [ 7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]),
+            0x8 => simd_shuffle16(aa, zero, [ 8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]),
+            0x9 => simd_shuffle16(aa, zero, [ 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]),
+            0xA => simd_shuffle16(aa, zero, [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]),
+            0xB => simd_shuffle16(aa, zero, [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26]),
+            0xC => simd_shuffle16(aa, zero, [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27]),
+            0xD => simd_shuffle16(aa, zero, [13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28]),
+            0xE => simd_shuffle16(aa, zero, [14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]),
+            0xF => simd_shuffle16(aa, zero, [15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]),
+              _ => simd_shuffle16(aa, zero, [16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]),
+        }
+    };
+    x.as_m128i()
+}
+
 // movapd
 // void _mm_store_pd (double* mem_addr, __m128d a)
 // ...
@@ -461,133 +593,12 @@ extern {
 // __m128d _mm_unpacklo_pd (__m128d a, __m128d b)
 // xorpd
 // __m128d _mm_xor_pd (__m128d a, __m128d b)
+
 // pxor
 // __m128i _mm_xor_si128 (__m128i a, __m128i b)
-
-#[inline]
-pub fn mm_setzero_si128() -> m128i {
-    m128i(0, 0)
-}
-
-#[inline]
-pub fn mm_set_epi32(r3: i32, r2: i32, r1: i32, r0: i32) -> m128i {
-    i32x4(r0, r1, r2, r3).as_m128i()
-}
-
-#[inline]
-pub fn mm_setr_epi32(r0: i32, r1: i32, r2: i32, r3: i32) -> m128i {
-    i32x4(r0, r1, r2, r3).as_m128i()
-}
-
-#[inline]
-pub fn mm_set_epi16(r7: i16, r6: i16, r5: i16, r4: i16,
-                    r3: i16, r2: i16, r1: i16, r0: i16) -> m128i {
-    i16x8(r0, r1, r2, r3, r4, r5, r6, r7).as_m128i()
-}
-
-#[inline]
-pub fn mm_setr_epi16(r0: i16, r1: i16, r2: i16, r3: i16,
-                     r4: i16, r5: i16, r6: i16, r7: i16) -> m128i {
-    i16x8(r0, r1, r2, r3, r4, r5, r6, r7).as_m128i()
-}
-
-#[inline]
-pub fn mm_set_epi8(r15: i8, r14: i8, r13: i8, r12: i8, r11: i8, r10: i8, r9: i8, r8: i8,
-                   r7: i8, r6: i8, r5: i8, r4: i8, r3: i8, r2: i8, r1: i8, r0: i8) -> m128i {
-    i8x16(r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15).as_m128i()
-}
-
-#[inline]
-pub fn mm_setr_epi8(r0: i8, r1: i8, r2: i8, r3: i8, r4: i8, r5: i8, r6: i8, r7: i8,
-                    r8: i8, r9: i8, r10: i8, r11: i8, r12: i8, r13: i8, r14: i8, r15: i8) -> m128i {
-    i8x16(r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15).as_m128i()
-}
-
-#[inline]
-pub fn mm_and_si128(a: m128i, b: m128i) -> m128i {
-    unsafe { simd_and(a, b) }
-}
-
-#[inline]
-pub fn mm_or_si128(a: m128i, b: m128i) -> m128i {
-    unsafe { simd_or(a, b) }
-}
-
 #[inline]
 pub fn mm_xor_si128(a: m128i, b: m128i) -> m128i {
     unsafe { simd_xor(a, b) }
-}
-
-#[inline]
-pub fn mm_andnot_si128(a: m128i, b: m128i) -> m128i {
-    let ones = i64x2(!0, !0).as_m128i();
-    mm_and_si128(mm_xor_si128(a, ones), b)
-}
-
-#[inline]
-pub fn mm_slli_epi16(a: m128i, imm8: i32) -> m128i {
-    unsafe { bitcast(sse2_pslli_w(a.as_i16x8(), imm8)) }
-}
-
-#[inline]
-pub fn mm_srli_epi16(a: m128i, imm8: i32) -> m128i {
-    unsafe { bitcast(sse2_psrli_w(a.as_i16x8(), imm8)) }
-}
-
-#[inline]
-pub fn mm_slli_si128(a: m128i, imm8: i32) -> m128i {
-    let zero = mm_setzero_si128().as_i8x16();
-    let aa = a.as_i8x16();
-    let x: i8x16 = unsafe {
-        match imm8 & 0xFF {
-            0x0 => simd_shuffle16(zero, aa, [16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]),
-            0x1 => simd_shuffle16(zero, aa, [15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]),
-            0x2 => simd_shuffle16(zero, aa, [14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]),
-            0x3 => simd_shuffle16(zero, aa, [13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28]),
-            0x4 => simd_shuffle16(zero, aa, [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27]),
-            0x5 => simd_shuffle16(zero, aa, [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26]),
-            0x6 => simd_shuffle16(zero, aa, [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]),
-            0x7 => simd_shuffle16(zero, aa, [ 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]),
-            0x8 => simd_shuffle16(zero, aa, [ 8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]),
-            0x9 => simd_shuffle16(zero, aa, [ 7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]),
-            0xA => simd_shuffle16(zero, aa, [ 6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]),
-            0xB => simd_shuffle16(zero, aa, [ 5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]),
-            0xC => simd_shuffle16(zero, aa, [ 4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]),
-            0xD => simd_shuffle16(zero, aa, [ 3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18]),
-            0xE => simd_shuffle16(zero, aa, [ 2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17]),
-            0xF => simd_shuffle16(zero, aa, [ 1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16]),
-              _ => simd_shuffle16(zero, aa, [ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15]),
-        }
-    };
-    x.as_m128i()
-}
-
-#[inline]
-pub fn mm_srli_si128(a: m128i, imm8: i32) -> m128i {
-    let zero = mm_setzero_si128().as_i8x16();
-    let aa = a.as_i8x16();
-    let x: i8x16 = unsafe {
-        match imm8 & 0xFF {
-            0x0 => simd_shuffle16(aa, zero, [ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15]),
-            0x1 => simd_shuffle16(aa, zero, [ 1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16]),
-            0x2 => simd_shuffle16(aa, zero, [ 2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17]),
-            0x3 => simd_shuffle16(aa, zero, [ 3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18]),
-            0x4 => simd_shuffle16(aa, zero, [ 4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]),
-            0x5 => simd_shuffle16(aa, zero, [ 5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]),
-            0x6 => simd_shuffle16(aa, zero, [ 6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]),
-            0x7 => simd_shuffle16(aa, zero, [ 7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]),
-            0x8 => simd_shuffle16(aa, zero, [ 8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]),
-            0x9 => simd_shuffle16(aa, zero, [ 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]),
-            0xA => simd_shuffle16(aa, zero, [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]),
-            0xB => simd_shuffle16(aa, zero, [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26]),
-            0xC => simd_shuffle16(aa, zero, [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27]),
-            0xD => simd_shuffle16(aa, zero, [13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28]),
-            0xE => simd_shuffle16(aa, zero, [14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]),
-            0xF => simd_shuffle16(aa, zero, [15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]),
-              _ => simd_shuffle16(aa, zero, [16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]),
-        }
-    };
-    x.as_m128i()
 }
 
 #[cfg(test)]
