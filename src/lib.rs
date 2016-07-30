@@ -52,10 +52,18 @@ impl m128i {
 #[repr(C, simd)]
 pub struct m128(f32, f32, f32, f32);
 
+impl m128 {
+    pub fn as_f32x4(self) -> f32x4 { unsafe { bitcast(self) } }
+}
+
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(C, simd)]
 pub struct m128d(f64, f64);
+
+impl m128d {
+    pub fn as_f64x2(self) -> f64x2 { unsafe { bitcast(self) } }
+}
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
@@ -120,14 +128,26 @@ macro_rules! simd_type {
             pub fn as_m128i(self) -> m128i {
                 unsafe { bitcast(self) }
             }
+
+            #[inline]
+            pub fn as_m128(self) -> m128 {
+                unsafe { bitcast(self) }
+            }
+
+            #[inline]
+            pub fn as_m128d(self) -> m128d {
+                unsafe { bitcast(self) }
+            }
         }
     }
 }
 
 simd_type! { i64x2, i64, 2 }
 simd_type! { u64x2, u64, 2 }
+simd_type! { f64x2, f64, 2 }
 simd_type! { i32x4, i32, 4 }
 simd_type! { u32x4, u32, 4 }
+simd_type! { f32x4, f32, 4 }
 simd_type! { i16x8, i16, 8 }
 simd_type! { u16x8, u16, 8 }
 simd_type! { i8x16, i8, 16 }
