@@ -340,8 +340,13 @@ pub fn mm_set_epi32(r3: i32, r2: i32, r1: i32, r0: i32) -> m128i {
 
 // ...
 // __m128i _mm_set_epi64 (__m64 e1, __m64 e0)
+
 // ...
 // __m128i _mm_set_epi64x (__int64 e1, __int64 e0)
+#[inline]
+pub fn mm_set_epi64x(e1: i64, e0: i64) -> m128i {
+    i64x2(e0, e1).as_m128i()
+}
 
 // ...
 // __m128i _mm_set_epi8 (char e15, char e14, char e13, char e12, char e11, char e10, char e9, char e8, char e7, char e6, char e5, char e4, char e3, char e2, char e1, char e0)
@@ -673,6 +678,13 @@ mod tests {
         assert_eq!(x.extract(5), 6);
         assert_eq!(x.extract(6), 7);
         assert_eq!(x.extract(7), 8);
+    }
+
+    #[test]
+    fn test_mm_set_epi64x() {
+        let x = mm_set_epi64x(0x3, 0xF).as_i64x2();
+        assert_eq!(x.extract(0), 0xF);
+        assert_eq!(x.extract(1), 0x3);
     }
 
     #[test]
