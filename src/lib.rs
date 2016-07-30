@@ -49,6 +49,24 @@ impl m128i {
     pub fn as_u8x16(self) -> u8x16 { unsafe { bitcast(self) } }
 }
 
+macro_rules! m128i_operators {
+    ($name: ident, $method: ident, $func: ident) => {
+        impl std::ops::$name for m128i {
+            type Output = Self;
+
+            #[inline]
+            fn $method(self, x: Self) -> Self {
+                unsafe { $func(self, x) }
+            }
+        }
+    }
+}
+
+// Add &, |, ^ operators for m128i.
+m128i_operators! { BitAnd, bitand, simd_and }
+m128i_operators! { BitOr,  bitor,  simd_or }
+m128i_operators! { BitXor,  bitxor,  simd_xor }
+
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(C, simd)]
@@ -198,6 +216,31 @@ pub use avx2::*;
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn basic_m128i_ops() {
+        let x = m128i(1, 2, 3, 4);
+        let y = m128i(2, 3, 4, 5);
+
+        let xy_and = (x & y).as_i32x4();
+        let xy_or  = (x | y).as_i32x4();
+        let xy_xor = (x ^ y).as_i32x4();
+
+        assert_eq!(xy_and.extract(0), 1 & 2);
+        assert_eq!(xy_and.extract(1), 2 & 3);
+        assert_eq!(xy_and.extract(2), 3 & 4);
+        assert_eq!(xy_and.extract(3), 4 & 5);
+
+        assert_eq!(xy_or.extract(0), 1 | 2);
+        assert_eq!(xy_or.extract(1), 2 | 3);
+        assert_eq!(xy_or.extract(2), 3 | 4);
+        assert_eq!(xy_or.extract(3), 4 | 5);
+
+        assert_eq!(xy_xor.extract(0), 1 ^ 2);
+        assert_eq!(xy_xor.extract(1), 2 ^ 3);
+        assert_eq!(xy_xor.extract(2), 3 ^ 4);
+        assert_eq!(xy_xor.extract(3), 4 ^ 5);
+    }
 
     #[test]
     fn basic_i64x2() {
