@@ -386,7 +386,7 @@ pub fn mm_setr_epi8(r0: i8, r1: i8, r2: i8, r3: i8, r4: i8, r5: i8, r6: i8, r7: 
 // __m128i _mm_setzero_si128 ()
 #[inline]
 pub fn mm_setzero_si128() -> m128i {
-    m128i(0, 0)
+    m128i(0, 0, 0, 0)
 }
 
 // pshufd

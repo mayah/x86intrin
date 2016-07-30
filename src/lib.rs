@@ -26,6 +26,40 @@ unsafe fn bitcast<T, U>(x: T) -> U {
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(C, simd)]
+pub struct m128i(i32, i32, i32, i32);
+
+impl m128i {
+    #[inline]
+    pub fn as_i64x2(self) -> i64x2 { unsafe { bitcast(self) } }
+    #[inline]
+    pub fn as_u64x2(self) -> u64x2 { unsafe { bitcast(self) } }
+    #[inline]
+    pub fn as_i32x4(self) -> i32x4 { unsafe { bitcast(self) } }
+    #[inline]
+    pub fn as_u32x4(self) -> u32x4 { unsafe { bitcast(self) } }
+    #[inline]
+    pub fn as_i16x8(self) -> i16x8 { unsafe { bitcast(self) } }
+    #[inline]
+    pub fn as_u16x8(self) -> u16x8 { unsafe { bitcast(self) } }
+    #[inline]
+    pub fn as_i8x16(self) -> i8x16 { unsafe { bitcast(self) } }
+    #[inline]
+    pub fn as_u8x16(self) -> u8x16 { unsafe { bitcast(self) } }
+}
+
+#[allow(non_camel_case_types)]
+#[derive(Debug, Copy, Clone)]
+#[repr(C, simd)]
+pub struct m128(f32, f32, f32, f32);
+
+#[allow(non_camel_case_types)]
+#[derive(Debug, Copy, Clone)]
+#[repr(C, simd)]
+pub struct m128d(f64, f64);
+
+#[allow(non_camel_case_types)]
+#[derive(Debug, Copy, Clone)]
+#[repr(C, simd)]
 pub struct i64x2(i64, i64);
 
 #[allow(non_camel_case_types)]
@@ -36,12 +70,22 @@ pub struct u64x2(u64, u64);
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(C, simd)]
+pub struct f64x2(f64, f64);
+
+#[allow(non_camel_case_types)]
+#[derive(Debug, Copy, Clone)]
+#[repr(C, simd)]
 pub struct i32x4(i32, i32, i32, i32);
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(C, simd)]
 pub struct u32x4(u32, u32, u32, u32);
+
+#[allow(non_camel_case_types)]
+#[derive(Debug, Copy, Clone)]
+#[repr(C, simd)]
+pub struct f32x4(f32, f32, f32, f32);
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
@@ -88,30 +132,6 @@ simd_type! { i16x8, i16, 8 }
 simd_type! { u16x8, u16, 8 }
 simd_type! { i8x16, i8, 16 }
 simd_type! { u8x16, u8, 16 }
-
-#[allow(non_camel_case_types)]
-#[derive(Debug, Copy, Clone)]
-#[repr(C, simd)]
-pub struct m128i(i64, i64);
-
-impl m128i {
-    #[inline]
-    pub fn as_i64x2(self) -> i64x2 { unsafe { bitcast(self) } }
-    #[inline]
-    pub fn as_u64x2(self) -> u64x2 { unsafe { bitcast(self) } }
-    #[inline]
-    pub fn as_i32x4(self) -> i32x4 { unsafe { bitcast(self) } }
-    #[inline]
-    pub fn as_u32x4(self) -> u32x4 { unsafe { bitcast(self) } }
-    #[inline]
-    pub fn as_i16x8(self) -> i16x8 { unsafe { bitcast(self) } }
-    #[inline]
-    pub fn as_u16x8(self) -> u16x8 { unsafe { bitcast(self) } }
-    #[inline]
-    pub fn as_i8x16(self) -> i8x16 { unsafe { bitcast(self) } }
-    #[inline]
-    pub fn as_u8x16(self) -> u8x16 { unsafe { bitcast(self) } }
-}
 
 #[cfg(any(feature = "doc", target_feature = "sse"))]
 pub mod sse;
