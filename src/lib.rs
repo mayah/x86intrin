@@ -113,10 +113,45 @@ impl m128i {
     pub fn as_u8x16(self) -> u8x16 { unsafe { bitcast(self) } }
 }
 
+#[cfg(any(feature = "doc", target_feature = "sse"))]
+pub mod sse;
+#[cfg(any(feature = "doc", target_feature = "sse"))]
+pub use sse::*;
+
 #[cfg(any(feature = "doc", target_feature = "sse2"))]
 pub mod sse2;
 #[cfg(any(feature = "doc", target_feature = "sse2"))]
 pub use sse2::*;
+
+#[cfg(any(feature = "doc", target_feature = "sse3"))]
+pub mod sse3;
+#[cfg(any(feature = "doc", target_feature = "sse3"))]
+pub use sse3::*;
+
+#[cfg(any(feature = "doc", target_feature = "ssse3"))]
+pub mod ssse3;
+#[cfg(any(feature = "doc", target_feature = "ssse3"))]
+pub use ssse3::*;
+
+#[cfg(any(feature = "doc", target_feature = "sse4.1"))]
+pub mod sse41;
+#[cfg(any(feature = "doc", target_feature = "sss4.1"))]
+pub use sse41::*;
+
+#[cfg(any(feature = "doc", target_feature = "sse4.2"))]
+pub mod sse42;
+#[cfg(any(feature = "doc", target_feature = "sss4.2"))]
+pub use sse42::*;
+
+#[cfg(any(feature = "doc", target_feature = "avx"))]
+pub mod avx;
+#[cfg(any(feature = "doc", target_feature = "avx"))]
+pub use avx::*;
+
+#[cfg(any(feature = "doc", target_feature = "avx2"))]
+pub mod avx2;
+#[cfg(any(feature = "doc", target_feature = "avx2"))]
+pub use avx2::*;
 
 #[cfg(test)]
 mod tests {
