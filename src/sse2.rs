@@ -1,3 +1,4 @@
+use std;
 use super::*;
 use super::{bitcast, simd_and, simd_or, simd_xor, simd_shuffle16};
 
@@ -7,6 +8,24 @@ extern {
     #[link_name = "llvm.x86.sse2.psrli.w"]
     pub fn sse2_psrli_w(a: i16x8, b: i32) -> i16x8;
 }
+
+macro_rules! m128i_operators {
+    ($name: ident, $method: ident, $func: ident) => {
+        impl std::ops::$name for m128i {
+            type Output = Self;
+
+            #[inline]
+            fn $method(self, x: Self) -> Self {
+                unsafe { $func(self, x) }
+            }
+        }
+    }
+}
+
+// Add &, |, ^ operators for m128i.
+m128i_operators! { BitAnd, bitand, simd_and }
+m128i_operators! { BitOr,  bitor,  simd_or }
+m128i_operators! { BitXor,  bitxor,  simd_xor }
 
 // paddw
 // __m128i _mm_add_epi16 (__m128i a, __m128i b)

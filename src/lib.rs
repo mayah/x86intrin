@@ -49,24 +49,6 @@ impl m128i {
     pub fn as_u8x16(self) -> u8x16 { unsafe { bitcast(self) } }
 }
 
-macro_rules! m128i_operators {
-    ($name: ident, $method: ident, $func: ident) => {
-        impl std::ops::$name for m128i {
-            type Output = Self;
-
-            #[inline]
-            fn $method(self, x: Self) -> Self {
-                unsafe { $func(self, x) }
-            }
-        }
-    }
-}
-
-// Add &, |, ^ operators for m128i.
-m128i_operators! { BitAnd, bitand, simd_and }
-m128i_operators! { BitOr,  bitor,  simd_or }
-m128i_operators! { BitXor,  bitxor,  simd_xor }
-
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(C, simd)]
