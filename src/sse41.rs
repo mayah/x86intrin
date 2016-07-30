@@ -143,7 +143,6 @@ pub fn mm_testz_si128(a: m128i, b: m128i) -> i32 {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use super::super::*;
 
     #[test]
