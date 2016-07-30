@@ -36,6 +36,18 @@ pub fn mm_setr_epi16(r0: i16, r1: i16, r2: i16, r3: i16,
 }
 
 #[inline]
+pub fn mm_set_epi8(r15: i8, r14: i8, r13: i8, r12: i8, r11: i8, r10: i8, r9: i8, r8: i8,
+                   r7: i8, r6: i8, r5: i8, r4: i8, r3: i8, r2: i8, r1: i8, r0: i8) -> m128i {
+    i8x16(r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15).as_m128i()
+}
+
+#[inline]
+pub fn mm_setr_epi8(r0: i8, r1: i8, r2: i8, r3: i8, r4: i8, r5: i8, r6: i8, r7: i8,
+                    r8: i8, r9: i8, r10: i8, r11: i8, r12: i8, r13: i8, r14: i8, r15: i8) -> m128i {
+    i8x16(r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15).as_m128i()
+}
+
+#[inline]
 pub fn mm_and_si128(a: m128i, b: m128i) -> m128i {
     unsafe { simd_and(a, b) }
 }
