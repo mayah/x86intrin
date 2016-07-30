@@ -13,6 +13,8 @@ extern "platform-intrinsic" {
     fn simd_or<T>(x: T, y: T) -> T;
     fn simd_xor<T>(x: T, y: T) -> T;
     fn simd_extract<T, U>(x: T, idx: u32) -> U;
+
+    fn simd_shuffle16<T, U>(x: T, y: T, idx: [u32; 16]) -> U;
 }
 
 #[inline]
