@@ -9,6 +9,8 @@
 #![feature(simd_ffi)]
 
 extern "platform-intrinsic" {
+    fn simd_add<T>(x: T, y: T) -> T;
+
     fn simd_and<T>(x: T, y: T) -> T;
     fn simd_or<T>(x: T, y: T) -> T;
     fn simd_xor<T>(x: T, y: T) -> T;

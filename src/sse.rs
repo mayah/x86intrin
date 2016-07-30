@@ -1,5 +1,13 @@
+use super::*;
+use super::{simd_add};
+
 // addps
 // __m128 _mm_add_ps (__m128 a, __m128 b)
+#[inline]
+pub fn mm_add_ps(a: m128, b: m128) -> m128 {
+    unsafe { simd_add(a, b) }
+}
+
 // addss
 // __m128 _mm_add_ss (__m128 a, __m128 b)
 // andps
@@ -234,8 +242,14 @@
 // __m128 _mm_set1_ps (float a)
 // ldmxcsr
 // void _mm_setcsr (unsigned int a)
+
 // ...
 // __m128 _mm_setr_ps (float e3, float e2, float e1, float e0)
+#[inline]
+pub fn mm_setr_ps(e3: f32, e2: f32, e1: f32, e0: f32) -> m128 {
+    m128(e0, e1, e2, e3)
+}
+
 // xorps
 // __m128 _mm_setzero_ps (void)
 // sfence
@@ -292,3 +306,19 @@
 // __m128 _mm_unpacklo_ps (__m128 a, __m128 b)
 // xorps
 // __m128 _mm_xor_ps (__m128 a, __m128 b)
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_mm_add_ps() {
+        let x = mm_setr_ps(1.0, 2.0, 3.0, 4.0);
+        let y = mm_add_ps(x, x).as_f32x4();
+
+        assert_eq!(y.extract(0), 8.0);
+        assert_eq!(y.extract(1), 6.0);
+        assert_eq!(y.extract(2), 4.0);
+        assert_eq!(y.extract(3), 2.0);
+    }
+}
