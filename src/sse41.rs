@@ -3,6 +3,8 @@ use super::*;
 extern {
     #[link_name = "llvm.x86.sse41.ptestc"]
     pub fn sse41_ptestc(a: i64x2, b: i64x2) -> i32;
+    #[link_name = "llvm.x86.sse41.ptestz"]
+    pub fn sse41_ptestz(a: i64x2, b: i64x2) -> i32;
 }
 
 // pblendw
@@ -131,8 +133,13 @@ pub fn mm_testc_si128(a: m128i, b: m128i) -> i32 {
 
 // ptest
 // int _mm_testnzc_si128 (__m128i a, __m128i b)
+
 // ptest
 // int _mm_testz_si128 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_testz_si128(a: m128i, b: m128i) -> i32 {
+    unsafe { sse41_ptestz(a.as_i64x2(), b.as_i64x2()) }
+}
 
 #[cfg(test)]
 mod tests {
@@ -147,5 +154,17 @@ mod tests {
 
         assert_eq!(mm_testc_si128(x, y), 1);
         assert_eq!(mm_testc_si128(x, z), 0);
+    }
+
+    #[test]
+    fn test_mm_testz_si128() {
+        let x = mm_setr_epi32(0x0, 0x0, 0x0, 0x0);
+        let y = mm_setr_epi32(0x1, 0x1, 0x1, 0x1);
+        let z = mm_setr_epi32(0x2, 0x2, 0x2, 0x2);
+
+        assert_eq!(mm_testz_si128(x, x), 1);
+        assert_eq!(mm_testz_si128(y, y), 0);
+        assert_eq!(mm_testz_si128(z, z), 0);
+        assert_eq!(mm_testz_si128(y, z), 1);
     }
 }
