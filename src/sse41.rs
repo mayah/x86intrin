@@ -1,3 +1,10 @@
+use super::*;
+
+extern {
+    #[link_name = "llvm.x86.sse41.ptestc"]
+    pub fn sse41_ptestc(a: i64x2, b: i64x2) -> i32;
+}
+
 // pblendw
 // __m128i _mm_blend_epi16 (__m128i a, __m128i b, const int imm8)
 // blendpd
@@ -114,9 +121,31 @@
 // int _mm_test_all_zeros (__m128i a, __m128i mask)
 // ptest
 // int _mm_test_mix_ones_zeros (__m128i a, __m128i mask)
+
 // ptest
 // int _mm_testc_si128 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_testc_si128(a: m128i, b: m128i) -> i32 {
+    unsafe { sse41_ptestc(a.as_i64x2(), b.as_i64x2()) }
+}
+
 // ptest
 // int _mm_testnzc_si128 (__m128i a, __m128i b)
 // ptest
 // int _mm_testz_si128 (__m128i a, __m128i b)
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use super::super::*;
+
+    #[test]
+    fn test_mm_testc_si128() {
+        let x = mm_setr_epi32(0x7, 0x7, 0x7, 0x7);
+        let y = mm_setr_epi32(0x3, 0x3, 0x3, 0x3);
+        let z = mm_setr_epi32(0x8, 0x8, 0x8, 0x8);
+
+        assert_eq!(mm_testc_si128(x, y), 1);
+        assert_eq!(mm_testc_si128(x, z), 0);
+    }
+}
