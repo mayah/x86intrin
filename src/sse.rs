@@ -1,5 +1,5 @@
 use super::*;
-use super::{simd_add,
+use super::{simd_add, simd_div,
             simd_and, simd_xor,
             simd_eq, simd_ge, simd_gt, simd_lt, simd_le, simd_ne,
             simd_shuffle4};
@@ -414,6 +414,11 @@ pub fn mm_cvttss_si64(a: m128) -> i64 {
 
 // divps
 // __m128 _mm_div_ps (__m128 a, __m128 b)
+#[inline]
+pub fn mm_div_ps(a: m128, b: m128) -> m128 {
+    unsafe { simd_div(a, b) }
+}
+
 // divss
 // __m128 _mm_div_ss (__m128 a, __m128 b)
 // pextrw
@@ -917,5 +922,14 @@ mod tests {
         assert_eq!(mm_cvtt_ss2si(x), 1);
         assert_eq!(mm_cvttss_si32(x), 1);
         assert_eq!(mm_cvttss_si64(x), 1);
+    }
+
+    #[test]
+    fn test_div() {
+        let x = mm_setr_ps(1.0, 2.0, 3.0, 4.0);
+        let y = mm_setr_ps(2.0, 2.0, 2.0, 2.0);
+        let z = mm_div_ps(x, y);
+
+        assert_eq!(z.as_f32x4().as_array(), [0.5, 1.0, 1.5, 2.0]);
     }
 }

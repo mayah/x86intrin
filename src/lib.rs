@@ -10,6 +10,7 @@
 
 extern "platform-intrinsic" {
     fn simd_add<T>(x: T, y: T) -> T;
+    fn simd_div<T>(x: T, y: T) -> T;
 
     fn simd_and<T>(x: T, y: T) -> T;
     fn simd_or<T>(x: T, y: T) -> T;
