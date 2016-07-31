@@ -1,6 +1,6 @@
 use std;
 use super::*;
-use super::{bitcast, simd_and, simd_or, simd_xor, simd_shuffle16};
+use super::{bitcast, simd_add, simd_and, simd_or, simd_xor, simd_shuffle16};
 
 extern {
     #[link_name = "llvm.x86.sse2.pslli.w"]
@@ -29,18 +29,50 @@ m128i_operators! { BitXor,  bitxor,  simd_xor }
 
 // paddw
 // __m128i _mm_add_epi16 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_add_epi16(a: m128i, b: m128i) -> m128i {
+    unsafe { simd_add(a.as_i16x8(), b.as_i16x8()).as_m128i() }
+}
+
 // paddd
 // __m128i _mm_add_epi32 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_add_epi32(a: m128i, b: m128i) -> m128i {
+    unsafe { simd_add(a.as_i32x4(), b.as_i32x4()).as_m128i() }
+}
+
 // paddq
 // __m128i _mm_add_epi64 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_add_epi64(a: m128i, b: m128i) -> m128i {
+    unsafe { simd_add(a.as_i64x2(), b.as_i64x2()).as_m128i() }
+}
+
 // paddb
 // __m128i _mm_add_epi8 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_add_epi8(a: m128i, b: m128i) -> m128i {
+    unsafe { simd_add(a.as_i8x16(), b.as_i8x16()).as_m128i() }
+}
+
 // addpd
 // __m128d _mm_add_pd (__m128d a, __m128d b)
+#[inline]
+pub fn mm_add_pd(a: m128, b: m128) -> m128 {
+    unsafe { simd_add(a.as_f32x4(), b.as_f32x4()).as_m128() }
+}
+
 // addsd
 // __m128d _mm_add_sd (__m128d a, __m128d b)
+#[inline]
+pub fn mm_add_sd(a: m128, b: m128) -> m128 {
+    let v = a.as_f32x4().extract(0) + b.as_f32x4().extract(0);
+    a.insert(0, v)
+}
+
 // paddq
 // __m64 _mm_add_si64 (__m64 a, __m64 b)
+
 // paddsw
 // __m128i _mm_adds_epi16 (__m128i a, __m128i b)
 // paddsb
@@ -326,16 +358,16 @@ pub fn mm_or_si128(a: m128i, b: m128i) -> m128i {
 // ...
 // __m128i _mm_set_epi16 (short e7, short e6, short e5, short e4, short e3, short e2, short e1, short e0)
 #[inline]
-pub fn mm_set_epi16(r7: i16, r6: i16, r5: i16, r4: i16,
-                    r3: i16, r2: i16, r1: i16, r0: i16) -> m128i {
-    i16x8(r0, r1, r2, r3, r4, r5, r6, r7).as_m128i()
+pub fn mm_set_epi16(e7: i16, e6: i16, e5: i16, e4: i16,
+                    e3: i16, e2: i16, e1: i16, e0: i16) -> m128i {
+    i16x8(e0, e1, e2, e3, e4, e5, e6, e7).as_m128i()
 }
 
 // ...
 // __m128i _mm_set_epi32 (int e3, int e2, int e1, int e0)
 #[inline]
-pub fn mm_set_epi32(r3: i32, r2: i32, r1: i32, r0: i32) -> m128i {
-    i32x4(r0, r1, r2, r3).as_m128i()
+pub fn mm_set_epi32(e3: i32, e2: i32, e1: i32, e0: i32) -> m128i {
+    i32x4(e0, e1, e2, e3).as_m128i()
 }
 
 // ...
@@ -351,9 +383,9 @@ pub fn mm_set_epi64x(e1: i64, e0: i64) -> m128i {
 // ...
 // __m128i _mm_set_epi8 (char e15, char e14, char e13, char e12, char e11, char e10, char e9, char e8, char e7, char e6, char e5, char e4, char e3, char e2, char e1, char e0)
 #[inline]
-pub fn mm_set_epi8(r15: i8, r14: i8, r13: i8, r12: i8, r11: i8, r10: i8, r9: i8, r8: i8,
-                   r7: i8, r6: i8, r5: i8, r4: i8, r3: i8, r2: i8, r1: i8, r0: i8) -> m128i {
-    i8x16(r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15).as_m128i()
+pub fn mm_set_epi8(e15: i8, e14: i8, e13: i8, e12: i8, e11: i8, e10: i8, e9: i8, e8: i8,
+                   e7: i8, e6: i8, e5: i8, e4: i8, e3: i8, e2: i8, e1: i8, e0: i8) -> m128i {
+    i8x16(e0, e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15).as_m128i()
 }
 
 // ...
@@ -378,16 +410,16 @@ pub fn mm_set_epi8(r15: i8, r14: i8, r13: i8, r12: i8, r11: i8, r10: i8, r9: i8,
 // ...
 // __m128i _mm_setr_epi16 (short e7, short e6, short e5, short e4, short e3, short e2, short e1, short e0)
 #[inline]
-pub fn mm_setr_epi16(r0: i16, r1: i16, r2: i16, r3: i16,
-                     r4: i16, r5: i16, r6: i16, r7: i16) -> m128i {
-    i16x8(r0, r1, r2, r3, r4, r5, r6, r7).as_m128i()
+pub fn mm_setr_epi16(e0: i16, e1: i16, e2: i16, e3: i16,
+                     e4: i16, e5: i16, e6: i16, e7: i16) -> m128i {
+    i16x8(e0, e1, e2, e3, e4, e5, e6, e7).as_m128i()
 }
 
 // ...
 // __m128i _mm_setr_epi32 (int e3, int e2, int e1, int e0)
 #[inline]
-pub fn mm_setr_epi32(r0: i32, r1: i32, r2: i32, r3: i32) -> m128i {
-    i32x4(r0, r1, r2, r3).as_m128i()
+pub fn mm_setr_epi32(e0: i32, e1: i32, e2: i32, e3: i32) -> m128i {
+    i32x4(e0, e1, e2, e3).as_m128i()
 }
 
 // ...
@@ -396,9 +428,9 @@ pub fn mm_setr_epi32(r0: i32, r1: i32, r2: i32, r3: i32) -> m128i {
 // ...
 // __m128i _mm_setr_epi8 (char e15, char e14, char e13, char e12, char e11, char e10, char e9, char e8, char e7, char e6, char e5, char e4, char e3, char e2, char e1, char e0)
 #[inline]
-pub fn mm_setr_epi8(r0: i8, r1: i8, r2: i8, r3: i8, r4: i8, r5: i8, r6: i8, r7: i8,
-                    r8: i8, r9: i8, r10: i8, r11: i8, r12: i8, r13: i8, r14: i8, r15: i8) -> m128i {
-    i8x16(r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15).as_m128i()
+pub fn mm_setr_epi8(e0: i8, e1: i8, e2: i8, e3: i8, e4: i8, e5: i8, e6: i8, e7: i8,
+                    e8: i8, e9: i8, e10: i8, e11: i8, e12: i8, e13: i8, e14: i8, e15: i8) -> m128i {
+    i8x16(e0, e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15).as_m128i()
 }
 
 // ...
@@ -627,7 +659,42 @@ pub fn mm_xor_si128(a: m128i, b: m128i) -> m128i {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::super::*;
+
+    #[test]
+    fn test_mm_add_epi() {
+        let x = mm_setr_epi8(0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xA, 0xB, 0xC, 0xD, 0xE, 0xF, 0x0);
+        let y = mm_setr_epi8(0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1);
+
+        let z8 = mm_add_epi8(x, y);
+        let z16 = mm_add_epi16(x, y);
+        let z32 = mm_add_epi32(x, y);
+        let z64 = mm_add_epi64(x, y);
+
+        assert_eq!(z8.as_i8x16().extract(0), 2);
+        assert_eq!(z16.as_i16x8().extract(0), 0x0201 + 0x0101);
+        assert_eq!(z32.as_i32x4().extract(0), 0x04030201 + 0x01010101);
+        assert_eq!(z64.as_i64x2().extract(0), 0x0807060504030201 + 0x0101010101010101);
+    }
+
+    #[test]
+    fn test_mm_add_d() {
+        let x = mm_setr_ps(1.0, 2.0, 3.0, 4.0);
+        let y = mm_setr_ps(8.0, 9.0, 2.0, 4.0);
+
+        let zp = mm_add_pd(x, y);
+        let zs = mm_add_sd(x, y);
+
+        assert_eq!(zp.as_f32x4().extract(0), 9.0);
+        assert_eq!(zp.as_f32x4().extract(1), 11.0);
+        assert_eq!(zp.as_f32x4().extract(2), 5.0);
+        assert_eq!(zp.as_f32x4().extract(3), 8.0);
+
+        assert_eq!(zs.as_f32x4().extract(0), 9.0);
+        assert_eq!(zs.as_f32x4().extract(1), 2.0);
+        assert_eq!(zs.as_f32x4().extract(2), 3.0);
+        assert_eq!(zs.as_f32x4().extract(3), 4.0);
+    }
 
     #[test]
     fn test_mm_setzero_si128() {
