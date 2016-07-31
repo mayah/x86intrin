@@ -67,7 +67,7 @@ pub fn mm_add_pd(a: m128, b: m128) -> m128 {
 #[inline]
 pub fn mm_add_sd(a: m128, b: m128) -> m128 {
     let v = a.as_f32x4().extract(0) + b.as_f32x4().extract(0);
-    a.insert(0, v)
+    a.as_f32x4().insert(0, v).as_m128()
 }
 
 // paddq

@@ -1,5 +1,6 @@
 use super::*;
-use super::{simd_add};
+use super::{simd_add,
+            simd_and, simd_xor};
 
 // addps
 // __m128 _mm_add_ps (__m128 a, __m128 b)
@@ -10,10 +11,30 @@ pub fn mm_add_ps(a: m128, b: m128) -> m128 {
 
 // addss
 // __m128 _mm_add_ss (__m128 a, __m128 b)
+#[inline]
+pub fn mm_add_ss(a: m128, b: m128) -> m128 {
+    a.as_f32x4().insert(0, (a.as_f32x4().extract(0) + b.as_f32x4().extract(0))).as_m128()
+}
+
 // andps
 // __m128 _mm_and_ps (__m128 a, __m128 b)
+#[inline]
+pub fn mm_and_ps(a: m128, b: m128) -> m128 {
+    let ai = a.as_m128i();
+    let bi = b.as_m128i();
+    unsafe { simd_and(ai, bi).as_m128() }
+}
+
 // andnps
 // __m128 _mm_andnot_ps (__m128 a, __m128 b)
+#[inline]
+pub fn mm_andnot_ps(a: m128, b: m128) -> m128 {
+    let ones = i32x4(!0, !0, !0, !0).as_m128i();
+    let ai = a.as_m128i();
+    let bi = b.as_m128i();
+    unsafe { simd_and(simd_xor(ai, ones), bi).as_m128() }
+}
+
 // pavgw
 // __m64 _mm_avg_pu16 (__m64 a, __m64 b)
 // pavgb
@@ -309,7 +330,7 @@ pub fn mm_setr_ps(e0: f32, e1: f32, e2: f32, e3: f32) -> m128 {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::super::*;
 
     #[test]
     fn test_mm_add_ps() {
@@ -321,4 +342,35 @@ mod tests {
         assert_eq!(y.extract(2), 6.0);
         assert_eq!(y.extract(3), 8.0);
     }
+
+    #[test]
+    fn test_mm_add_ss() {
+        let x = mm_setr_ps(1.0, 2.0, 3.0, 4.0);
+        let y = mm_add_ss(x, x).as_f32x4();
+
+        assert_eq!(y.extract(0), 2.0);
+        assert_eq!(y.extract(1), 2.0);
+        assert_eq!(y.extract(2), 3.0);
+        assert_eq!(y.extract(3), 4.0);
+    }
+
+    #[test]
+    fn test_mm_and_ps() {
+        let x = i32x4(0x1, 0x2, 0x3, 0x4).as_m128();
+        let y = i32x4(0x3, 0x4, 0x5, 0x6).as_m128();
+
+        let z1 = mm_and_ps(x, y).as_m128i().as_i32x4();
+        let z2 = mm_andnot_ps(x, y).as_m128i().as_i32x4();
+
+        assert_eq!(z1.extract(0), 0x1 & 0x3);
+        assert_eq!(z1.extract(1), 0x2 & 0x4);
+        assert_eq!(z1.extract(2), 0x3 & 0x5);
+        assert_eq!(z1.extract(3), 0x4 & 0x6);
+
+        assert_eq!(z2.extract(0), !0x1 & 0x3);
+        assert_eq!(z2.extract(1), !0x2 & 0x4);
+        assert_eq!(z2.extract(2), !0x3 & 0x5);
+        assert_eq!(z2.extract(3), !0x4 & 0x6);
+    }
+
 }

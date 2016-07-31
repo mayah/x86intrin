@@ -49,6 +49,13 @@ impl m128i {
     pub fn as_i8x16(self) -> i8x16 { unsafe { bitcast(self) } }
     #[inline]
     pub fn as_u8x16(self) -> u8x16 { unsafe { bitcast(self) } }
+
+    #[inline]
+    pub fn as_m128i(self) -> m128i { unsafe { bitcast(self) } }
+    #[inline]
+    pub fn as_m128(self) -> m128 { unsafe { bitcast(self) } }
+    #[inline]
+    pub fn as_m128d(self) -> m128d { unsafe { bitcast(self) } }
 }
 
 #[allow(non_camel_case_types)]
@@ -61,10 +68,11 @@ impl m128 {
     pub fn as_f32x4(self) -> f32x4 { unsafe { bitcast(self) } }
 
     #[inline]
-    pub fn insert(self, idx: usize, v: f32) -> m128 {
-        debug_assert!(idx < 4);
-        unsafe { simd_insert(self, idx as u32, v) }
-    }
+    pub fn as_m128i(self) -> m128i { unsafe { bitcast(self) } }
+    #[inline]
+    pub fn as_m128(self) -> m128 { unsafe { bitcast(self) } }
+    #[inline]
+    pub fn as_m128d(self) -> m128d { unsafe { bitcast(self) } }
 }
 
 #[allow(non_camel_case_types)]
@@ -75,6 +83,13 @@ pub struct m128d(f64, f64);
 impl m128d {
     #[inline]
     pub fn as_f64x2(self) -> f64x2 { unsafe { bitcast(self) } }
+
+    #[inline]
+    pub fn as_m128i(self) -> m128i { unsafe { bitcast(self) } }
+    #[inline]
+    pub fn as_m128(self) -> m128 { unsafe { bitcast(self) } }
+    #[inline]
+    pub fn as_m128d(self) -> m128d { unsafe { bitcast(self) } }
 }
 
 #[allow(non_camel_case_types)]
@@ -210,6 +225,12 @@ macro_rules! simd_128_type {
             pub fn extract(self, idx: usize) -> $elem {
                 debug_assert!(idx < $size);
                 unsafe { simd_extract(self, idx as u32) }
+            }
+
+            #[inline]
+            pub fn insert(self, idx: usize, v: $elem) -> $name {
+                debug_assert!(idx < $size);
+                unsafe { simd_insert(self, idx as u32, v) }
             }
 
             #[inline]
@@ -349,15 +370,6 @@ mod tests {
     }
 
     #[test]
-    fn basic_m128() {
-        let x = f32x4(1.0, 2.0, 3.0, 4.0).as_m128();
-        let y = x.insert(0, 9.0);
-
-        assert_eq!(x.as_f32x4().extract(0), 1.0);
-        assert_eq!(y.as_f32x4().extract(0), 9.0);
-    }
-
-    #[test]
     fn basic_i64x2() {
         let x = i64x2(3, 9);
         assert_eq!(x.extract(0), 3);
@@ -365,12 +377,21 @@ mod tests {
     }
 
     #[test]
-    fn base_i32x4() {
+    fn basic_i32x4() {
         let x = i32x4(1, 2, 3, 4);
         assert_eq!(x.extract(0), 1);
         assert_eq!(x.extract(1), 2);
         assert_eq!(x.extract(2), 3);
         assert_eq!(x.extract(3), 4);
+    }
+
+    #[test]
+    fn basic_f32x4() {
+        let x = f32x4(1.0, 2.0, 3.0, 4.0);
+
+        let y = x.insert(0, 9.0);
+        assert_eq!(x.extract(0), 1.0);
+        assert_eq!(y.extract(0), 9.0);
     }
 
     #[test]
