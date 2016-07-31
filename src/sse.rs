@@ -504,10 +504,22 @@ pub fn mm_min_ss(a: m128, b: m128) -> m128 {
 
 // movss
 // __m128 _mm_move_ss (__m128 a, __m128 b)
+pub fn mm_move_ss(a: m128, b: m128) -> m128 {
+    unsafe { simd_shuffle4(a, b, [4, 1, 2, 3]) }
+}
+
 // movhlps
 // __m128 _mm_movehl_ps (__m128 a, __m128 b)
+pub fn mm_movehl_ps(a: m128, b: m128) -> m128 {
+    unsafe { simd_shuffle4(a, b, [6, 7, 2, 3]) }
+}
+
 // movlhps
 // __m128 _mm_movelh_ps (__m128 a, __m128 b)
+pub fn mm_movelh_ps(a: m128, b: m128) -> m128 {
+    unsafe { simd_shuffle4(a, b, [0, 1, 4, 5]) }
+}
+
 // pmovmskb
 // int _mm_movemask_pi8 (__m64 a)
 // movmskps
@@ -996,5 +1008,15 @@ mod tests {
         assert_eq!(mm_max_ss(x, y).as_f32x4().as_array(), [3.0, 2.0, 3.0, 4.0]);
         assert_eq!(mm_min_ps(x, y).as_f32x4().as_array(), [1.0, 2.0, 1.0, 0.0]);
         assert_eq!(mm_min_ss(x, y).as_f32x4().as_array(), [1.0, 2.0, 3.0, 4.0]);
+    }
+
+    #[test]
+    fn test_move() {
+        let x = mm_setr_ps(1.0, 2.0, 3.0, 4.0);
+        let y = mm_setr_ps(3.0, 2.0, 1.0, 0.0);
+
+        assert_eq!(mm_move_ss(x, y).as_f32x4().as_array(), [3.0, 2.0, 3.0, 4.0]);
+        assert_eq!(mm_movehl_ps(x, y).as_f32x4().as_array(), [1.0, 0.0, 3.0, 4.0]);
+        assert_eq!(mm_movelh_ps(x, y).as_f32x4().as_array(), [1.0, 2.0, 3.0, 2.0]);
     }
 }
