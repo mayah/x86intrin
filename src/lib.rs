@@ -70,6 +70,30 @@ impl m128d {
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(C, simd)]
+pub struct m256i(i32, i32, i32, i32, i32, i32, i32, i32);
+
+impl m256i {
+}
+
+#[allow(non_camel_case_types)]
+#[derive(Debug, Copy, Clone)]
+#[repr(C, simd)]
+pub struct m256(f32, f32, f32, f32, f32, f32, f32, f32);
+
+impl m256 {
+}
+
+#[allow(non_camel_case_types)]
+#[derive(Debug, Copy, Clone)]
+#[repr(C, simd)]
+pub struct m256d(f64, f64, f64, f64);
+
+impl m256d {
+}
+
+#[allow(non_camel_case_types)]
+#[derive(Debug, Copy, Clone)]
+#[repr(C, simd)]
 pub struct i64x2(i64, i64);
 
 #[allow(non_camel_case_types)]
@@ -117,7 +141,59 @@ pub struct i8x16(i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8)
 #[repr(C, simd)]
 pub struct u8x16(u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8);
 
-macro_rules! simd_type {
+#[allow(non_camel_case_types)]
+#[derive(Debug, Copy, Clone)]
+#[repr(C, simd)]
+pub struct i64x4(i64, i64, i64, i64);
+
+#[allow(non_camel_case_types)]
+#[derive(Debug, Copy, Clone)]
+#[repr(C, simd)]
+pub struct u64x4(u64, u64, u64, u64);
+
+#[allow(non_camel_case_types)]
+#[derive(Debug, Copy, Clone)]
+#[repr(C, simd)]
+pub struct f64x4(f64, f64, f64, f64);
+
+#[allow(non_camel_case_types)]
+#[derive(Debug, Copy, Clone)]
+#[repr(C, simd)]
+pub struct i32x8(i32, i32, i32, i32, i32, i32, i32, i32);
+
+#[allow(non_camel_case_types)]
+#[derive(Debug, Copy, Clone)]
+#[repr(C, simd)]
+pub struct u32x8(u32, u32, u32, u32, u32, u32, u32, u32);
+
+#[allow(non_camel_case_types)]
+#[derive(Debug, Copy, Clone)]
+#[repr(C, simd)]
+pub struct f32x8(f32, f32, f32, f32, f32, f32, f32, f32);
+
+#[allow(non_camel_case_types)]
+#[derive(Debug, Copy, Clone)]
+#[repr(C, simd)]
+pub struct i16x16(i16, i16, i16, i16, i16, i16, i16, i16, i16, i16, i16, i16, i16, i16, i16, i16);
+
+#[allow(non_camel_case_types)]
+#[derive(Debug, Copy, Clone)]
+#[repr(C, simd)]
+pub struct u16x16(u16, u16, u16, u16, u16, u16, u16, u16, u16, u16, u16, u16, u16, u16, u16, u16);
+
+#[allow(non_camel_case_types)]
+#[derive(Debug, Copy, Clone)]
+#[repr(C, simd)]
+pub struct i8x32(i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8,
+                 i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8);
+
+#[allow(non_camel_case_types)]
+#[derive(Debug, Copy, Clone)]
+#[repr(C, simd)]
+pub struct u8x32(u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8,
+                 u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8);
+
+macro_rules! simd_128_type {
     ($name: ident, $elem: ident, $size: expr) => {
         impl $name {
             #[inline]
@@ -144,16 +220,54 @@ macro_rules! simd_type {
     }
 }
 
-simd_type! { i64x2, i64, 2 }
-simd_type! { u64x2, u64, 2 }
-simd_type! { f64x2, f64, 2 }
-simd_type! { i32x4, i32, 4 }
-simd_type! { u32x4, u32, 4 }
-simd_type! { f32x4, f32, 4 }
-simd_type! { i16x8, i16, 8 }
-simd_type! { u16x8, u16, 8 }
-simd_type! { i8x16, i8, 16 }
-simd_type! { u8x16, u8, 16 }
+simd_128_type! { i64x2, i64, 2 }
+simd_128_type! { u64x2, u64, 2 }
+simd_128_type! { f64x2, f64, 2 }
+simd_128_type! { i32x4, i32, 4 }
+simd_128_type! { u32x4, u32, 4 }
+simd_128_type! { f32x4, f32, 4 }
+simd_128_type! { i16x8, i16, 8 }
+simd_128_type! { u16x8, u16, 8 }
+simd_128_type! { i8x16, i8, 16 }
+simd_128_type! { u8x16, u8, 16 }
+
+macro_rules! simd_256_type {
+    ($name: ident, $elem: ident, $size: expr) => {
+        impl $name {
+            #[inline]
+            pub fn extract(self, idx: usize) -> $elem {
+                debug_assert!(idx < $size);
+                unsafe { simd_extract(self, idx as u32) }
+            }
+
+            #[inline]
+            pub fn as_m256i(self) -> m256i {
+                unsafe { bitcast(self) }
+            }
+
+            #[inline]
+            pub fn as_m256(self) -> m256 {
+                unsafe { bitcast(self) }
+            }
+
+            #[inline]
+            pub fn as_m256d(self) -> m256d {
+                unsafe { bitcast(self) }
+            }
+        }
+    }
+}
+
+simd_256_type! { i64x4, i64, 4 }
+simd_256_type! { u64x4, u64, 4 }
+simd_256_type! { f64x4, f64, 4 }
+simd_256_type! { i32x8, i32, 8 }
+simd_256_type! { u32x8, u32, 8 }
+simd_256_type! { f32x8, f32, 8 }
+simd_256_type! { i16x16, i16, 16 }
+simd_256_type! { u16x16, u16, 16 }
+simd_256_type! { i8x32, i8, 32 }
+simd_256_type! { u8x32, u8, 32 }
 
 #[cfg(any(feature = "doc", target_feature = "sse"))]
 pub mod sse;
