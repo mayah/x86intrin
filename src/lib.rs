@@ -16,6 +16,8 @@ extern "platform-intrinsic" {
     fn simd_xor<T>(x: T, y: T) -> T;
     fn simd_extract<T, U>(x: T, idx: u32) -> U;
 
+    fn simd_insert<T, U>(x: T, idx: u32, v: U) -> T;
+
     fn simd_shuffle16<T, U>(x: T, y: T, idx: [u32; 16]) -> U;
 }
 
@@ -55,7 +57,14 @@ impl m128i {
 pub struct m128(f32, f32, f32, f32);
 
 impl m128 {
+    #[inline]
     pub fn as_f32x4(self) -> f32x4 { unsafe { bitcast(self) } }
+
+    #[inline]
+    pub fn insert(self, idx: usize, v: f32) -> m128 {
+        debug_assert!(idx < 4);
+        unsafe { simd_insert(self, idx as u32, v) }
+    }
 }
 
 #[allow(non_camel_case_types)]
@@ -64,6 +73,7 @@ impl m128 {
 pub struct m128d(f64, f64);
 
 impl m128d {
+    #[inline]
     pub fn as_f64x2(self) -> f64x2 { unsafe { bitcast(self) } }
 }
 
@@ -339,6 +349,15 @@ mod tests {
     }
 
     #[test]
+    fn basic_m128() {
+        let x = f32x4(1.0, 2.0, 3.0, 4.0).as_m128();
+        let y = x.insert(0, 9.0);
+
+        assert_eq!(x.as_f32x4().extract(0), 1.0);
+        assert_eq!(y.as_f32x4().extract(0), 9.0);
+    }
+
+    #[test]
     fn basic_i64x2() {
         let x = i64x2(3, 9);
         assert_eq!(x.extract(0), 3);
@@ -355,7 +374,7 @@ mod tests {
     }
 
     #[test]
-    fn base_i16x8() {
+    fn basic_i16x8() {
         let x = i16x8(1, 2, 3, 4, 5, 6, 7, 8);
         assert_eq!(x.extract(0), 1);
         assert_eq!(x.extract(1), 2);
@@ -368,7 +387,7 @@ mod tests {
     }
 
     #[test]
-    fn base_u16x8() {
+    fn basic_u16x8() {
         let x = u16x8(1, 2, 3, 4, 5, 6, 7, 8);
         assert_eq!(x.extract(0), 1);
         assert_eq!(x.extract(1), 2);
@@ -381,7 +400,7 @@ mod tests {
     }
 
     #[test]
-    fn base_i8x16() {
+    fn basic_i8x16() {
         let x = i8x16(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
         for i in 0 .. 16 {
             assert_eq!(x.extract(i), (i + 1) as i8);
