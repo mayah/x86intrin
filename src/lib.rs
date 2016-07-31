@@ -25,6 +25,7 @@ extern "platform-intrinsic" {
     fn simd_extract<T, U>(x: T, idx: u32) -> U;
     fn simd_insert<T, U>(x: T, idx: u32, v: U) -> T;
 
+    fn simd_shuffle4<T, U>(x: T, y: T, idx: [u32; 4]) -> U;
     fn simd_shuffle16<T, U>(x: T, y: T, idx: [u32; 16]) -> U;
 }
 
