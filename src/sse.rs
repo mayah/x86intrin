@@ -1,5 +1,5 @@
 use super::*;
-use super::{simd_add, simd_div,
+use super::{simd_add, simd_sub, simd_mul, simd_div,
             simd_and, simd_xor,
             simd_eq, simd_ge, simd_gt, simd_lt, simd_le, simd_ne,
             simd_shuffle4};
@@ -421,6 +421,11 @@ pub fn mm_div_ps(a: m128, b: m128) -> m128 {
 
 // divss
 // __m128 _mm_div_ss (__m128 a, __m128 b)
+#[inline]
+pub fn mm_div_ss(a: m128, b: m128) -> m128 {
+    a.as_f32x4().insert(0, (a.as_f32x4().extract(0) / b.as_f32x4().extract(0))).as_m128()
+}
+
 // pextrw
 // int _mm_extract_pi16 (__m64 a, int imm8)
 // unsigned int _MM_GET_EXCEPTION_MASK ()
@@ -477,10 +482,22 @@ pub fn mm_div_ps(a: m128, b: m128) -> m128 {
 // int _mm_movemask_pi8 (__m64 a)
 // movmskps
 // int _mm_movemask_ps (__m128 a)
+
 // mulps
 // __m128 _mm_mul_ps (__m128 a, __m128 b)
+#[inline]
+pub fn mm_mul_ps(a: m128, b: m128) -> m128 {
+    unsafe { simd_mul(a, b) }
+}
+
 // mulss
 // __m128 _mm_mul_ss (__m128 a, __m128 b)
+#[inline]
+pub fn mm_mul_ss(a: m128, b: m128) -> m128 {
+    a.as_f32x4().insert(0, (a.as_f32x4().extract(0) * b.as_f32x4().extract(0))).as_m128()
+}
+
+
 // pmulhuw
 // __m64 _mm_mulhi_pu16 (__m64 a, __m64 b)
 // orps
@@ -602,10 +619,21 @@ pub fn mm_setzero_ps() -> m128 {
 // void _mm_stream_pi (__m64* mem_addr, __m64 a)
 // movntps
 // void _mm_stream_ps (float* mem_addr, __m128 a)
+
 // subps
 // __m128 _mm_sub_ps (__m128 a, __m128 b)
+#[inline]
+pub fn mm_sub_ps(a: m128, b: m128) -> m128 {
+    unsafe { simd_sub(a, b) }
+}
+
 // subss
 // __m128 _mm_sub_ss (__m128 a, __m128 b)
+#[inline]
+pub fn mm_sub_ss(a: m128, b: m128) -> m128 {
+    a.as_f32x4().insert(0, (a.as_f32x4().extract(0) - b.as_f32x4().extract(0))).as_m128()
+}
+
 // ...
 // _MM_TRANSPOSE4_PS (__m128 row0, __m128 row1, __m128 row2, __m128 row3)
 
@@ -664,19 +692,25 @@ mod tests {
     use super::super::*;
 
     #[test]
-    fn test_mm_add_ps() {
+    fn test_mm_arith_ps() {
         let x = mm_setr_ps(1.0, 2.0, 3.0, 4.0);
-        let y = mm_add_ps(x, x).as_f32x4();
+        let y = mm_setr_ps(2.0, 4.0, 2.0, 2.0);
 
-        assert_eq!(y.as_array(), [2.0, 4.0, 6.0, 8.0]);
+        assert_eq!(mm_add_ps(x, y).as_f32x4().as_array(), [3.0, 6.0, 5.0, 6.0]);
+        assert_eq!(mm_sub_ps(x, y).as_f32x4().as_array(), [-1.0, -2.0, 1.0, 2.0]);
+        assert_eq!(mm_mul_ps(x, y).as_f32x4().as_array(), [2.0, 8.0, 6.0, 8.0]);
+        assert_eq!(mm_div_ps(x, y).as_f32x4().as_array(), [0.5, 0.5, 1.5, 2.0]);
     }
 
     #[test]
-    fn test_mm_add_ss() {
+    fn test_mm_arith_ss() {
         let x = mm_setr_ps(1.0, 2.0, 3.0, 4.0);
-        let y = mm_add_ss(x, x).as_f32x4();
+        let y = mm_setr_ps(2.0, 4.0, 2.0, 2.0);
 
-        assert_eq!(y.as_array(), [2.0, 2.0, 3.0, 4.0]);
+        assert_eq!(mm_add_ss(x, y).as_f32x4().as_array(), [3.0, 2.0, 3.0, 4.0]);
+        assert_eq!(mm_sub_ss(x, y).as_f32x4().as_array(), [-1.0, 2.0, 3.0, 4.0]);
+        assert_eq!(mm_mul_ss(x, y).as_f32x4().as_array(), [2.0, 2.0, 3.0, 4.0]);
+        assert_eq!(mm_div_ss(x, y).as_f32x4().as_array(), [0.5, 2.0, 3.0, 4.0]);
     }
 
     #[test]
