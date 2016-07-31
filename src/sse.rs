@@ -681,8 +681,70 @@ pub fn mm_setzero_ps() -> m128 {
 // void _mm_sfence (void)
 // pshufw
 // __m64 _mm_shuffle_pi16 (__m64 a, int imm8)
+
 // shufps
 // __m128 _mm_shuffle_ps (__m128 a, __m128 b, unsigned int imm8)
+#[inline]
+pub fn mm_shuffle_ps(a: m128, b: m128, imm8: u32) -> m128 {
+    // Grr...
+
+    macro_rules! shuffle4 {
+        ($a: expr, $b: expr, $c: expr, $d: expr) => {
+            unsafe { simd_shuffle4(a, b, [$a, $b, $c, $d]) }
+        }
+    }
+
+    macro_rules! shuffle3 {
+        ($a: expr, $b: expr, $c: expr) => {
+            match (imm8 >> 6) & 0x3 {
+                0 => shuffle4!($a, $b, $c, 0),
+                1 => shuffle4!($a, $b, $c, 1),
+                2 => shuffle4!($a, $b, $c, 2),
+                3 => shuffle4!($a, $b, $c, 3),
+                _ => unreachable!()
+            }
+        }
+    }
+
+    macro_rules! shuffle2 {
+        ($a: expr, $b: expr) => {
+            match (imm8 >> 4) & 0x3 {
+                0 => shuffle3!($a, $b, 0),
+                1 => shuffle3!($a, $b, 1),
+                2 => shuffle3!($a, $b, 2),
+                3 => shuffle3!($a, $b, 3),
+                _ => unreachable!()
+            }
+        }
+    }
+
+    macro_rules! shuffle1 {
+        ($a: expr) => {
+            match (imm8 >> 2) & 0x3 {
+                0 => shuffle2!($a, 0),
+                1 => shuffle2!($a, 1),
+                2 => shuffle2!($a, 2),
+                3 => shuffle2!($a, 3),
+                _ => unreachable!()
+            }
+        }
+    }
+
+    macro_rules! shuffle0 {
+        () => {
+            match (imm8 >> 0) & 0x3 {
+                0 => shuffle1!(0),
+                1 => shuffle1!(1),
+                2 => shuffle1!(2),
+                3 => shuffle1!(3),
+                _ => unreachable!()
+            }
+        }
+    }
+
+    shuffle0!()
+}
+
 // sqrtps
 // __m128 _mm_sqrt_ps (__m128 a)
 #[inline]
