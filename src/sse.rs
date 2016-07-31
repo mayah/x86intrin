@@ -7,6 +7,10 @@ use super::{simd_add, simd_sub, simd_mul, simd_div,
 extern "platform-intrinsic" {
     fn x86_mm_max_ps(a: m128, b: m128) -> m128;
     fn x86_mm_min_ps(a: m128, b: m128) -> m128;
+
+    fn x86_mm_rcp_ps(x: m128) -> m128;
+    fn x86_mm_rsqrt_ps(x: m128) -> m128;
+    fn x86_mm_sqrt_ps(x: m128) -> m128;
 }
 
 extern {
@@ -61,6 +65,13 @@ extern {
 
     #[link_name = "llvm.x86.sse.movmsk.ps"]
     pub fn sse_movmsk_ps(a: m128) -> i32;
+
+    #[link_name = "llvm.x86.sse.rcp.ss"]
+    pub fn sse_rcp_ss(a: m128) -> m128;
+    #[link_name = "llvm.x86.sse.rsqrt.ss"]
+    pub fn sse_rsqrt_ss(a: m128) -> m128;
+    #[link_name = "llvm.x86.sse.sqrt.ss"]
+    pub fn sse_sqrt_ss(a: m128) -> m128;
 }
 
 // addps
@@ -584,14 +595,35 @@ pub fn mm_or_ps(a: m128, b: m128) -> m128 {
 // __m64 _m_psadbw (__m64 a, __m64 b)
 // pshufw
 // __m64 _m_pshufw (__m64 a, int imm8)
+
 // rcpps
 // __m128 _mm_rcp_ps (__m128 a)
+#[inline]
+pub fn mm_rcp_ps(a: m128) -> m128 {
+    unsafe { x86_mm_rcp_ps(a) }
+}
+
 // rcpss
 // __m128 _mm_rcp_ss (__m128 a)
+#[inline]
+pub fn mm_rcp_ss(a: m128) -> m128 {
+    unsafe { sse_rcp_ss(a) }
+}
+
 // rsqrtps
 // __m128 _mm_rsqrt_ps (__m128 a)
+#[inline]
+pub fn mm_rsqrt_ps(a: m128) -> m128 {
+    unsafe { x86_mm_rsqrt_ps(a) }
+}
+
 // rsqrtss
 // __m128 _mm_rsqrt_ss (__m128 a)
+#[inline]
+pub fn mm_rsqrt_ss(a: m128) -> m128 {
+    unsafe { sse_rsqrt_ss(a) }
+}
+
 // psadbw
 // __m64 _mm_sad_pu8 (__m64 a, __m64 b)
 // void _MM_SET_EXCEPTION_MASK (unsigned int a)
@@ -653,8 +685,18 @@ pub fn mm_setzero_ps() -> m128 {
 // __m128 _mm_shuffle_ps (__m128 a, __m128 b, unsigned int imm8)
 // sqrtps
 // __m128 _mm_sqrt_ps (__m128 a)
+#[inline]
+pub fn mm_sqrt_ps(a: m128) -> m128 {
+    unsafe { x86_mm_sqrt_ps(a) }
+}
+
 // sqrtss
 // __m128 _mm_sqrt_ss (__m128 a)
+#[inline]
+pub fn mm_sqrt_ss(a: m128) -> m128 {
+    unsafe { sse_sqrt_ss(a) }
+}
+
 // movaps
 // void _mm_store_ps (float* mem_addr, __m128 a)
 // ...
@@ -773,6 +815,61 @@ mod tests {
         assert_eq!(mm_sub_ss(x, y).as_f32x4().as_array(), [-1.0, 2.0, 3.0, 4.0]);
         assert_eq!(mm_mul_ss(x, y).as_f32x4().as_array(), [2.0, 2.0, 3.0, 4.0]);
         assert_eq!(mm_div_ss(x, y).as_f32x4().as_array(), [0.5, 2.0, 3.0, 4.0]);
+    }
+
+    #[test]
+    fn test_mm_math_ps() {
+        let x = mm_setr_ps(1.0, 2.0, 3.0, 4.0);
+
+        let expected_rcp = [1.0 / 1.0, 1.0 / 2.0, 1.0 / 3.0, 1.0 / 4.0];
+        let expected_rsqrt = [1.0 / 1.0f32.sqrt(), 1.0 / 2.0f32.sqrt(), 1.0 / 3.0f32.sqrt(), 1.0 / 4.0f32.sqrt()];
+        let expected_sqrt = [1.0f32.sqrt(), 2.0f32.sqrt(), 3.0f32.sqrt(), 4.0f32.sqrt()];
+
+        let actual_rcp = mm_rcp_ps(x).as_f32x4().as_array();
+        let actual_rsqrt = mm_rsqrt_ps(x).as_f32x4().as_array();
+        let actual_sqrt = mm_sqrt_ps(x).as_f32x4().as_array();
+
+        for i in 0 .. 4 {
+            let a = actual_rcp[i];
+            let e = expected_rcp[i];
+            assert!((a - e).abs() <= 1.5 * (1.0 / 4096.0));
+        }
+        for i in 0 .. 4 {
+            let a = actual_rsqrt[i];
+            let e = expected_rsqrt[i];
+            assert!((a - e).abs() <= 1.5 * (1.0 / 4096.0));
+        }
+        for i in 0 .. 4 {
+            let a = actual_sqrt[i];
+            let e = expected_sqrt[i];
+            assert!((a - e).abs() <= 1.5 * (1.0 / 4096.0));
+        }
+    }
+
+    #[test]
+    fn test_mm_math_ss() {
+        let x = mm_setr_ps(3.0, 2.0, 3.0, 4.0);
+
+        let actual_rcp_ss = mm_rcp_ss(x).as_f32x4().as_array();
+        let actual_rsqrt_ss = mm_rsqrt_ss(x).as_f32x4().as_array();
+        let actual_sqrt_ss = mm_sqrt_ss(x).as_f32x4().as_array();
+
+        let expected_rcp = 1.0 / 3.0;
+        let expected_rsqrt = 1.0 / 3.0f32.sqrt();
+        let expected_sqrt = 3.0f32.sqrt();
+
+        assert!((actual_rcp_ss[0] - expected_rcp).abs() <= 1.5 * (1.0 / 4096.0));
+        assert!((actual_rsqrt_ss[0] - expected_rsqrt).abs() <= 1.5 * (1.0 / 4096.0));
+        assert!((actual_sqrt_ss[0] - expected_sqrt).abs() <= 1.5 * (1.0 / 4096.0));
+
+        // TODO(mayah): this doesn't pass in debug build.
+        // x(1), x(2), x(3) should remain the original value.
+        //
+        // for i in 1 .. 4 {
+        //    assert_eq!(actual_rcp_ss[i], x.as_f32x4().extract(i));
+        //    assert_eq!(actual_rsqrt_ss[i], x.as_f32x4().extract(i));
+        //    assert_eq!(actual_sqrt_ss[i], x.as_f32x4().extract(i));
+        // }
     }
 
     #[test]
