@@ -1,7 +1,6 @@
 use std;
 use super::*;
-use super::{bitcast,
-            simd_add, simd_sub,
+use super::{simd_add, simd_sub,
             simd_and, simd_or, simd_xor, simd_shuffle16};
 
 extern {
@@ -471,7 +470,7 @@ pub fn mm_setzero_si128() -> m128i {
 // __m128i _mm_slli_epi16 (__m128i a, int imm8)
 #[inline]
 pub fn mm_slli_epi16(a: m128i, imm8: i32) -> m128i {
-    unsafe { bitcast(sse2_pslli_w(a.as_i16x8(), imm8)) }
+    unsafe { sse2_pslli_w(a.as_i16x8(), imm8).as_m128i() }
 }
 
 // pslld
@@ -532,7 +531,7 @@ pub fn mm_slli_si128(a: m128i, imm8: i32) -> m128i {
 // __m128i _mm_srli_epi16 (__m128i a, int imm8)
 #[inline]
 pub fn mm_srli_epi16(a: m128i, imm8: i32) -> m128i {
-    unsafe { bitcast(sse2_psrli_w(a.as_i16x8(), imm8)) }
+    unsafe { sse2_psrli_w(a.as_i16x8(), imm8).as_m128i() }
 }
 
 // psrld
