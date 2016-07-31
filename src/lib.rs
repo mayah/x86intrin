@@ -247,6 +247,19 @@ macro_rules! simd_128_type {
             pub fn as_m128d(self) -> m128d {
                 unsafe { bitcast(self) }
             }
+
+            #[inline]
+            pub fn as_array(self) -> [$elem; $size] {
+                let mut data: [$elem; $size];
+                unsafe {
+                    data = std::mem::uninitialized();
+                    for i in 0 .. $size {
+                        data[i] = self.extract(i)
+                    }
+                };
+                data
+            }
+
         }
     }
 }

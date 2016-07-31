@@ -364,10 +364,7 @@ mod tests {
         let x = mm_setr_ps(1.0, 2.0, 3.0, 4.0);
         let y = mm_add_ps(x, x).as_f32x4();
 
-        assert_eq!(y.extract(0), 2.0);
-        assert_eq!(y.extract(1), 4.0);
-        assert_eq!(y.extract(2), 6.0);
-        assert_eq!(y.extract(3), 8.0);
+        assert_eq!(y.as_array(), [2.0, 4.0, 6.0, 8.0]);
     }
 
     #[test]
@@ -375,10 +372,7 @@ mod tests {
         let x = mm_setr_ps(1.0, 2.0, 3.0, 4.0);
         let y = mm_add_ss(x, x).as_f32x4();
 
-        assert_eq!(y.extract(0), 2.0);
-        assert_eq!(y.extract(1), 2.0);
-        assert_eq!(y.extract(2), 3.0);
-        assert_eq!(y.extract(3), 4.0);
+        assert_eq!(y.as_array(), [2.0, 2.0, 3.0, 4.0]);
     }
 
     #[test]
@@ -389,15 +383,8 @@ mod tests {
         let z1 = mm_and_ps(x, y).as_m128i().as_i32x4();
         let z2 = mm_andnot_ps(x, y).as_m128i().as_i32x4();
 
-        assert_eq!(z1.extract(0), 0x1 & 0x3);
-        assert_eq!(z1.extract(1), 0x2 & 0x4);
-        assert_eq!(z1.extract(2), 0x3 & 0x5);
-        assert_eq!(z1.extract(3), 0x4 & 0x6);
-
-        assert_eq!(z2.extract(0), !0x1 & 0x3);
-        assert_eq!(z2.extract(1), !0x2 & 0x4);
-        assert_eq!(z2.extract(2), !0x3 & 0x5);
-        assert_eq!(z2.extract(3), !0x4 & 0x6);
+        assert_eq!(z1.as_array(), [0x1 & 0x3, 0x2 & 0x4, 0x3 & 0x5, 0x4 & 0x6]);
+        assert_eq!(z2.as_array(), [!0x1 & 0x3, !0x2 & 0x4, !0x3 & 0x5, !0x4 & 0x6]);
     }
 
     #[test]
@@ -409,34 +396,11 @@ mod tests {
         let x5 = mm_setr_ps(1.0, 2.0, 3.0, 4.0).as_f32x4();
         let x6 = mm_setzero_ps().as_f32x4();
 
-        assert_eq!(x1.extract(0), 4.0);
-        assert_eq!(x1.extract(1), 3.0);
-        assert_eq!(x1.extract(2), 2.0);
-        assert_eq!(x1.extract(3), 1.0);
-
-        assert_eq!(x2.extract(0), 5.0);
-        assert_eq!(x2.extract(1), 5.0);
-        assert_eq!(x2.extract(2), 5.0);
-        assert_eq!(x2.extract(3), 5.0);
-
-        assert_eq!(x3.extract(0), 6.0);
-        assert_eq!(x3.extract(1), 0.0);
-        assert_eq!(x3.extract(2), 0.0);
-        assert_eq!(x3.extract(3), 0.0);
-
-        assert_eq!(x4.extract(0), 7.0);
-        assert_eq!(x4.extract(1), 7.0);
-        assert_eq!(x4.extract(2), 7.0);
-        assert_eq!(x4.extract(3), 7.0);
-
-        assert_eq!(x5.extract(0), 1.0);
-        assert_eq!(x5.extract(1), 2.0);
-        assert_eq!(x5.extract(2), 3.0);
-        assert_eq!(x5.extract(3), 4.0);
-
-        assert_eq!(x6.extract(0), 0.0);
-        assert_eq!(x6.extract(1), 0.0);
-        assert_eq!(x6.extract(2), 0.0);
-        assert_eq!(x6.extract(3), 0.0);
+        assert_eq!(x1.as_array(), [4.0, 3.0, 2.0, 1.0]);
+        assert_eq!(x2.as_array(), [5.0, 5.0, 5.0, 5.0]);
+        assert_eq!(x3.as_array(), [6.0, 0.0, 0.0, 0.0]);
+        assert_eq!(x4.as_array(), [7.0, 7.0, 7.0, 7.0]);
+        assert_eq!(x5.as_array(), [1.0, 2.0, 3.0, 4.0]);
+        assert_eq!(x6.as_array(), [0.0, 0.0, 0.0, 0.0]);
     }
 }
