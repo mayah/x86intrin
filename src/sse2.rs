@@ -1,6 +1,8 @@
 use std;
 use super::*;
-use super::{bitcast, simd_add, simd_and, simd_or, simd_xor, simd_shuffle16};
+use super::{bitcast,
+            simd_add, simd_sub,
+            simd_and, simd_or, simd_xor, simd_shuffle16};
 
 extern {
     #[link_name = "llvm.x86.sse2.pslli.w"]
@@ -598,14 +600,35 @@ pub fn mm_srli_si128(a: m128i, imm8: i32) -> m128i {
 // void _mm_stream_si32 (int* mem_addr, int a)
 // movnti
 // void _mm_stream_si64 (__int64* mem_addr, __int64 a)
+
 // psubw
 // __m128i _mm_sub_epi16 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_sub_epi16(a: m128i, b: m128i) -> m128i {
+    unsafe { simd_sub(a.as_i16x8(), b.as_i16x8()).as_m128i() }
+}
+
 // psubd
 // __m128i _mm_sub_epi32 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_sub_epi32(a: m128i, b: m128i) -> m128i {
+    unsafe { simd_sub(a.as_i32x4(), b.as_i32x4()).as_m128i() }
+}
+
 // psubq
 // __m128i _mm_sub_epi64 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_sub_epi64(a: m128i, b: m128i) -> m128i {
+    unsafe { simd_sub(a.as_i64x2(), b.as_i64x2()).as_m128i() }
+}
+
 // psubb
 // __m128i _mm_sub_epi8 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_sub_epi8(a: m128i, b: m128i) -> m128i {
+    unsafe { simd_sub(a.as_i8x16(), b.as_i8x16()).as_m128i() }
+}
+
 // subpd
 // __m128d _mm_sub_pd (__m128d a, __m128d b)
 // subsd
@@ -692,6 +715,22 @@ mod tests {
 
         assert_eq!(zp.as_f32x4().as_array(), [9.0, 11.0, 5.0, 8.0]);
         assert_eq!(zs.as_f32x4().as_array(), [9.0, 2.0, 3.0, 4.0]);
+    }
+
+    #[test]
+    fn test_mm_sub_epi() {
+        let x = mm_setr_epi8(0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xA, 0xB, 0xC, 0xD, 0xE, 0xF, 0x0);
+        let y = mm_setr_epi8(0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1);
+
+        let z8 = mm_sub_epi8(x, y);
+        let z16 = mm_sub_epi16(x, y);
+        let z32 = mm_sub_epi32(x, y);
+        let z64 = mm_sub_epi64(x, y);
+
+        assert_eq!(z8.as_i8x16().extract(0), 0);
+        assert_eq!(z16.as_i16x8().extract(0), 0x0201 - 0x0101);
+        assert_eq!(z32.as_i32x4().extract(0), 0x04030201 - 0x01010101);
+        assert_eq!(z64.as_i64x2().extract(0), 0x0807060504030201 - 0x0101010101010101);
     }
 
     #[test]
