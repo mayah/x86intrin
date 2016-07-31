@@ -246,8 +246,8 @@ pub fn mm_add_ps(a: m128, b: m128) -> m128 {
 // ...
 // __m128 _mm_setr_ps (float e3, float e2, float e1, float e0)
 #[inline]
-pub fn mm_setr_ps(e3: f32, e2: f32, e1: f32, e0: f32) -> m128 {
-    m128(e3, e2, e1, e0)
+pub fn mm_setr_ps(e0: f32, e1: f32, e2: f32, e3: f32) -> m128 {
+    m128(e0, e1, e2, e3)
 }
 
 // xorps
