@@ -4,6 +4,11 @@ use super::{simd_add, simd_sub, simd_mul, simd_div,
             simd_eq, simd_ge, simd_gt, simd_lt, simd_le, simd_ne,
             simd_shuffle4};
 
+extern "platform-intrinsic" {
+    fn x86_mm_max_ps(a: m128, b: m128) -> m128;
+    fn x86_mm_min_ps(a: m128, b: m128) -> m128;
+}
+
 extern {
     // See http://x86.renejeschke.de/html/file_module_x86_id_37.html
     #[link_name = "llvm.x86.sse.cmp.ps"]
@@ -48,6 +53,11 @@ extern {
     pub fn sse_cvtsi2ss(a: m128, b: i32) -> m128;
     #[link_name = "llvm.x86.sse.cvtsi642ss"]
     pub fn sse_cvtsi642ss(a: m128, b: i64) -> m128;
+
+    #[link_name = "llvm.x86.sse.max.ss"]
+    pub fn sse_max_ss(a: m128, b: m128) -> m128;
+    #[link_name = "llvm.x86.sse.min.ss"]
+    pub fn sse_min_ss(a: m128, b: m128) -> m128;
 }
 
 // addps
@@ -458,20 +468,40 @@ pub fn mm_div_ss(a: m128, b: m128) -> m128 {
 // void _m_maskmovq (__m64 a, __m64 mask, char* mem_addr)
 // pmaxsw
 // __m64 _mm_max_pi16 (__m64 a, __m64 b)
+
 // maxps
 // __m128 _mm_max_ps (__m128 a, __m128 b)
+pub fn mm_max_ps(a: m128, b: m128) -> m128 {
+    unsafe { x86_mm_max_ps(a, b) }
+}
+
 // pmaxub
 // __m64 _mm_max_pu8 (__m64 a, __m64 b)
+
 // maxss
 // __m128 _mm_max_ss (__m128 a, __m128 b)
+pub fn mm_max_ss(a: m128, b: m128) -> m128 {
+    unsafe { sse_max_ss(a, b) }
+}
+
 // pminsw
 // __m64 _mm_min_pi16 (__m64 a, __m64 b)
+
 // minps
 // __m128 _mm_min_ps (__m128 a, __m128 b)
+pub fn mm_min_ps(a: m128, b: m128) -> m128 {
+    unsafe { x86_mm_min_ps(a, b) }
+}
+
 // pminub
 // __m64 _mm_min_pu8 (__m64 a, __m64 b)
+
 // minss
 // __m128 _mm_min_ss (__m128 a, __m128 b)
+pub fn mm_min_ss(a: m128, b: m128) -> m128 {
+    unsafe { sse_min_ss(a, b) }
+}
+
 // movss
 // __m128 _mm_move_ss (__m128 a, __m128 b)
 // movhlps
@@ -496,7 +526,6 @@ pub fn mm_mul_ps(a: m128, b: m128) -> m128 {
 pub fn mm_mul_ss(a: m128, b: m128) -> m128 {
     a.as_f32x4().insert(0, (a.as_f32x4().extract(0) * b.as_f32x4().extract(0))).as_m128()
 }
-
 
 // pmulhuw
 // __m64 _mm_mulhi_pu16 (__m64 a, __m64 b)
@@ -959,11 +988,13 @@ mod tests {
     }
 
     #[test]
-    fn test_div() {
+    fn test_minmax() {
         let x = mm_setr_ps(1.0, 2.0, 3.0, 4.0);
-        let y = mm_setr_ps(2.0, 2.0, 2.0, 2.0);
-        let z = mm_div_ps(x, y);
+        let y = mm_setr_ps(3.0, 2.0, 1.0, 0.0);
 
-        assert_eq!(z.as_f32x4().as_array(), [0.5, 1.0, 1.5, 2.0]);
+        assert_eq!(mm_max_ps(x, y).as_f32x4().as_array(), [3.0, 2.0, 3.0, 4.0]);
+        assert_eq!(mm_max_ss(x, y).as_f32x4().as_array(), [3.0, 2.0, 3.0, 4.0]);
+        assert_eq!(mm_min_ps(x, y).as_f32x4().as_array(), [1.0, 2.0, 1.0, 0.0]);
+        assert_eq!(mm_min_ss(x, y).as_f32x4().as_array(), [1.0, 2.0, 3.0, 4.0]);
     }
 }
