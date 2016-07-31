@@ -252,15 +252,37 @@ pub fn mm_andnot_ps(a: m128, b: m128) -> m128 {
 // void _MM_SET_EXCEPTION_MASK (unsigned int a)
 // void _MM_SET_EXCEPTION_STATE (unsigned int a)
 // void _MM_SET_FLUSH_ZERO_MODE (unsigned int a)
+
 // ...
 // __m128 _mm_set_ps (float e3, float e2, float e1, float e0)
+#[inline]
+pub fn mm_set_ps(e3: f32, e2: f32, e1: f32, e0: f32) -> m128 {
+    m128(e0, e1, e2, e3)
+}
+
 // ...
 // __m128 _mm_set_ps1 (float a)
+#[inline]
+pub fn mm_set_ps1(a: f32) -> m128 {
+    m128(a, a, a, a)
+}
+
 // void _MM_SET_ROUNDING_MODE (unsigned int a)
+
 // ...
 // __m128 _mm_set_ss (float a)
+#[inline]
+pub fn mm_set_ss(a: f32) -> m128 {
+    m128(a, 0.0, 0.0, 0.0)
+}
+
 // ...
 // __m128 _mm_set1_ps (float a)
+#[inline]
+pub fn mm_set1_ps(a: f32) -> m128 {
+    m128(a, a, a, a)
+}
+
 // ldmxcsr
 // void _mm_setcsr (unsigned int a)
 
@@ -273,6 +295,11 @@ pub fn mm_setr_ps(e0: f32, e1: f32, e2: f32, e3: f32) -> m128 {
 
 // xorps
 // __m128 _mm_setzero_ps (void)
+#[inline]
+pub fn mm_setzero_ps() -> m128 {
+    m128(0.0, 0.0, 0.0, 0.0)
+}
+
 // sfence
 // void _mm_sfence (void)
 // pshufw
@@ -373,4 +400,43 @@ mod tests {
         assert_eq!(z2.extract(3), !0x4 & 0x6);
     }
 
+    #[test]
+    fn test_mm_set() {
+        let x1 = mm_set_ps(1.0, 2.0, 3.0, 4.0).as_f32x4();
+        let x2 = mm_set_ps1(5.0).as_f32x4();
+        let x3 = mm_set_ss(6.0).as_f32x4();
+        let x4 = mm_set1_ps(7.0).as_f32x4();
+        let x5 = mm_setr_ps(1.0, 2.0, 3.0, 4.0).as_f32x4();
+        let x6 = mm_setzero_ps().as_f32x4();
+
+        assert_eq!(x1.extract(0), 4.0);
+        assert_eq!(x1.extract(1), 3.0);
+        assert_eq!(x1.extract(2), 2.0);
+        assert_eq!(x1.extract(3), 1.0);
+
+        assert_eq!(x2.extract(0), 5.0);
+        assert_eq!(x2.extract(1), 5.0);
+        assert_eq!(x2.extract(2), 5.0);
+        assert_eq!(x2.extract(3), 5.0);
+
+        assert_eq!(x3.extract(0), 6.0);
+        assert_eq!(x3.extract(1), 0.0);
+        assert_eq!(x3.extract(2), 0.0);
+        assert_eq!(x3.extract(3), 0.0);
+
+        assert_eq!(x4.extract(0), 7.0);
+        assert_eq!(x4.extract(1), 7.0);
+        assert_eq!(x4.extract(2), 7.0);
+        assert_eq!(x4.extract(3), 7.0);
+
+        assert_eq!(x5.extract(0), 1.0);
+        assert_eq!(x5.extract(1), 2.0);
+        assert_eq!(x5.extract(2), 3.0);
+        assert_eq!(x5.extract(3), 4.0);
+
+        assert_eq!(x6.extract(0), 0.0);
+        assert_eq!(x6.extract(1), 0.0);
+        assert_eq!(x6.extract(2), 0.0);
+        assert_eq!(x6.extract(3), 0.0);
+    }
 }
