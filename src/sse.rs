@@ -1,6 +1,6 @@
 use super::*;
 use super::{simd_add, simd_sub, simd_mul, simd_div,
-            simd_and, simd_xor,
+            simd_and, simd_or, simd_xor,
             simd_eq, simd_ge, simd_gt, simd_lt, simd_le, simd_ne,
             simd_shuffle4};
 
@@ -548,8 +548,16 @@ pub fn mm_mul_ss(a: m128, b: m128) -> m128 {
 
 // pmulhuw
 // __m64 _mm_mulhi_pu16 (__m64 a, __m64 b)
+
 // orps
 // __m128 _mm_or_ps (__m128 a, __m128 b)
+#[inline]
+pub fn mm_or_ps(a: m128, b: m128) -> m128 {
+    let ai = a.as_m128i();
+    let bi = b.as_m128i();
+    unsafe { simd_or(ai, bi).as_m128() }
+}
+
 // pavgb
 // __m64 _m_pavgb (__m64 a, __m64 b)
 // pavgw
@@ -731,8 +739,14 @@ pub fn mm_ucomineq_ss(a: m128, b: m128) -> i32 {
 // __m128 _mm_unpackhi_ps (__m128 a, __m128 b)
 // unpcklps
 // __m128 _mm_unpacklo_ps (__m128 a, __m128 b)
+
 // xorps
 // __m128 _mm_xor_ps (__m128 a, __m128 b)
+pub fn mm_xor_ps(a: m128, b: m128) -> m128 {
+    let ai = a.as_m128i();
+    let bi = b.as_m128i();
+    unsafe { simd_xor(ai, bi).as_m128() }
+}
 
 #[cfg(test)]
 mod tests {
@@ -762,15 +776,18 @@ mod tests {
     }
 
     #[test]
-    fn test_mm_and_ps() {
+    fn test_mm_logic_ps() {
         let x = i32x4(0x1, 0x2, 0x3, 0x4).as_m128();
         let y = i32x4(0x3, 0x4, 0x5, 0x6).as_m128();
 
-        let z1 = mm_and_ps(x, y).as_m128i().as_i32x4();
-        let z2 = mm_andnot_ps(x, y).as_m128i().as_i32x4();
-
-        assert_eq!(z1.as_array(), [0x1 & 0x3, 0x2 & 0x4, 0x3 & 0x5, 0x4 & 0x6]);
-        assert_eq!(z2.as_array(), [!0x1 & 0x3, !0x2 & 0x4, !0x3 & 0x5, !0x4 & 0x6]);
+        assert_eq!(mm_and_ps(x, y).as_m128i().as_i32x4().as_array(),
+                   [0x1 & 0x3, 0x2 & 0x4, 0x3 & 0x5, 0x4 & 0x6]);
+        assert_eq!(mm_or_ps(x, y).as_m128i().as_i32x4().as_array(),
+                   [0x1 | 0x3, 0x2 | 0x4, 0x3 | 0x5, 0x4 | 0x6]);
+        assert_eq!(mm_xor_ps(x, y).as_m128i().as_i32x4().as_array(),
+                   [0x1 ^ 0x3, 0x2 ^ 0x4, 0x3 ^ 0x5, 0x4 ^ 0x6]);
+        assert_eq!(mm_andnot_ps(x, y).as_m128i().as_i32x4().as_array(),
+                   [!0x1 & 0x3, !0x2 & 0x4, !0x3 & 0x5, !0x4 & 0x6]);
     }
 
     #[test]
