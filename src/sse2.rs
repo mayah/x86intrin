@@ -690,66 +690,38 @@ mod tests {
         let zp = mm_add_pd(x, y);
         let zs = mm_add_sd(x, y);
 
-        assert_eq!(zp.as_f32x4().extract(0), 9.0);
-        assert_eq!(zp.as_f32x4().extract(1), 11.0);
-        assert_eq!(zp.as_f32x4().extract(2), 5.0);
-        assert_eq!(zp.as_f32x4().extract(3), 8.0);
-
-        assert_eq!(zs.as_f32x4().extract(0), 9.0);
-        assert_eq!(zs.as_f32x4().extract(1), 2.0);
-        assert_eq!(zs.as_f32x4().extract(2), 3.0);
-        assert_eq!(zs.as_f32x4().extract(3), 4.0);
+        assert_eq!(zp.as_f32x4().as_array(), [9.0, 11.0, 5.0, 8.0]);
+        assert_eq!(zs.as_f32x4().as_array(), [9.0, 2.0, 3.0, 4.0]);
     }
 
     #[test]
     fn test_mm_setzero_si128() {
         let zero = mm_setzero_si128().as_i64x2();
-        assert_eq!(zero.extract(0), 0);
-        assert_eq!(zero.extract(1), 0);
+        assert_eq!(zero.as_array(), [0, 0]);
     }
 
     #[test]
     fn test_mm_set_epi32() {
         let x = mm_set_epi32(1, 2, 3, 4).as_i32x4();
-        assert_eq!(x.extract(0), 4);
-        assert_eq!(x.extract(1), 3);
-        assert_eq!(x.extract(2), 2);
-        assert_eq!(x.extract(3), 1);
+        assert_eq!(x.as_array(), [4, 3, 2, 1]);
     }
 
     #[test]
     fn test_mm_setr_epi32() {
         let x = mm_setr_epi32(1, 2, 3, 4).as_i32x4();
-        assert_eq!(x.extract(0), 1);
-        assert_eq!(x.extract(1), 2);
-        assert_eq!(x.extract(2), 3);
-        assert_eq!(x.extract(3), 4);
+        assert_eq!(x.as_array(), [1, 2, 3, 4]);
     }
 
     #[test]
     fn test_mm_set_epi16() {
         let x = mm_set_epi16(1, 2, 3, 4, 5, 6, 7, 8).as_i16x8();
-        assert_eq!(x.extract(0), 8);
-        assert_eq!(x.extract(1), 7);
-        assert_eq!(x.extract(2), 6);
-        assert_eq!(x.extract(3), 5);
-        assert_eq!(x.extract(4), 4);
-        assert_eq!(x.extract(5), 3);
-        assert_eq!(x.extract(6), 2);
-        assert_eq!(x.extract(7), 1);
+        assert_eq!(x.as_array(), [8, 7, 6, 5, 4, 3, 2, 1]);
     }
 
     #[test]
     fn test_mm_setr_epi16() {
         let x = mm_setr_epi16(1, 2, 3, 4, 5, 6, 7, 8).as_i16x8();
-        assert_eq!(x.extract(0), 1);
-        assert_eq!(x.extract(1), 2);
-        assert_eq!(x.extract(2), 3);
-        assert_eq!(x.extract(3), 4);
-        assert_eq!(x.extract(4), 5);
-        assert_eq!(x.extract(5), 6);
-        assert_eq!(x.extract(6), 7);
-        assert_eq!(x.extract(7), 8);
+        assert_eq!(x.as_array(), [1, 2, 3, 4, 5, 6, 7, 8]);
     }
 
     #[test]
