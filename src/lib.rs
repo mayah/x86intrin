@@ -14,8 +14,15 @@ extern "platform-intrinsic" {
     fn simd_and<T>(x: T, y: T) -> T;
     fn simd_or<T>(x: T, y: T) -> T;
     fn simd_xor<T>(x: T, y: T) -> T;
-    fn simd_extract<T, U>(x: T, idx: u32) -> U;
 
+    fn simd_eq<T, U>(x: T, y: T) -> U;
+    fn simd_ge<T, U>(x: T, y: T) -> U;
+    fn simd_gt<T, U>(x: T, y: T) -> U;
+    fn simd_lt<T, U>(x: T, y: T) -> U;
+    fn simd_le<T, U>(x: T, y: T) -> U;
+    fn simd_ne<T, U>(x: T, y: T) -> U;
+
+    fn simd_extract<T, U>(x: T, idx: u32) -> U;
     fn simd_insert<T, U>(x: T, idx: u32, v: U) -> T;
 
     fn simd_shuffle16<T, U>(x: T, y: T, idx: [u32; 16]) -> U;

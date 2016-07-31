@@ -1,6 +1,13 @@
 use super::*;
 use super::{simd_add,
-            simd_and, simd_xor};
+            simd_and, simd_xor,
+            simd_eq, simd_ge, simd_gt, simd_lt, simd_le, simd_ne};
+
+extern {
+    // See http://x86.renejeschke.de/html/file_module_x86_id_37.html
+    #[link_name = "llvm.x86.sse.cmp.ps"]
+    pub fn sse_cmp_ps(a: m128, b: m128, c: i8) -> m128;
+}
 
 // addps
 // __m128 _mm_add_ps (__m128 a, __m128 b)
@@ -39,52 +46,130 @@ pub fn mm_andnot_ps(a: m128, b: m128) -> m128 {
 // __m64 _mm_avg_pu16 (__m64 a, __m64 b)
 // pavgb
 // __m64 _mm_avg_pu8 (__m64 a, __m64 b)
+
 // cmpps
 // __m128 _mm_cmpeq_ps (__m128 a, __m128 b)
+#[inline]
+pub fn mm_cmpeq_ps(a: m128, b: m128) -> m128 {
+    let x: m128i = unsafe { simd_eq(a, b) };
+    x.as_m128()
+}
+
 // cmpss
 // __m128 _mm_cmpeq_ss (__m128 a, __m128 b)
+
 // cmpps
 // __m128 _mm_cmpge_ps (__m128 a, __m128 b)
+#[inline]
+pub fn mm_cmpge_ps(a: m128, b: m128) -> m128 {
+    let x: m128i = unsafe { simd_ge(a, b) };
+    x.as_m128()
+}
+
 // cmpss
 // __m128 _mm_cmpge_ss (__m128 a, __m128 b)
+
 // cmpps
 // __m128 _mm_cmpgt_ps (__m128 a, __m128 b)
+#[inline]
+pub fn mm_cmpgt_ps(a: m128, b: m128) -> m128 {
+    let x: m128i = unsafe { simd_gt(a, b) };
+    x.as_m128()
+}
+
 // cmpss
 // __m128 _mm_cmpgt_ss (__m128 a, __m128 b)
+
 // cmpps
 // __m128 _mm_cmple_ps (__m128 a, __m128 b)
+#[inline]
+pub fn mm_cmple_ps(a: m128, b: m128) -> m128 {
+    let x: m128i = unsafe { simd_le(a, b) };
+    x.as_m128()
+}
+
 // cmpss
 // __m128 _mm_cmple_ss (__m128 a, __m128 b)
+
 // cmpps
 // __m128 _mm_cmplt_ps (__m128 a, __m128 b)
+#[inline]
+pub fn mm_cmplt_ps(a: m128, b: m128) -> m128 {
+    let x: m128i = unsafe { simd_lt(a, b) };
+    x.as_m128()
+}
+
 // cmpss
 // __m128 _mm_cmplt_ss (__m128 a, __m128 b)
+
 // cmpps
 // __m128 _mm_cmpneq_ps (__m128 a, __m128 b)
+#[inline]
+pub fn mm_cmpneq_ps(a: m128, b: m128) -> m128 {
+    let x: m128i = unsafe { simd_ne(a, b) };
+    x.as_m128()
+}
+
 // cmpss
 // __m128 _mm_cmpneq_ss (__m128 a, __m128 b)
+
 // cmpps
 // __m128 _mm_cmpnge_ps (__m128 a, __m128 b)
+#[inline]
+pub fn mm_cmpnge_ps(a: m128, b: m128) -> m128 {
+    unsafe { sse_cmp_ps(b, a, 6) }
+}
+
 // cmpss
 // __m128 _mm_cmpnge_ss (__m128 a, __m128 b)
+
 // cmpps
 // __m128 _mm_cmpngt_ps (__m128 a, __m128 b)
+#[inline]
+pub fn mm_cmpngt_ps(a: m128, b: m128) -> m128 {
+    unsafe { sse_cmp_ps(b, a, 5) }
+}
+
 // cmpss
 // __m128 _mm_cmpngt_ss (__m128 a, __m128 b)
+
 // cmpps
 // __m128 _mm_cmpnle_ps (__m128 a, __m128 b)
+#[inline]
+pub fn mm_cmpnle_ps(a: m128, b: m128) -> m128 {
+    unsafe { sse_cmp_ps(a, b, 6) }
+}
+
 // cmpss
 // __m128 _mm_cmpnle_ss (__m128 a, __m128 b)
+
 // cmpps
 // __m128 _mm_cmpnlt_ps (__m128 a, __m128 b)
+#[inline]
+pub fn mm_cmpnlt_ps(a: m128, b: m128) -> m128 {
+    unsafe { sse_cmp_ps(a, b, 5) }
+}
+
 // cmpss
 // __m128 _mm_cmpnlt_ss (__m128 a, __m128 b)
+
 // cmpps
 // __m128 _mm_cmpord_ps (__m128 a, __m128 b)
+#[inline]
+pub fn mm_cmpord_ps(a: m128, b: m128) -> m128 {
+    unsafe { sse_cmp_ps(a, b, 7) }
+}
+
 // cmpss
 // __m128 _mm_cmpord_ss (__m128 a, __m128 b)
+
 // cmpps
 // __m128 _mm_cmpunord_ps (__m128 a, __m128 b)
+#[inline]
+pub fn mm_cmpunord_ps(a: m128, b: m128) -> m128 {
+    unsafe { sse_cmp_ps(a, b, 3) }
+}
+
 // cmpss
 // __m128 _mm_cmpunord_ss (__m128 a, __m128 b)
 // comiss
@@ -357,6 +442,7 @@ pub fn mm_setzero_ps() -> m128 {
 
 #[cfg(test)]
 mod tests {
+    use std;
     use super::super::*;
 
     #[test]
@@ -402,5 +488,64 @@ mod tests {
         assert_eq!(x4.as_array(), [7.0, 7.0, 7.0, 7.0]);
         assert_eq!(x5.as_array(), [1.0, 2.0, 3.0, 4.0]);
         assert_eq!(x6.as_array(), [0.0, 0.0, 0.0, 0.0]);
+    }
+
+    #[test]
+    fn test_mm_cmp_ps() {
+        let x = mm_setr_ps(1.0, 2.0, 3.0, 4.0);
+        let y = mm_setr_ps(2.0, 2.0, 2.0, 2.0);
+        let z = mm_setr_ps(std::f32::NAN, std::f32::NAN, std::f32::NAN, std::f32::NAN);
+
+        let xy_eq = mm_cmpeq_ps(x, y).as_m128i().as_i32x4();
+        let xy_ge = mm_cmpge_ps(x, y).as_m128i().as_i32x4();
+        let xy_gt = mm_cmpgt_ps(x, y).as_m128i().as_i32x4();
+        let xy_le = mm_cmple_ps(x, y).as_m128i().as_i32x4();
+        let xy_lt = mm_cmplt_ps(x, y).as_m128i().as_i32x4();
+        let xy_ne = mm_cmpneq_ps(x, y).as_m128i().as_i32x4();
+        let xy_nge = mm_cmpnge_ps(x, y).as_m128i().as_i32x4();
+        let xy_ngt = mm_cmpngt_ps(x, y).as_m128i().as_i32x4();
+        let xy_nle = mm_cmpnle_ps(x, y).as_m128i().as_i32x4();
+        let xy_nlt = mm_cmpnlt_ps(x, y).as_m128i().as_i32x4();
+        let xy_ord = mm_cmpord_ps(x, y).as_m128i().as_i32x4();
+        let xy_uno = mm_cmpunord_ps(x, y).as_m128i().as_i32x4();
+
+        assert_eq!(xy_eq.as_array(), [ 0, !0,  0,  0]);
+        assert_eq!(xy_ge.as_array(), [ 0, !0, !0, !0]);
+        assert_eq!(xy_gt.as_array(), [ 0,  0, !0, !0]);
+        assert_eq!(xy_le.as_array(), [!0, !0,  0,  0]);
+        assert_eq!(xy_lt.as_array(), [!0,  0,  0,  0]);
+        assert_eq!(xy_ne.as_array(), [!0,  0, !0, !0]);
+        assert_eq!(xy_nge.as_array(), [!0,  0,  0,  0]);
+        assert_eq!(xy_ngt.as_array(), [!0, !0,  0,  0]);
+        assert_eq!(xy_nle.as_array(), [ 0,  0, !0, !0]);
+        assert_eq!(xy_nlt.as_array(), [ 0, !0, !0, !0]);
+        assert_eq!(xy_ord.as_array(), [!0, !0, !0, !0]);
+        assert_eq!(xy_uno.as_array(), [ 0,  0,  0,  0]);
+
+        let xz_eq = mm_cmpeq_ps(x, z).as_m128i().as_i32x4();
+        let xz_ge = mm_cmpge_ps(x, z).as_m128i().as_i32x4();
+        let xz_gt = mm_cmpgt_ps(x, z).as_m128i().as_i32x4();
+        let xz_le = mm_cmple_ps(x, z).as_m128i().as_i32x4();
+        let xz_lt = mm_cmplt_ps(x, z).as_m128i().as_i32x4();
+        let xz_ne = mm_cmpneq_ps(x, z).as_m128i().as_i32x4();
+        let xz_nge = mm_cmpnge_ps(x, z).as_m128i().as_i32x4();
+        let xz_ngt = mm_cmpngt_ps(x, z).as_m128i().as_i32x4();
+        let xz_nle = mm_cmpnle_ps(x, z).as_m128i().as_i32x4();
+        let xz_nlt = mm_cmpnlt_ps(x, z).as_m128i().as_i32x4();
+        let xz_ord = mm_cmpord_ps(x, z).as_m128i().as_i32x4();
+        let xz_uno = mm_cmpunord_ps(x, z).as_m128i().as_i32x4();
+
+        assert_eq!(xz_eq.as_array(), [ 0,  0,  0,  0]);
+        assert_eq!(xz_ge.as_array(), [ 0,  0,  0,  0]);
+        assert_eq!(xz_gt.as_array(), [ 0,  0,  0,  0]);
+        assert_eq!(xz_le.as_array(), [ 0,  0,  0,  0]);
+        assert_eq!(xz_lt.as_array(), [ 0,  0,  0,  0]);
+        assert_eq!(xz_ne.as_array(), [!0, !0, !0, !0]);
+        assert_eq!(xz_nge.as_array(), [!0, !0, !0, !0]);
+        assert_eq!(xz_ngt.as_array(), [!0, !0, !0, !0]);
+        assert_eq!(xz_nle.as_array(), [!0, !0, !0, !0]);
+        assert_eq!(xz_nlt.as_array(), [!0, !0, !0, !0]);
+        assert_eq!(xz_ord.as_array(), [ 0,  0,  0,  0]);
+        assert_eq!(xz_uno.as_array(), [!0, !0, !0, !0]);
     }
 }
