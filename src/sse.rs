@@ -58,6 +58,9 @@ extern {
     pub fn sse_max_ss(a: m128, b: m128) -> m128;
     #[link_name = "llvm.x86.sse.min.ss"]
     pub fn sse_min_ss(a: m128, b: m128) -> m128;
+
+    #[link_name = "llvm.x86.sse.movmsk.ps"]
+    pub fn sse_movmsk_ps(a: m128) -> i32;
 }
 
 // addps
@@ -522,8 +525,12 @@ pub fn mm_movelh_ps(a: m128, b: m128) -> m128 {
 
 // pmovmskb
 // int _mm_movemask_pi8 (__m64 a)
+
 // movmskps
 // int _mm_movemask_ps (__m128 a)
+pub fn mm_movemask_ps(a: m128) -> i32 {
+    unsafe { sse_movmsk_ps(a) }
+}
 
 // mulps
 // __m128 _mm_mul_ps (__m128 a, __m128 b)
@@ -1018,5 +1025,11 @@ mod tests {
         assert_eq!(mm_move_ss(x, y).as_f32x4().as_array(), [3.0, 2.0, 3.0, 4.0]);
         assert_eq!(mm_movehl_ps(x, y).as_f32x4().as_array(), [1.0, 0.0, 3.0, 4.0]);
         assert_eq!(mm_movelh_ps(x, y).as_f32x4().as_array(), [1.0, 2.0, 3.0, 2.0]);
+    }
+
+    #[test]
+    fn test_movemask() {
+        let x = mm_setr_ps(1.0, 2.0, -3.0, -4.0);
+        assert_eq!(mm_movemask_ps(x), (1 << 2) | (1 << 3));
     }
 }
