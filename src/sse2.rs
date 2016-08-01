@@ -3,7 +3,7 @@ use super::*;
 use super::{simd_add, simd_sub, simd_mul, simd_div,
             simd_and, simd_or, simd_xor,
             simd_eq, simd_ge, simd_gt, simd_lt, simd_le, simd_ne,
-            simd_shuffle16};
+            simd_shuffle16, simd_shuffle8, simd_shuffle4, simd_shuffle2};
 
 extern {
     #[link_name = "llvm.x86.sse2.cmp.sd"]
@@ -1130,24 +1130,87 @@ pub fn mm_ucomineq_sd(a: m128d, b: m128d) -> i32 {
 
 // punpckhwd
 // __m128i _mm_unpackhi_epi16 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_unpackhi_epi16(a: m128i, b: m128i) -> m128i {
+    let x: i16x8 = unsafe { simd_shuffle8(a.as_i16x8(), b.as_i16x8(), [4, 12, 5, 13, 6, 14, 7, 15]) };
+    x.as_m128i()
+}
+
 // punpckhdq
 // __m128i _mm_unpackhi_epi32 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_unpackhi_epi32(a: m128i, b: m128i) -> m128i {
+    let x: i32x4 = unsafe { simd_shuffle4(a.as_i32x4(), b.as_i32x4(), [2, 6, 3, 7]) };
+    x.as_m128i()
+}
+
 // punpckhqdq
 // __m128i _mm_unpackhi_epi64 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_unpackhi_epi64(a: m128i, b: m128i) -> m128i {
+    let x: i64x2 = unsafe { simd_shuffle2(a.as_i64x2(), b.as_i64x2(), [1, 3]) };
+    x.as_m128i()
+}
+
 // punpckhbw
 // __m128i _mm_unpackhi_epi8 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_unpackhi_epi8(a: m128i, b: m128i) -> m128i {
+    let x: i8x16 = unsafe {
+        simd_shuffle16(a.as_i8x16(), b.as_i8x16(),
+                       [8, 24, 9, 25, 10, 26, 11, 27, 12, 28, 13, 29, 14, 30, 15, 31])
+    };
+    x.as_m128i()
+}
+
 // unpckhpd
 // __m128d _mm_unpackhi_pd (__m128d a, __m128d b)
+#[inline]
+pub fn mm_unpackhi_pd(a: m128d, b: m128d) -> m128d {
+    unsafe { simd_shuffle2(a, b, [1, 3]) }
+}
+
 // punpcklwd
 // __m128i _mm_unpacklo_epi16 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_unpacklo_epi16(a: m128i, b: m128i) -> m128i {
+    let x: i16x8 = unsafe { simd_shuffle8(a.as_i16x8(), b.as_i16x8(), [0, 8, 1, 9, 2, 10, 3, 11]) };
+    x.as_m128i()
+}
+
 // punpckldq
 // __m128i _mm_unpacklo_epi32 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_unpacklo_epi32(a: m128i, b: m128i) -> m128i {
+    let x: i32x4 = unsafe { simd_shuffle4(a.as_i32x4(), b.as_i32x4(), [0, 4, 1, 5]) };
+    x.as_m128i()
+}
+
 // punpcklqdq
 // __m128i _mm_unpacklo_epi64 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_unpacklo_epi64(a: m128i, b: m128i) -> m128i {
+    let x: i64x2 = unsafe { simd_shuffle2(a.as_i64x2(), b.as_i64x2(), [0, 2]) };
+    x.as_m128i()
+}
+
 // punpcklbw
 // __m128i _mm_unpacklo_epi8 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_unpacklo_epi8(a: m128i, b: m128i) -> m128i {
+    let x: i8x16 = unsafe {
+        simd_shuffle16(a.as_i8x16(), b.as_i8x16(),
+                       [0, 16, 1, 17, 2, 18, 3, 19, 4, 20, 5, 21, 6, 22, 7, 23])
+    };
+    x.as_m128i()
+}
+
 // unpcklpd
 // __m128d _mm_unpacklo_pd (__m128d a, __m128d b)
+#[inline]
+pub fn mm_unpacklo_pd(a: m128d, b: m128d) -> m128d {
+    unsafe { simd_shuffle2(a, b, [0, 2]) }
+}
 
 // xorpd
 // __m128d _mm_xor_pd (__m128d a, __m128d b)
@@ -1515,6 +1578,34 @@ mod tests {
         // assert_eq!(mm_ucomile_sd(x, z), 1);
         // assert_eq!(mm_ucomilt_sd(x, z), 1);
         // assert_eq!(mm_ucomineq_sd(x, z), 1);
+    }
+
+    #[test]
+    fn test_unpack() {
+        let x = mm_setr_epi8(0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xA, 0xB, 0xC, 0xD, 0xE, 0xF);
+        let y = mm_setr_epi8(0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F);
+        let p = mm_setr_pd(0.0, 1.0);
+        let q = mm_setr_pd(2.0, 3.0);
+
+        assert_eq!(mm_unpackhi_epi8(x, y).as_i8x16().as_array(),
+                   [0x08, 0x18, 0x09, 0x19, 0x0A, 0x1A, 0x0B, 0x1B, 0x0C, 0x1C, 0x0D, 0x1D, 0x0E, 0x1E, 0x0F, 0x1F]);
+        assert_eq!(mm_unpackhi_epi16(x, y).as_i8x16().as_array(),
+                   [0x08, 0x09, 0x18, 0x19, 0x0A, 0x0B, 0x1A, 0x1B, 0x0C, 0x0D, 0x1C, 0x1D, 0x0E, 0x0F, 0x1E, 0x1F]);
+        assert_eq!(mm_unpackhi_epi32(x, y).as_i8x16().as_array(),
+                   [0x08, 0x09, 0x0A, 0x0B, 0x18, 0x19, 0x1A, 0x1B, 0x0C, 0x0D, 0x0E, 0x0F, 0x1C, 0x1D, 0x1E, 0x1F]);
+        assert_eq!(mm_unpackhi_epi64(x, y).as_i8x16().as_array(),
+                   [0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F]);
+        assert_eq!(mm_unpacklo_epi8(x, y).as_i8x16().as_array(),
+                   [0x00, 0x10, 0x01, 0x11, 0x02, 0x12, 0x03, 0x13, 0x04, 0x14, 0x05, 0x15, 0x06, 0x16, 0x07, 0x17]);
+        assert_eq!(mm_unpacklo_epi16(x, y).as_i8x16().as_array(),
+                   [0x00, 0x01, 0x10, 0x11, 0x02, 0x03, 0x12, 0x13, 0x04, 0x05, 0x14, 0x15, 0x06, 0x07, 0x16, 0x17]);
+        assert_eq!(mm_unpacklo_epi32(x, y).as_i8x16().as_array(),
+                   [0x00, 0x01, 0x02, 0x03, 0x10, 0x11, 0x12, 0x13, 0x04, 0x05, 0x06, 0x07, 0x14, 0x15, 0x16, 0x17]);
+        assert_eq!(mm_unpacklo_epi64(x, y).as_i8x16().as_array(),
+                   [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17]);
+
+        assert_eq!(mm_unpackhi_pd(p, q).as_f64x2().as_array(), [1.0, 3.0]);
+        assert_eq!(mm_unpacklo_pd(p, q).as_f64x2().as_array(), [0.0, 2.0]);
     }
 
     #[test]

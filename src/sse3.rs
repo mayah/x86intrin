@@ -1,5 +1,5 @@
 use super::*;
-use super::{simd_shuffle4};
+use super::{simd_shuffle2, simd_shuffle4};
 
 extern "platform-intrinsic" {
     fn x86_mm_addsub_pd(x: m128d, y: m128d) -> m128d;
@@ -8,8 +8,6 @@ extern "platform-intrinsic" {
     fn x86_mm_hadd_ps(x: m128, y: m128) -> m128;
     fn x86_mm_hsub_pd(x: m128d, y: m128d) -> m128d;
     fn x86_mm_hsub_ps(x: m128, y: m128) -> m128;
-
-    fn simd_shuffle2<T, U>(x: T, y: T, idx: [u32; 2]) -> U;
 }
 
 // addsubpd
