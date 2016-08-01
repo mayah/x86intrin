@@ -1,6 +1,6 @@
 use std;
 use super::*;
-use super::{simd_add, simd_sub,
+use super::{simd_add, simd_sub, simd_mul, simd_div,
             simd_and, simd_or, simd_xor, simd_shuffle16};
 
 extern {
@@ -66,16 +66,16 @@ pub fn mm_add_epi8(a: m128i, b: m128i) -> m128i {
 // addpd
 // __m128d _mm_add_pd (__m128d a, __m128d b)
 #[inline]
-pub fn mm_add_pd(a: m128, b: m128) -> m128 {
-    unsafe { simd_add(a.as_f32x4(), b.as_f32x4()).as_m128() }
+pub fn mm_add_pd(a: m128d, b: m128d) -> m128d {
+    unsafe { simd_add(a.as_f64x2(), b.as_f64x2()).as_m128d() }
 }
 
 // addsd
 // __m128d _mm_add_sd (__m128d a, __m128d b)
 #[inline]
-pub fn mm_add_sd(a: m128, b: m128) -> m128 {
-    let v = a.as_f32x4().extract(0) + b.as_f32x4().extract(0);
-    a.as_f32x4().insert(0, v).as_m128()
+pub fn mm_add_sd(a: m128d, b: m128d) -> m128d {
+    let v = a.as_f64x2().extract(0) + b.as_f64x2().extract(0);
+    a.as_f64x2().insert(0, v).as_m128d()
 }
 
 // paddq
@@ -321,10 +321,22 @@ pub fn mm_castsi128_ps(a: m128i) -> m128 {
 // __int64 _mm_cvttsd_si64 (__m128d a)
 // cvttsd2si
 // __int64 _mm_cvttsd_si64x (__m128d a)
+
 // divpd
 // __m128d _mm_div_pd (__m128d a, __m128d b)
+#[inline]
+pub fn mm_div_pd(a: m128d, b: m128d) -> m128d {
+    unsafe { simd_div(a.as_f64x2(), b.as_f64x2()).as_m128d() }
+}
+
 // divsd
 // __m128d _mm_div_sd (__m128d a, __m128d b)
+#[inline]
+pub fn mm_div_sd(a: m128d, b: m128d) -> m128d {
+    let v = a.as_f64x2().extract(0) / b.as_f64x2().extract(0);
+    a.as_f64x2().insert(0, v).as_m128d()
+}
+
 // pextrw
 // int _mm_extract_epi16 (__m128i a, int imm8)
 // pinsrw
@@ -389,10 +401,22 @@ pub fn mm_castsi128_ps(a: m128i) -> m128 {
 // __m128i _mm_movpi64_epi64 (__m64 a)
 // pmuludq
 // __m128i _mm_mul_epu32 (__m128i a, __m128i b)
+
 // mulpd
 // __m128d _mm_mul_pd (__m128d a, __m128d b)
+#[inline]
+pub fn mm_mul_pd(a: m128d, b: m128d) -> m128d {
+    unsafe { simd_mul(a.as_f64x2(), b.as_f64x2()).as_m128d() }
+}
+
 // mulsd
 // __m128d _mm_mul_sd (__m128d a, __m128d b)
+#[inline]
+pub fn mm_mul_sd(a: m128d, b: m128d) -> m128d {
+    let v = a.as_f64x2().extract(0) * b.as_f64x2().extract(0);
+    a.as_f64x2().insert(0, v).as_m128d()
+}
+
 // pmuludq
 // __m64 _mm_mul_su32 (__m64 a, __m64 b)
 // pmulhw
@@ -706,8 +730,19 @@ pub fn mm_sub_epi8(a: m128i, b: m128i) -> m128i {
 
 // subpd
 // __m128d _mm_sub_pd (__m128d a, __m128d b)
+#[inline]
+pub fn mm_sub_pd(a: m128d, b: m128d) -> m128d {
+    unsafe { simd_sub(a.as_f64x2(), b.as_f64x2()).as_m128d() }
+}
+
 // subsd
 // __m128d _mm_sub_sd (__m128d a, __m128d b)
+#[inline]
+pub fn mm_sub_sd(a: m128d, b: m128d) -> m128d {
+    let v = a.as_f64x2().extract(0) - b.as_f64x2().extract(0);
+    a.as_f64x2().insert(0, v).as_m128d()
+}
+
 // psubq
 // __m64 _mm_sub_si64 (__m64 a, __m64 b)
 // psubsw
@@ -786,15 +821,25 @@ mod tests {
     }
 
     #[test]
-    fn test_mm_add_d() {
-        let x = mm_setr_ps(1.0, 2.0, 3.0, 4.0);
-        let y = mm_setr_ps(8.0, 9.0, 2.0, 4.0);
+    fn test_mm_arith_pd() {
+        let x = mm_setr_pd(1.0, 2.0);
+        let y = mm_setr_pd(2.0, 4.0);
 
-        let zp = mm_add_pd(x, y);
-        let zs = mm_add_sd(x, y);
+        assert_eq!(mm_add_pd(x, y).as_f64x2().as_array(), [3.0, 6.0]);
+        assert_eq!(mm_sub_pd(x, y).as_f64x2().as_array(), [-1.0, -2.0]);
+        assert_eq!(mm_mul_pd(x, y).as_f64x2().as_array(), [2.0, 8.0]);
+        assert_eq!(mm_div_pd(x, y).as_f64x2().as_array(), [0.5, 0.5]);
+    }
 
-        assert_eq!(zp.as_f32x4().as_array(), [9.0, 11.0, 5.0, 8.0]);
-        assert_eq!(zs.as_f32x4().as_array(), [9.0, 2.0, 3.0, 4.0]);
+    #[test]
+    fn test_mm_arith_sd() {
+        let x = mm_setr_pd(1.0, 2.0);
+        let y = mm_setr_pd(2.0, 4.0);
+
+        assert_eq!(mm_add_sd(x, y).as_f64x2().as_array(), [3.0, 2.0]);
+        assert_eq!(mm_sub_sd(x, y).as_f64x2().as_array(), [-1.0, 2.0]);
+        assert_eq!(mm_mul_sd(x, y).as_f64x2().as_array(), [2.0, 2.0]);
+        assert_eq!(mm_div_sd(x, y).as_f64x2().as_array(), [0.5, 2.0]);
     }
 
     #[test]
