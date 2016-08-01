@@ -497,20 +497,55 @@ pub fn mm_set_pd(e1: f64, e0: f64) -> m128d {
 
 // ...
 // __m128d _mm_set_pd1 (double a)
+#[inline]
+pub fn mm_set_pd1(a: f64) -> m128d {
+    f64x2(a, a).as_m128d()
+}
+
 // ...
 // __m128d _mm_set_sd (double a)
+#[inline]
+pub fn mm_set_sd(a: f64) -> m128d {
+    f64x2(a, 0.0).as_m128d()
+}
+
 // ...
 // __m128i _mm_set1_epi16 (short a)
+#[inline]
+pub fn mm_set1_epi16(a: i16) -> m128i {
+    i16x8(a, a, a, a, a, a, a, a).as_m128i()
+}
+
 // ...
 // __m128i _mm_set1_epi32 (int a)
+#[inline]
+pub fn mm_set1_epi32(a: i32) -> m128i {
+    i32x4(a, a, a, a).as_m128i()
+}
+
 // ...
 // __m128i _mm_set1_epi64 (__m64 a)
+
 // ...
 // __m128i _mm_set1_epi64x (__int64 a)
+#[inline]
+pub fn mm_set1_epi64(a: i64) -> m128i {
+    i64x2(a, a).as_m128i()
+}
+
 // ...
 // __m128i _mm_set1_epi8 (char a)
+#[inline]
+pub fn mm_set1_epi8(a: i8) -> m128i {
+    i8x16(a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, a).as_m128i()
+}
+
 // ...
 // __m128d _mm_set1_pd (double a)
+#[inline]
+pub fn mm_set1_pd(a: f64) -> m128d {
+    f64x2(a, a).as_m128d()
+}
 
 // ...
 // __m128i _mm_setr_epi16 (short e7, short e6, short e5, short e4, short e3, short e2, short e1, short e0)
@@ -547,6 +582,10 @@ pub fn mm_setr_pd(e0: f64, e1: f64) -> m128d {
 
 // xorpd
 // __m128d _mm_setzero_pd (void)
+#[inline]
+pub fn mm_setzero_pd() -> m128d {
+    f64x2(0.0, 0.0).as_m128d()
+}
 
 // pxor
 // __m128i _mm_setzero_si128 ()
@@ -916,20 +955,29 @@ mod tests {
     #[test]
     fn test_mm_set_int() {
         assert_eq!(mm_setzero_si128().as_i64x2().as_array(), [0, 0]);
+
         assert_eq!(mm_set_epi32(1, 2, 3, 4).as_i32x4().as_array(), [4, 3, 2, 1]);
         assert_eq!(mm_setr_epi32(1, 2, 3, 4).as_i32x4().as_array(), [1, 2, 3, 4]);
         assert_eq!(mm_set_epi16(1, 2, 3, 4, 5, 6, 7, 8).as_i16x8().as_array(), [8, 7, 6, 5, 4, 3, 2, 1]);
         assert_eq!(mm_setr_epi16(1, 2, 3, 4, 5, 6, 7, 8).as_i16x8().as_array(), [1, 2, 3, 4, 5, 6, 7, 8]);
         assert_eq!(mm_set_epi64x(0x3, 0xF).as_i64x2().as_array(), [0xF, 0x3]);
+
+        assert_eq!(mm_set1_epi16(1).as_i16x8().as_array(), [1, 1, 1, 1, 1, 1, 1, 1]);
+        assert_eq!(mm_set1_epi32(1).as_i32x4().as_array(), [1, 1, 1, 1]);
+        assert_eq!(mm_set1_epi64(1).as_i64x2().as_array(), [1, 1]);
+        assert_eq!(mm_set1_epi8(1).as_i8x16().as_array(),
+                   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]);
     }
 
     #[test]
     fn test_mm_set_pd() {
-        let x = mm_set_pd(1.0, 2.0).as_f64x2();
-        assert_eq!(x.as_array(), [2.0, 1.0]);
+        assert_eq!(mm_setzero_pd().as_f64x2().as_array(), [0.0, 0.0]);
 
-        let y = mm_setr_pd(1.0, 2.0).as_f64x2();
-        assert_eq!(y.as_array(), [1.0, 2.0]);
+        assert_eq!(mm_set_pd(1.0, 2.0).as_f64x2().as_array(), [2.0, 1.0]);
+        assert_eq!(mm_setr_pd(1.0, 2.0).as_f64x2().as_array(), [1.0, 2.0]);
+        assert_eq!(mm_set_pd1(1.0).as_f64x2().as_array(), [1.0, 1.0]);
+        assert_eq!(mm_set_sd(1.0).as_f64x2().as_array(), [1.0, 0.0]);
+        assert_eq!(mm_set1_pd(1.0).as_f64x2().as_array(), [1.0, 1.0]);
     }
 
     #[test]
