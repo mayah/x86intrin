@@ -441,6 +441,10 @@ pub fn mm_setr_epi8(e0: i8, e1: i8, e2: i8, e3: i8, e4: i8, e5: i8, e6: i8, e7: 
 
 // ...
 // __m128d _mm_setr_pd (double e1, double e0)
+pub fn mm_setr_pd(e0: f64, e1: f64) -> m128d {
+    f64x2(e0, e1).as_m128d()
+}
+
 // xorpd
 // __m128d _mm_setzero_pd (void)
 
@@ -772,8 +776,10 @@ mod tests {
     #[test]
     fn test_mm_set_pd() {
         let x = mm_set_pd(1.0, 2.0).as_f64x2();
-        assert_eq!(x.extract(0), 2.0);
-        assert_eq!(x.extract(1), 1.0);
+        assert_eq!(x.as_array(), [2.0, 1.0]);
+
+        let y = mm_setr_pd(1.0, 2.0).as_f64x2();
+        assert_eq!(y.as_array(), [1.0, 2.0]);
     }
 
     #[test]
