@@ -914,40 +914,13 @@ mod tests {
     }
 
     #[test]
-    fn test_mm_setzero_si128() {
-        let zero = mm_setzero_si128().as_i64x2();
-        assert_eq!(zero.as_array(), [0, 0]);
-    }
-
-    #[test]
-    fn test_mm_set_epi32() {
-        let x = mm_set_epi32(1, 2, 3, 4).as_i32x4();
-        assert_eq!(x.as_array(), [4, 3, 2, 1]);
-    }
-
-    #[test]
-    fn test_mm_setr_epi32() {
-        let x = mm_setr_epi32(1, 2, 3, 4).as_i32x4();
-        assert_eq!(x.as_array(), [1, 2, 3, 4]);
-    }
-
-    #[test]
-    fn test_mm_set_epi16() {
-        let x = mm_set_epi16(1, 2, 3, 4, 5, 6, 7, 8).as_i16x8();
-        assert_eq!(x.as_array(), [8, 7, 6, 5, 4, 3, 2, 1]);
-    }
-
-    #[test]
-    fn test_mm_setr_epi16() {
-        let x = mm_setr_epi16(1, 2, 3, 4, 5, 6, 7, 8).as_i16x8();
-        assert_eq!(x.as_array(), [1, 2, 3, 4, 5, 6, 7, 8]);
-    }
-
-    #[test]
-    fn test_mm_set_epi64x() {
-        let x = mm_set_epi64x(0x3, 0xF).as_i64x2();
-        assert_eq!(x.extract(0), 0xF);
-        assert_eq!(x.extract(1), 0x3);
+    fn test_mm_set_int() {
+        assert_eq!(mm_setzero_si128().as_i64x2().as_array(), [0, 0]);
+        assert_eq!(mm_set_epi32(1, 2, 3, 4).as_i32x4().as_array(), [4, 3, 2, 1]);
+        assert_eq!(mm_setr_epi32(1, 2, 3, 4).as_i32x4().as_array(), [1, 2, 3, 4]);
+        assert_eq!(mm_set_epi16(1, 2, 3, 4, 5, 6, 7, 8).as_i16x8().as_array(), [8, 7, 6, 5, 4, 3, 2, 1]);
+        assert_eq!(mm_setr_epi16(1, 2, 3, 4, 5, 6, 7, 8).as_i16x8().as_array(), [1, 2, 3, 4, 5, 6, 7, 8]);
+        assert_eq!(mm_set_epi64x(0x3, 0xF).as_i64x2().as_array(), [0xF, 0x3]);
     }
 
     #[test]
