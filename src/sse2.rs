@@ -15,6 +15,10 @@ extern "platform-intrinsic" {
     fn x86_mm_adds_epu8(x: u8x16, y: u8x16) -> u8x16;
     fn x86_mm_adds_epi16(x: i16x8, y: i16x8) -> i16x8;
     fn x86_mm_adds_epu16(x: u16x8, y: u16x8) -> u16x8;
+    fn x86_mm_subs_epi8(x: i8x16, y: i8x16) -> i8x16;
+    fn x86_mm_subs_epu8(x: u8x16, y: u8x16) -> u8x16;
+    fn x86_mm_subs_epi16(x: i16x8, y: i16x8) -> i16x8;
+    fn x86_mm_subs_epu16(x: u16x8, y: u16x8) -> u16x8;
 }
 
 macro_rules! m128i_operators {
@@ -745,14 +749,35 @@ pub fn mm_sub_sd(a: m128d, b: m128d) -> m128d {
 
 // psubq
 // __m64 _mm_sub_si64 (__m64 a, __m64 b)
+
 // psubsw
 // __m128i _mm_subs_epi16 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_subs_epi16(a: m128i, b: m128i) -> m128i {
+    unsafe { x86_mm_subs_epi16(a.as_i16x8(), b.as_i16x8()).as_m128i() }
+}
+
 // psubsb
 // __m128i _mm_subs_epi8 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_subs_epi8(a: m128i, b: m128i) -> m128i {
+    unsafe { x86_mm_subs_epi8(a.as_i8x16(), b.as_i8x16()).as_m128i() }
+}
+
 // psubusw
 // __m128i _mm_subs_epu16 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_subs_epu16(a: m128i, b: m128i) -> m128i {
+    unsafe { x86_mm_subs_epu16(a.as_u16x8(), b.as_u16x8()).as_m128i() }
+}
+
 // psubusb
 // __m128i _mm_subs_epu8 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_subs_epu8(a: m128i, b: m128i) -> m128i {
+    unsafe { x86_mm_subs_epu8(a.as_u8x16(), b.as_u8x16()).as_m128i() }
+}
+
 // ucomisd
 // int _mm_ucomieq_sd (__m128d a, __m128d b)
 // ucomisd
@@ -843,21 +868,33 @@ mod tests {
     }
 
     #[test]
-    fn test_mm_adds_16() {
-        let x = mm_setr_epi16(1, 2, 3, 4, 5, 6, -0x8000, 0x7FFF);
-        let y = mm_setr_epi16(3, 4, 5, 6, 1, 2, -0x8000, 0x7FFF);
+    fn test_mm_ariths_16() {
+        let x = mm_setr_epi16(1, 2, 0, -1, 0x7FFF, 0x7FFF, -0x8000, -0x8000);
+        let y = mm_setr_epi16(3, 4, -1, -1, 0x7FFF, -0x8000, 0x7FFF, -0x8000);
 
-        assert_eq!(mm_adds_epi16(x, y).as_i16x8().as_array(), [4, 6, 8, 10, 6, 8, -0x8000, 0x7FFF]);
-        assert_eq!(mm_adds_epu16(x, y).as_u16x8().as_array(), [4, 6, 8, 10, 6, 8, 0xFFFF, 0xFFFE]);
+        assert_eq!(mm_adds_epi16(x, y).as_i16x8().as_array(),
+                   [4, 6, -1, -2, 0x7FFF, -1, -1, -0x8000]);
+        assert_eq!(mm_adds_epu16(x, y).as_u16x8().as_array(),
+                   [4, 6, 0xFFFF, 0xFFFF, 0xFFFE, 0xFFFF, 0xFFFF, 0xFFFF]);
+        assert_eq!(mm_subs_epi16(x, y).as_i16x8().as_array(),
+                   [-2, -2, 1, 0, 0, 0x7FFF, -0x8000, 0]);
+        assert_eq!(mm_subs_epu16(x, y).as_u16x8().as_array(),
+                   [0, 0, 0, 0, 0, 0, 1, 0]);
     }
 
     #[test]
-    fn test_mm_adds_8() {
-        let x = mm_setr_epi8(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, -0x80, 0x7F);
-        let y = mm_setr_epi8(3, 4, 5, 6, 1, 2, 3, 4, 5, 10, 11, 12, 13, 14, -0x80, 0x7F);
+    fn test_mm_ariths_8() {
+        let x = mm_setr_epi8(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0, -1, 0x7F, 0x7F, -0x80, -0x80);
+        let y = mm_setr_epi8(3, 4, 5, 6, 1, 2, 3, 4, 5, 10, -1, -1, 0x7F, -0x80, 0x7F, -0x80);
 
-        assert_eq!(mm_adds_epi8(x, y).as_i8x16().as_array(), [4, 6, 8, 10, 6, 8, 10, 12, 14, 20, 22, 24, 26, 28, -0x80, 0x7F]);
-        assert_eq!(mm_adds_epu8(x, y).as_u8x16().as_array(), [4, 6, 8, 10, 6, 8, 10, 12, 14, 20, 22, 24, 26, 28, 0xFF, 0xFE]);
+        assert_eq!(mm_adds_epi8(x, y).as_i8x16().as_array(),
+                   [4, 6, 8, 10, 6, 8, 10, 12, 14, 20, -1, -2, 0x7F, -1, -1, -0x80]);
+        assert_eq!(mm_adds_epu8(x, y).as_u8x16().as_array(),
+                   [4, 6, 8, 10, 6, 8, 10, 12, 14, 20, 0xFF, 0xFF, 0xFE, 0xFF, 0xFF, 0xFF]);
+        assert_eq!(mm_subs_epi8(x, y).as_i8x16().as_array(),
+                   [-2, -2, -2, -2, 4, 4, 4, 4, 4, 0, 1, 0, 0, 0x7F, -0x80, 0]);
+        assert_eq!(mm_subs_epu8(x, y).as_u8x16().as_array(),
+                   [0, 0, 0, 0, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 1, 0]);
     }
 
     #[test]
