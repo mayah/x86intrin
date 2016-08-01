@@ -26,7 +26,7 @@ macro_rules! m128i_operators {
 // Add &, |, ^ operators for m128i.
 m128i_operators! { BitAnd, bitand, simd_and }
 m128i_operators! { BitOr,  bitor,  simd_or }
-m128i_operators! { BitXor,  bitxor,  simd_xor }
+m128i_operators! { BitXor, bitxor, simd_xor }
 
 // paddw
 // __m128i _mm_add_epi16 (__m128i a, __m128i b)
