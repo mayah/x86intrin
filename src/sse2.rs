@@ -452,7 +452,7 @@ pub fn mm_setr_pd(e0: f64, e1: f64) -> m128d {
 // __m128i _mm_setzero_si128 ()
 #[inline]
 pub fn mm_setzero_si128() -> m128i {
-    m128i(0, 0, 0, 0)
+    i32x4(0, 0, 0, 0).as_m128i()
 }
 
 // pshufd

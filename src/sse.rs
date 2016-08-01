@@ -116,7 +116,7 @@ pub fn mm_andnot_ps(a: m128, b: m128) -> m128 {
 // __m128 _mm_cmpeq_ps (__m128 a, __m128 b)
 #[inline]
 pub fn mm_cmpeq_ps(a: m128, b: m128) -> m128 {
-    let x: m128i = unsafe { simd_eq(a, b) };
+    let x: i32x4 = unsafe { simd_eq(a, b) };
     x.as_m128()
 }
 
@@ -131,7 +131,7 @@ pub fn mm_cmpeq_ss(a: m128, b: m128) -> m128 {
 // __m128 _mm_cmpge_ps (__m128 a, __m128 b)
 #[inline]
 pub fn mm_cmpge_ps(a: m128, b: m128) -> m128 {
-    let x: m128i = unsafe { simd_ge(a, b) };
+    let x: i32x4 = unsafe { simd_ge(a, b) };
     x.as_m128()
 }
 
@@ -148,7 +148,7 @@ pub fn mm_cmpge_ss(a: m128, b: m128) -> m128 {
 // __m128 _mm_cmpgt_ps (__m128 a, __m128 b)
 #[inline]
 pub fn mm_cmpgt_ps(a: m128, b: m128) -> m128 {
-    let x: m128i = unsafe { simd_gt(a, b) };
+    let x: i32x4 = unsafe { simd_gt(a, b) };
     x.as_m128()
 }
 
@@ -165,7 +165,7 @@ pub fn mm_cmpgt_ss(a: m128, b: m128) -> m128 {
 // __m128 _mm_cmple_ps (__m128 a, __m128 b)
 #[inline]
 pub fn mm_cmple_ps(a: m128, b: m128) -> m128 {
-    let x: m128i = unsafe { simd_le(a, b) };
+    let x: i32x4 = unsafe { simd_le(a, b) };
     x.as_m128()
 }
 
@@ -180,7 +180,7 @@ pub fn mm_cmple_ss(a: m128, b: m128) -> m128 {
 // __m128 _mm_cmplt_ps (__m128 a, __m128 b)
 #[inline]
 pub fn mm_cmplt_ps(a: m128, b: m128) -> m128 {
-    let x: m128i = unsafe { simd_lt(a, b) };
+    let x: i32x4 = unsafe { simd_lt(a, b) };
     x.as_m128()
 }
 
@@ -195,7 +195,7 @@ pub fn mm_cmplt_ss(a: m128, b: m128) -> m128 {
 // __m128 _mm_cmpneq_ps (__m128 a, __m128 b)
 #[inline]
 pub fn mm_cmpneq_ps(a: m128, b: m128) -> m128 {
-    let x: m128i = unsafe { simd_ne(a, b) };
+    let x: i32x4 = unsafe { simd_ne(a, b) };
     x.as_m128()
 }
 

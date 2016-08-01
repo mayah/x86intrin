@@ -42,7 +42,7 @@ unsafe fn bitcast<T, U>(x: T) -> U {
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(C, simd)]
-pub struct m128i(i32, i32, i32, i32);
+pub struct m128i(i64, i64);
 
 impl m128i {
     #[inline]
@@ -371,8 +371,8 @@ mod tests {
 
     #[test]
     fn basic_m128i_ops() {
-        let x = m128i(1, 2, 3, 4);
-        let y = m128i(2, 3, 4, 5);
+        let x = i32x4(1, 2, 3, 4).as_m128i();
+        let y = i32x4(2, 3, 4, 5).as_m128i();
 
         let xy_and = (x & y).as_i32x4();
         let xy_or  = (x | y).as_i32x4();
