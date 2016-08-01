@@ -11,6 +11,31 @@ extern {
     #[link_name = "llvm.x86.sse2.cmp.pd"]
     pub fn sse2_cmp_pd(a: m128d, b: m128d, c: i8) -> m128d;
 
+    #[link_name = "llvm.x86.sse2.comieq.sd"]
+    pub fn sse2_comieq_sd(a: m128d, b: m128d) -> i32;
+    #[link_name = "llvm.x86.sse2.comigt.sd"]
+    pub fn sse2_comigt_sd(a: m128d, b: m128d) -> i32;
+    #[link_name = "llvm.x86.sse2.comige.sd"]
+    pub fn sse2_comige_sd(a: m128d, b: m128d) -> i32;
+    #[link_name = "llvm.x86.sse2.comilt.sd"]
+    pub fn sse2_comilt_sd(a: m128d, b: m128d) -> i32;
+    #[link_name = "llvm.x86.sse2.comile.sd"]
+    pub fn sse2_comile_sd(a: m128d, b: m128d) -> i32;
+    #[link_name = "llvm.x86.sse2.comineq.sd"]
+    pub fn sse2_comineq_sd(a: m128d, b: m128d) -> i32;
+    #[link_name = "llvm.x86.sse2.ucomieq.sd"]
+    pub fn sse2_ucomieq_sd(a: m128d, b: m128d) -> i32;
+    #[link_name = "llvm.x86.sse2.ucomigt.sd"]
+    pub fn sse2_ucomigt_sd(a: m128d, b: m128d) -> i32;
+    #[link_name = "llvm.x86.sse2.ucomige.sd"]
+    pub fn sse2_ucomige_sd(a: m128d, b: m128d) -> i32;
+    #[link_name = "llvm.x86.sse2.ucomilt.sd"]
+    pub fn sse2_ucomilt_sd(a: m128d, b: m128d) -> i32;
+    #[link_name = "llvm.x86.sse2.ucomile.sd"]
+    pub fn sse2_ucomile_sd(a: m128d, b: m128d) -> i32;
+    #[link_name = "llvm.x86.sse2.ucomineq.sd"]
+    pub fn sse2_ucomineq_sd(a: m128d, b: m128d) -> i32;
+
     #[link_name = "llvm.x86.sse2.pslli.w"]
     pub fn sse2_pslli_w(a: i16x8, b: i32) -> i16x8;
     #[link_name = "llvm.x86.sse2.psrli.w"]
@@ -471,16 +496,46 @@ pub fn mm_cmpunord_sd(a: m128d, b: m128d) -> m128d {
 
 // comisd
 // int _mm_comieq_sd (__m128d a, __m128d b)
+#[inline]
+pub fn mm_comieq_sd(a: m128d, b: m128d) -> i32 {
+    unsafe { sse2_comieq_sd(a, b) }
+}
+
 // comisd
 // int _mm_comige_sd (__m128d a, __m128d b)
+#[inline]
+pub fn mm_comige_sd(a: m128d, b: m128d) -> i32 {
+    unsafe { sse2_comige_sd(a, b) }
+}
+
 // comisd
 // int _mm_comigt_sd (__m128d a, __m128d b)
+#[inline]
+pub fn mm_comigt_sd(a: m128d, b: m128d) -> i32 {
+    unsafe { sse2_comigt_sd(a, b) }
+}
+
 // comisd
 // int _mm_comile_sd (__m128d a, __m128d b)
+#[inline]
+pub fn mm_comile_sd(a: m128d, b: m128d) -> i32 {
+    unsafe { sse2_comile_sd(a, b) }
+}
+
 // comisd
 // int _mm_comilt_sd (__m128d a, __m128d b)
+#[inline]
+pub fn mm_comilt_sd(a: m128d, b: m128d) -> i32 {
+    unsafe { sse2_comilt_sd(a, b) }
+}
+
 // comisd
 // int _mm_comineq_sd (__m128d a, __m128d b)
+#[inline]
+pub fn mm_comineq_sd(a: m128d, b: m128d) -> i32 {
+    unsafe { sse2_comineq_sd(a, b) }
+}
+
 // cvtdq2pd
 // __m128d _mm_cvtepi32_pd (__m128i a)
 // cvtdq2ps
@@ -1033,16 +1088,46 @@ pub fn mm_subs_epu8(a: m128i, b: m128i) -> m128i {
 
 // ucomisd
 // int _mm_ucomieq_sd (__m128d a, __m128d b)
+#[inline]
+pub fn mm_ucomieq_sd(a: m128d, b: m128d) -> i32 {
+    unsafe { sse2_ucomieq_sd(a, b) }
+}
+
 // ucomisd
 // int _mm_ucomige_sd (__m128d a, __m128d b)
+#[inline]
+pub fn mm_ucomige_sd(a: m128d, b: m128d) -> i32 {
+    unsafe { sse2_ucomige_sd(a, b) }
+}
+
 // ucomisd
 // int _mm_ucomigt_sd (__m128d a, __m128d b)
+#[inline]
+pub fn mm_ucomigt_sd(a: m128d, b: m128d) -> i32 {
+    unsafe { sse2_ucomigt_sd(a, b) }
+}
+
 // ucomisd
 // int _mm_ucomile_sd (__m128d a, __m128d b)
+#[inline]
+pub fn mm_ucomile_sd(a: m128d, b: m128d) -> i32 {
+    unsafe { sse2_ucomile_sd(a, b) }
+}
+
 // ucomisd
 // int _mm_ucomilt_sd (__m128d a, __m128d b)
+#[inline]
+pub fn mm_ucomilt_sd(a: m128d, b: m128d) -> i32 {
+    unsafe { sse2_ucomilt_sd(a, b) }
+}
+
 // ucomisd
 // int _mm_ucomineq_sd (__m128d a, __m128d b)
+#[inline]
+pub fn mm_ucomineq_sd(a: m128d, b: m128d) -> i32 {
+    unsafe { sse2_ucomineq_sd(a, b) }
+}
+
 // punpckhwd
 // __m128i _mm_unpackhi_epi16 (__m128i a, __m128i b)
 // punpckhdq
@@ -1364,6 +1449,72 @@ mod tests {
         assert_eq!(xz_nlt.as_array(), [!0, x1]);
         assert_eq!(xz_ord.as_array(), [ 0, x1]);
         assert_eq!(xz_uno.as_array(), [!0, x1]);
+    }
+
+    #[test]
+    fn test_mm_comi_sd() {
+        let x = mm_setr_pd(1.0, 2.0);
+        let y = mm_setr_pd(2.0, 2.0);
+
+        assert_eq!(mm_comieq_sd(x, x), 1);
+        assert_eq!(mm_comige_sd(x, x), 1);
+        assert_eq!(mm_comigt_sd(x, x), 0);
+        assert_eq!(mm_comile_sd(x, x), 1);
+        assert_eq!(mm_comilt_sd(x, x), 0);
+        assert_eq!(mm_comineq_sd(x, x), 0);
+
+        assert_eq!(mm_ucomieq_sd(x, x), 1);
+        assert_eq!(mm_ucomige_sd(x, x), 1);
+        assert_eq!(mm_ucomigt_sd(x, x), 0);
+        assert_eq!(mm_ucomile_sd(x, x), 1);
+        assert_eq!(mm_ucomilt_sd(x, x), 0);
+        assert_eq!(mm_ucomineq_sd(x, x), 0);
+
+        assert_eq!(mm_comieq_sd(x, y), 0);
+        assert_eq!(mm_comige_sd(x, y), 0);
+        assert_eq!(mm_comigt_sd(x, y), 0);
+        assert_eq!(mm_comile_sd(x, y), 1);
+        assert_eq!(mm_comilt_sd(x, y), 1);
+        assert_eq!(mm_comineq_sd(x, y), 1);
+
+        assert_eq!(mm_ucomieq_sd(x, y), 0);
+        assert_eq!(mm_ucomige_sd(x, y), 0);
+        assert_eq!(mm_ucomigt_sd(x, y), 0);
+        assert_eq!(mm_ucomile_sd(x, y), 1);
+        assert_eq!(mm_ucomilt_sd(x, y), 1);
+        assert_eq!(mm_ucomineq_sd(x, y), 1);
+
+        assert_eq!(mm_comieq_sd(y, x), 0);
+        assert_eq!(mm_comige_sd(y, x), 1);
+        assert_eq!(mm_comigt_sd(y, x), 1);
+        assert_eq!(mm_comile_sd(y, x), 0);
+        assert_eq!(mm_comilt_sd(y, x), 0);
+        assert_eq!(mm_comineq_sd(y, x), 1);
+
+        assert_eq!(mm_ucomieq_sd(y, x), 0);
+        assert_eq!(mm_ucomige_sd(y, x), 1);
+        assert_eq!(mm_ucomigt_sd(y, x), 1);
+        assert_eq!(mm_ucomile_sd(y, x), 0);
+        assert_eq!(mm_ucomilt_sd(y, x), 0);
+        assert_eq!(mm_ucomineq_sd(y, x), 1);
+
+        // TODO(mayah): Hmm, hitting this behavior change?
+        // https://llvm.org/bugs/show_bug.cgi?id=28510
+        //
+        // let z = mm_setr_pd(std::f64::NAN, std::f64::NAN);
+        // assert_eq!(mm_comieq_sd(x, z), 1);
+        // assert_eq!(mm_comige_sd(x, z), 1);
+        // assert_eq!(mm_comigt_sd(x, z), 1);
+        // assert_eq!(mm_comile_sd(x, z), 1);
+        // assert_eq!(mm_comilt_sd(x, z), 1);
+        // assert_eq!(mm_comineq_sd(x, z), 1);
+        //
+        // assert_eq!(mm_ucomieq_sd(x, z), 1);
+        // assert_eq!(mm_ucomige_sd(x, z), 1);
+        // assert_eq!(mm_ucomigt_sd(x, z), 1);
+        // assert_eq!(mm_ucomile_sd(x, z), 1);
+        // assert_eq!(mm_ucomilt_sd(x, z), 1);
+        // assert_eq!(mm_ucomineq_sd(x, z), 1);
     }
 
     #[test]
