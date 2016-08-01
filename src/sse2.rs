@@ -829,36 +829,14 @@ mod tests {
     }
 
     #[test]
-    fn test_mm_and_si128() {
+    fn test_mm_logic_si128() {
         let x = mm_setr_epi32(0x3F, 0x7E, 0x13, 0xFF);
         let y = mm_setr_epi32(0x53, 0x8C, 0xFF, 0x17);
-        let z = mm_and_si128(x, y).as_i32x4();
-        assert_eq!(z.extract(0), 0x3F & 0x53);
-        assert_eq!(z.extract(1), 0x7E & 0x8C);
-        assert_eq!(z.extract(2), 0x13 & 0xFF);
-        assert_eq!(z.extract(3), 0xFF & 0x17);
-    }
 
-    #[test]
-    fn test_mm_or_si128() {
-        let x = mm_setr_epi32(0x3F, 0x7E, 0x13, 0xFF);
-        let y = mm_setr_epi32(0x53, 0x8C, 0xFF, 0x17);
-        let z = mm_or_si128(x, y).as_i32x4();
-        assert_eq!(z.extract(0), 0x3F | 0x53);
-        assert_eq!(z.extract(1), 0x7E | 0x8C);
-        assert_eq!(z.extract(2), 0x13 | 0xFF);
-        assert_eq!(z.extract(3), 0xFF | 0x17);
-    }
-
-    #[test]
-    fn test_mm_xor_si128() {
-        let x = mm_setr_epi32(0x3F, 0x7E, 0x13, 0xFF);
-        let y = mm_setr_epi32(0x53, 0x8C, 0xFF, 0x17);
-        let z = mm_xor_si128(x, y).as_i32x4();
-        assert_eq!(z.extract(0), 0x3F ^ 0x53);
-        assert_eq!(z.extract(1), 0x7E ^ 0x8C);
-        assert_eq!(z.extract(2), 0x13 ^ 0xFF);
-        assert_eq!(z.extract(3), 0xFF ^ 0x17);
+        assert_eq!(mm_and_si128(x, y).as_i32x4().as_array(), [0x3F & 0x53, 0x7E & 0x8C, 0x13 & 0xFF, 0xFF & 0x17]);
+        assert_eq!(mm_or_si128(x, y).as_i32x4().as_array(), [0x3F | 0x53, 0x7E | 0x8C, 0x13 | 0xFF, 0xFF | 0x17]);
+        assert_eq!(mm_xor_si128(x, y).as_i32x4().as_array(), [0x3F ^ 0x53, 0x7E ^ 0x8C, 0x13 ^ 0xFF, 0xFF ^ 0x17]);
+        assert_eq!(mm_andnot_si128(x, y).as_i32x4().as_array(), [!0x3F & 0x53, !0x7E & 0x8C, !0x13 & 0xFF, !0xFF & 0x17]);
     }
 
     #[test]
