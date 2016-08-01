@@ -849,8 +849,17 @@ pub fn mm_ucomineq_ss(a: m128, b: m128) -> i32 {
 
 // unpckhps
 // __m128 _mm_unpackhi_ps (__m128 a, __m128 b)
+#[inline]
+pub fn mm_unpackhi_ps(a: m128, b: m128) -> m128 {
+    unsafe { simd_shuffle4(a, b, [2, 6, 3, 7]) }
+}
+
 // unpcklps
 // __m128 _mm_unpacklo_ps (__m128 a, __m128 b)
+#[inline]
+pub fn mm_unpacklo_ps(a: m128, b: m128) -> m128 {
+    unsafe { simd_shuffle4(a, b, [0, 4, 1, 5]) }
+}
 
 // xorps
 // __m128 _mm_xor_ps (__m128 a, __m128 b)
@@ -1216,5 +1225,14 @@ mod tests {
     fn test_movemask() {
         let x = mm_setr_ps(1.0, 2.0, -3.0, -4.0);
         assert_eq!(mm_movemask_ps(x), (1 << 2) | (1 << 3));
+    }
+
+    #[test]
+    fn test_unpack() {
+        let x = mm_setr_ps(1.0, 2.0, 3.0, 4.0);
+        let y = mm_setr_ps(5.0, 6.0, 7.0, 8.0);
+
+        assert_eq!(mm_unpackhi_ps(x, y).as_f32x4().as_array(), [3.0, 7.0, 4.0, 8.0]);
+        assert_eq!(mm_unpacklo_ps(x, y).as_f32x4().as_array(), [1.0, 5.0, 2.0, 6.0]);
     }
 }
