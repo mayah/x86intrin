@@ -441,6 +441,7 @@ pub fn mm_setr_epi8(e0: i8, e1: i8, e2: i8, e3: i8, e4: i8, e5: i8, e6: i8, e7: 
 
 // ...
 // __m128d _mm_setr_pd (double e1, double e0)
+#[inline]
 pub fn mm_setr_pd(e0: f64, e1: f64) -> m128d {
     f64x2(e0, e1).as_m128d()
 }
