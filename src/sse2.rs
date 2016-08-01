@@ -111,6 +111,10 @@ pub fn mm_adds_epu8(a: m128i, b: m128i) -> m128i {
 
 // andpd
 // __m128d _mm_and_pd (__m128d a, __m128d b)
+#[inline]
+pub fn mm_and_pd(a: m128d, b: m128d) -> m128d {
+    mm_and_si128(a.as_m128i(), b.as_m128i()).as_m128d()
+}
 
 // pand
 // __m128i _mm_and_si128 (__m128i a, __m128i b)
@@ -121,6 +125,10 @@ pub fn mm_and_si128(a: m128i, b: m128i) -> m128i {
 
 // andnpd
 // __m128d _mm_andnot_pd (__m128d a, __m128d b)
+#[inline]
+pub fn mm_andnot_pd(a: m128d, b: m128d) -> m128d {
+    mm_andnot_si128(a.as_m128i(), b.as_m128i()).as_m128d()
+}
 
 // pandn
 // __m128i _mm_andnot_si128 (__m128i a, __m128i b)
@@ -362,8 +370,13 @@ pub fn mm_andnot_si128(a: m128i, b: m128i) -> m128i {
 // __m128i _mm_mulhi_epu16 (__m128i a, __m128i b)
 // pmullw
 // __m128i _mm_mullo_epi16 (__m128i a, __m128i b)
+
 // orpd
 // __m128d _mm_or_pd (__m128d a, __m128d b)
+#[inline]
+pub fn mm_or_pd(a: m128d, b: m128d) -> m128d {
+    mm_or_si128(a.as_m128i(), b.as_m128i()).as_m128d()
+}
 
 // por
 // __m128i _mm_or_si128 (__m128i a, __m128i b)
@@ -706,8 +719,13 @@ pub fn mm_sub_epi8(a: m128i, b: m128i) -> m128i {
 // __m128i _mm_unpacklo_epi8 (__m128i a, __m128i b)
 // unpcklpd
 // __m128d _mm_unpacklo_pd (__m128d a, __m128d b)
+
 // xorpd
 // __m128d _mm_xor_pd (__m128d a, __m128d b)
+#[inline]
+pub fn mm_xor_pd(a: m128d, b: m128d) -> m128d {
+    mm_xor_si128(a.as_m128i(), b.as_m128i()).as_m128d()
+}
 
 // pxor
 // __m128i _mm_xor_si128 (__m128i a, __m128i b)
@@ -837,6 +855,17 @@ mod tests {
         assert_eq!(mm_or_si128(x, y).as_i32x4().as_array(), [0x3F | 0x53, 0x7E | 0x8C, 0x13 | 0xFF, 0xFF | 0x17]);
         assert_eq!(mm_xor_si128(x, y).as_i32x4().as_array(), [0x3F ^ 0x53, 0x7E ^ 0x8C, 0x13 ^ 0xFF, 0xFF ^ 0x17]);
         assert_eq!(mm_andnot_si128(x, y).as_i32x4().as_array(), [!0x3F & 0x53, !0x7E & 0x8C, !0x13 & 0xFF, !0xFF & 0x17]);
+    }
+
+    #[test]
+    fn test_mm_logic_pd() {
+        let x = mm_setr_epi32(0x3F, 0x7E, 0x13, 0xFF).as_m128d();
+        let y = mm_setr_epi32(0x53, 0x8C, 0xFF, 0x17).as_m128d();
+
+        assert_eq!(mm_and_pd(x, y).as_m128i().as_i32x4().as_array(), [0x3F & 0x53, 0x7E & 0x8C, 0x13 & 0xFF, 0xFF & 0x17]);
+        assert_eq!(mm_or_pd(x, y).as_m128i().as_i32x4().as_array(), [0x3F | 0x53, 0x7E | 0x8C, 0x13 | 0xFF, 0xFF | 0x17]);
+        assert_eq!(mm_xor_pd(x, y).as_m128i().as_i32x4().as_array(), [0x3F ^ 0x53, 0x7E ^ 0x8C, 0x13 ^ 0xFF, 0xFF ^ 0x17]);
+        assert_eq!(mm_andnot_pd(x, y).as_m128i().as_i32x4().as_array(), [!0x3F & 0x53, !0x7E & 0x8C, !0x13 & 0xFF, !0xFF & 0x17]);
     }
 
     #[test]
