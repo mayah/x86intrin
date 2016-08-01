@@ -19,6 +19,9 @@ extern "platform-intrinsic" {
     fn x86_mm_subs_epu8(x: u8x16, y: u8x16) -> u8x16;
     fn x86_mm_subs_epi16(x: i16x8, y: i16x8) -> i16x8;
     fn x86_mm_subs_epu16(x: u16x8, y: u16x8) -> u16x8;
+
+    fn x86_mm_avg_epu8(x: u8x16, y: u8x16) -> u8x16;
+    fn x86_mm_avg_epu16(x: u16x8, y: u16x8) -> u16x8;
 }
 
 macro_rules! m128i_operators {
@@ -144,8 +147,17 @@ pub fn mm_andnot_si128(a: m128i, b: m128i) -> m128i {
 
 // pavgw
 // __m128i _mm_avg_epu16 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_avg_epu16(a: m128i, b: m128i) -> m128i {
+    unsafe { x86_mm_avg_epu16(a.as_u16x8(), b.as_u16x8()).as_m128i() }
+}
+
 // pavgb
 // __m128i _mm_avg_epu8 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_avg_epu8(a: m128i, b: m128i) -> m128i {
+    unsafe { x86_mm_avg_epu8(a.as_u8x16(), b.as_u8x16()).as_m128i() }
+}
 
 // pslldq
 // __m128i _mm_bslli_si128 (__m128i a, int imm8)
@@ -944,6 +956,19 @@ mod tests {
                    [-2, -2, -2, -2, 4, 4, 4, 4, 4, 0, 1, 0, 0, 0x7F, -0x80, 0]);
         assert_eq!(mm_subs_epu8(x, y).as_u8x16().as_array(),
                    [0, 0, 0, 0, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 1, 0]);
+    }
+
+    #[test]
+    fn test_mm_avg() {
+        let x8 = mm_setr_epi8(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
+        let y8 = mm_setr_epi8(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18);
+        let x16 = mm_setr_epi16(1, 2, 3, 4, 5, 6, 7, 8);
+        let y16 = mm_setr_epi16(3, 4, 5, 6, 7, 8, 9, 10);
+
+        assert_eq!(mm_avg_epu16(x16, y16).as_i16x8().as_array(),
+                   [2, 3, 4, 5, 6, 7, 8, 9]);
+        assert_eq!(mm_avg_epu8(x8, y8).as_i8x16().as_array(),
+                   [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]);
     }
 
     #[test]
