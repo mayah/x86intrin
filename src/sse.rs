@@ -485,6 +485,7 @@ pub fn mm_div_ss(a: m128, b: m128) -> m128 {
 
 // maxps
 // __m128 _mm_max_ps (__m128 a, __m128 b)
+#[inline]
 pub fn mm_max_ps(a: m128, b: m128) -> m128 {
     unsafe { x86_mm_max_ps(a, b) }
 }
@@ -494,6 +495,7 @@ pub fn mm_max_ps(a: m128, b: m128) -> m128 {
 
 // maxss
 // __m128 _mm_max_ss (__m128 a, __m128 b)
+#[inline]
 pub fn mm_max_ss(a: m128, b: m128) -> m128 {
     unsafe { sse_max_ss(a, b) }
 }
@@ -503,6 +505,7 @@ pub fn mm_max_ss(a: m128, b: m128) -> m128 {
 
 // minps
 // __m128 _mm_min_ps (__m128 a, __m128 b)
+#[inline]
 pub fn mm_min_ps(a: m128, b: m128) -> m128 {
     unsafe { x86_mm_min_ps(a, b) }
 }
@@ -512,24 +515,28 @@ pub fn mm_min_ps(a: m128, b: m128) -> m128 {
 
 // minss
 // __m128 _mm_min_ss (__m128 a, __m128 b)
+#[inline]
 pub fn mm_min_ss(a: m128, b: m128) -> m128 {
     unsafe { sse_min_ss(a, b) }
 }
 
 // movss
 // __m128 _mm_move_ss (__m128 a, __m128 b)
+#[inline]
 pub fn mm_move_ss(a: m128, b: m128) -> m128 {
     unsafe { simd_shuffle4(a, b, [4, 1, 2, 3]) }
 }
 
 // movhlps
 // __m128 _mm_movehl_ps (__m128 a, __m128 b)
+#[inline]
 pub fn mm_movehl_ps(a: m128, b: m128) -> m128 {
     unsafe { simd_shuffle4(a, b, [6, 7, 2, 3]) }
 }
 
 // movlhps
 // __m128 _mm_movelh_ps (__m128 a, __m128 b)
+#[inline]
 pub fn mm_movelh_ps(a: m128, b: m128) -> m128 {
     unsafe { simd_shuffle4(a, b, [0, 1, 4, 5]) }
 }
@@ -539,6 +546,7 @@ pub fn mm_movelh_ps(a: m128, b: m128) -> m128 {
 
 // movmskps
 // int _mm_movemask_ps (__m128 a)
+#[inline]
 pub fn mm_movemask_ps(a: m128) -> i32 {
     unsafe { sse_movmsk_ps(a) }
 }
@@ -846,6 +854,7 @@ pub fn mm_ucomineq_ss(a: m128, b: m128) -> i32 {
 
 // xorps
 // __m128 _mm_xor_ps (__m128 a, __m128 b)
+#[inline]
 pub fn mm_xor_ps(a: m128, b: m128) -> m128 {
     let ai = a.as_m128i();
     let bi = b.as_m128i();
