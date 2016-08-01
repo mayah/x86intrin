@@ -146,10 +146,20 @@ pub fn mm_andnot_si128(a: m128i, b: m128i) -> m128i {
 // __m128i _mm_avg_epu16 (__m128i a, __m128i b)
 // pavgb
 // __m128i _mm_avg_epu8 (__m128i a, __m128i b)
+
 // pslldq
 // __m128i _mm_bslli_si128 (__m128i a, int imm8)
+#[inline]
+pub fn mm_bslli_si128(a: m128i, imm8: i32) -> m128i {
+    mm_slli_si128(a, imm8)
+}
+
 // psrldq
 // __m128i _mm_bsrli_si128 (__m128i a, int imm8)
+#[inline]
+pub fn mm_bsrli_si128(a: m128i, imm8: i32) -> m128i {
+    mm_srli_si128(a, imm8)
+}
 
 // __m128 _mm_castpd_ps (__m128d a)
 #[inline]
@@ -1037,10 +1047,17 @@ mod tests {
         let x1 = mm_slli_si128(x, 1).as_i8x16();
         let x2 = mm_slli_si128(x, 2).as_i8x16();
 
+        let bx0 = mm_bslli_si128(x, 0).as_i8x16();
+        let bx1 = mm_bslli_si128(x, 1).as_i8x16();
+        let bx2 = mm_bslli_si128(x, 2).as_i8x16();
+
         for i in 0 .. 16 {
             assert_eq!(x0.extract(i) as usize, i + 1);
             assert_eq!(x1.extract(i) as usize, i);
             assert_eq!(x2.extract(i) as usize, if i >= 1 { i - 1 } else { 0 });
+            assert_eq!(bx0.extract(i) as usize, i + 1);
+            assert_eq!(bx1.extract(i) as usize, i);
+            assert_eq!(bx2.extract(i) as usize, if i >= 1 { i - 1 } else { 0 });
         }
     }
 
@@ -1050,11 +1067,16 @@ mod tests {
         let x0 = mm_srli_si128(x, 0).as_i8x16();
         let x1 = mm_srli_si128(x, 1).as_i8x16();
         let x2 = mm_srli_si128(x, 2).as_i8x16();
-
+        let bx0 = mm_bsrli_si128(x, 0).as_i8x16();
+        let bx1 = mm_bsrli_si128(x, 1).as_i8x16();
+        let bx2 = mm_bsrli_si128(x, 2).as_i8x16();
         for i in 0 .. 16 {
             assert_eq!(x0.extract(i) as usize, i + 1);
             assert_eq!(x1.extract(i) as usize, if i + 2 >= 17 { 0 } else { i + 2 } );
             assert_eq!(x2.extract(i) as usize, if i + 3 >= 17 { 0 } else { i + 3 } );
+            assert_eq!(bx0.extract(i) as usize, i + 1);
+            assert_eq!(bx1.extract(i) as usize, if i + 2 >= 17 { 0 } else { i + 2 } );
+            assert_eq!(bx2.extract(i) as usize, if i + 3 >= 17 { 0 } else { i + 3 } );
         }
     }
 }
