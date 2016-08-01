@@ -146,12 +146,43 @@ pub fn mm_andnot_si128(a: m128i, b: m128i) -> m128i {
 // __m128i _mm_bslli_si128 (__m128i a, int imm8)
 // psrldq
 // __m128i _mm_bsrli_si128 (__m128i a, int imm8)
+
 // __m128 _mm_castpd_ps (__m128d a)
+#[inline]
+pub fn mm_castpd_ps(a: m128d) -> m128 {
+    a.as_m128()
+}
+
 // __m128i _mm_castpd_si128 (__m128d a)
+#[inline]
+pub fn mm_castpd_si128(a: m128d) -> m128i {
+    a.as_m128i()
+}
+
 // __m128d _mm_castps_pd (__m128 a)
+#[inline]
+pub fn mm_castps_pd(a: m128) -> m128d {
+    a.as_m128d()
+}
+
 // __m128i _mm_castps_si128 (__m128 a)
+#[inline]
+pub fn mm_castps_si128(a: m128) -> m128i {
+    a.as_m128i()
+}
+
 // __m128d _mm_castsi128_pd (__m128i a)
+#[inline]
+pub fn mm_castsi128_pd(a: m128i) -> m128d {
+    a.as_m128d()
+}
+
 // __m128 _mm_castsi128_ps (__m128i a)
+#[inline]
+pub fn mm_castsi128_ps(a: m128i) -> m128 {
+    a.as_m128()
+}
+
 // clflush
 // void _mm_clflush (void const* p)
 // pcmpeqw
