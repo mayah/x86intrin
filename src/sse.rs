@@ -16,62 +16,62 @@ extern "platform-intrinsic" {
 extern {
     // See http://x86.renejeschke.de/html/file_module_x86_id_37.html
     #[link_name = "llvm.x86.sse.cmp.ps"]
-    pub fn sse_cmp_ps(a: m128, b: m128, c: i8) -> m128;
+    fn sse_cmp_ps(a: m128, b: m128, c: i8) -> m128;
     #[link_name = "llvm.x86.sse.cmp.ss"]
-    pub fn sse_cmp_ss(a: m128, b: m128, c: i8) -> m128;
+    fn sse_cmp_ss(a: m128, b: m128, c: i8) -> m128;
 
     #[link_name = "llvm.x86.sse.comieq.ss"]
-    pub fn sse_comieq_ss(a: m128, b: m128) -> i32;
+    fn sse_comieq_ss(a: m128, b: m128) -> i32;
     #[link_name = "llvm.x86.sse.comilt.ss"]
-    pub fn sse_comilt_ss(a: m128, b: m128) -> i32;
+    fn sse_comilt_ss(a: m128, b: m128) -> i32;
     #[link_name = "llvm.x86.sse.comile.ss"]
-    pub fn sse_comile_ss(a: m128, b: m128) -> i32;
+    fn sse_comile_ss(a: m128, b: m128) -> i32;
     #[link_name = "llvm.x86.sse.comigt.ss"]
-    pub fn sse_comigt_ss(a: m128, b: m128) -> i32;
+    fn sse_comigt_ss(a: m128, b: m128) -> i32;
     #[link_name = "llvm.x86.sse.comige.ss"]
-    pub fn sse_comige_ss(a: m128, b: m128) -> i32;
+    fn sse_comige_ss(a: m128, b: m128) -> i32;
     #[link_name = "llvm.x86.sse.comineq.ss"]
-    pub fn sse_comineq_ss(a: m128, b: m128) -> i32;
+    fn sse_comineq_ss(a: m128, b: m128) -> i32;
     #[link_name = "llvm.x86.sse.ucomieq.ss"]
-    pub fn sse_ucomieq_ss(a: m128, b: m128) -> i32;
+    fn sse_ucomieq_ss(a: m128, b: m128) -> i32;
     #[link_name = "llvm.x86.sse.ucomilt.ss"]
-    pub fn sse_ucomilt_ss(a: m128, b: m128) -> i32;
+    fn sse_ucomilt_ss(a: m128, b: m128) -> i32;
     #[link_name = "llvm.x86.sse.ucomile.ss"]
-    pub fn sse_ucomile_ss(a: m128, b: m128) -> i32;
+    fn sse_ucomile_ss(a: m128, b: m128) -> i32;
     #[link_name = "llvm.x86.sse.ucomigt.ss"]
-    pub fn sse_ucomigt_ss(a: m128, b: m128) -> i32;
+    fn sse_ucomigt_ss(a: m128, b: m128) -> i32;
     #[link_name = "llvm.x86.sse.ucomige.ss"]
-    pub fn sse_ucomige_ss(a: m128, b: m128) -> i32;
+    fn sse_ucomige_ss(a: m128, b: m128) -> i32;
     #[link_name = "llvm.x86.sse.ucomineq.ss"]
-    pub fn sse_ucomineq_ss(a: m128, b: m128) -> i32;
+    fn sse_ucomineq_ss(a: m128, b: m128) -> i32;
 
     #[link_name = "llvm.x86.sse.cvtss2si"]
-    pub fn sse_cvtss2si(a: m128) -> i32;
+    fn sse_cvtss2si(a: m128) -> i32;
     #[link_name = "llvm.x86.sse.cvttss2si"]
-    pub fn sse_cvttss2si(a: m128) -> i32;
+    fn sse_cvttss2si(a: m128) -> i32;
     #[link_name = "llvm.x86.sse.cvtss2si64"]
-    pub fn sse_cvtss2si64(a: m128) -> i64;
+    fn sse_cvtss2si64(a: m128) -> i64;
     #[link_name = "llvm.x86.sse.cvttss2si64"]
-    pub fn sse_cvttss2si64(a: m128) -> i64;
+    fn sse_cvttss2si64(a: m128) -> i64;
     #[link_name = "llvm.x86.sse.cvtsi2ss"]
-    pub fn sse_cvtsi2ss(a: m128, b: i32) -> m128;
+    fn sse_cvtsi2ss(a: m128, b: i32) -> m128;
     #[link_name = "llvm.x86.sse.cvtsi642ss"]
-    pub fn sse_cvtsi642ss(a: m128, b: i64) -> m128;
+    fn sse_cvtsi642ss(a: m128, b: i64) -> m128;
 
     #[link_name = "llvm.x86.sse.max.ss"]
-    pub fn sse_max_ss(a: m128, b: m128) -> m128;
+    fn sse_max_ss(a: m128, b: m128) -> m128;
     #[link_name = "llvm.x86.sse.min.ss"]
-    pub fn sse_min_ss(a: m128, b: m128) -> m128;
+    fn sse_min_ss(a: m128, b: m128) -> m128;
 
     #[link_name = "llvm.x86.sse.movmsk.ps"]
-    pub fn sse_movmsk_ps(a: m128) -> i32;
+    fn sse_movmsk_ps(a: m128) -> i32;
 
     #[link_name = "llvm.x86.sse.rcp.ss"]
-    pub fn sse_rcp_ss(a: m128) -> m128;
+    fn sse_rcp_ss(a: m128) -> m128;
     #[link_name = "llvm.x86.sse.rsqrt.ss"]
-    pub fn sse_rsqrt_ss(a: m128) -> m128;
+    fn sse_rsqrt_ss(a: m128) -> m128;
     #[link_name = "llvm.x86.sse.sqrt.ss"]
-    pub fn sse_sqrt_ss(a: m128) -> m128;
+    fn sse_sqrt_ss(a: m128) -> m128;
 }
 
 // addps
