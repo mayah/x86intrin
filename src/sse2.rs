@@ -98,6 +98,10 @@ extern "platform-intrinsic" {
     fn x86_mm_subs_epi16(x: i16x8, y: i16x8) -> i16x8;
     fn x86_mm_subs_epu16(x: u16x8, y: u16x8) -> u16x8;
 
+    fn x86_mm_mul_epu32(x: u32x4, y: u32x4) -> u64x2;
+    fn x86_mm_mulhi_epi16(x: i16x8, y: i16x8) -> i16x8;
+    fn x86_mm_mulhi_epu16(x: u16x8, y: u16x8) -> u16x8;
+
     fn x86_mm_avg_epu8(x: u8x16, y: u8x16) -> u8x16;
     fn x86_mm_avg_epu16(x: u16x8, y: u16x8) -> u16x8;
 
@@ -938,8 +942,13 @@ pub fn mm_movemask_pd(a: m128d) -> i32 {
 // __m64 _mm_movepi64_pi64 (__m128i a)
 // movq2dq
 // __m128i _mm_movpi64_epi64 (__m64 a)
+
 // pmuludq
 // __m128i _mm_mul_epu32 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_mul_epu32(a: m128i, b: m128i) -> m128i {
+    unsafe { x86_mm_mul_epu32(a.as_u32x4(), b.as_u32x4()).as_m128i() }
+}
 
 // mulpd
 // __m128d _mm_mul_pd (__m128d a, __m128d b)
@@ -958,12 +967,28 @@ pub fn mm_mul_sd(a: m128d, b: m128d) -> m128d {
 
 // pmuludq
 // __m64 _mm_mul_su32 (__m64 a, __m64 b)
+
 // pmulhw
 // __m128i _mm_mulhi_epi16 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_mulhi_epi16(a: m128i, b: m128i) -> m128i {
+    unsafe { x86_mm_mulhi_epi16(a.as_i16x8(), b.as_i16x8()).as_m128i() }
+}
+
 // pmulhuw
 // __m128i _mm_mulhi_epu16 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_mulhi_epu16(a: m128i, b: m128i) -> m128i {
+    unsafe { x86_mm_mulhi_epu16(a.as_u16x8(), b.as_u16x8()).as_m128i() }
+}
+
 // pmullw
 // __m128i _mm_mullo_epi16 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_mullo_epi16(a: m128i, b: m128i) -> m128i {
+    let x: i16x8 = unsafe { simd_mul(a.as_i16x8(), b.as_i16x8()) };
+    x.as_m128i()
+}
 
 // orpd
 // __m128d _mm_or_pd (__m128d a, __m128d b)
@@ -1548,6 +1573,23 @@ mod tests {
                    [-2, -2, 1, 0, 0, 0x7FFF, -0x8000, 0]);
         assert_eq!(mm_subs_epu16(x, y).as_u16x8().as_array(),
                    [0, 0, 0, 0, 0, 0, 1, 0]);
+
+        let x1 = mm_setr_epi16(0, 1, 2, 3, 4, 5, 6, 7);
+        let y1 = mm_setr_epi16(0, 1, 2, 3, -4, -5, -6, -7);
+        assert_eq!(mm_mulhi_epi16(x1, y1).as_i16x8().as_array(),
+                   [0, 0, 0, 0, !0, !0, !0, !0]);
+        assert_eq!(mm_mulhi_epu16(x1, x1).as_u16x8().as_array(),
+                   [0, 0, 0, 0, 0, 0, 0, 0]);
+        assert_eq!(mm_mullo_epi16(x1, y1).as_i16x8().as_array(),
+                   [0, 1, 4, 9, -16, -25, -36, -49]);
+    }
+
+    #[test]
+    fn test_mm_arith_32() {
+        let x = mm_setr_epi32(1, 2, 3, 4);
+        let y = mm_setr_epi32(2, 2, 3, 3);
+
+        assert_eq!(mm_mul_epu32(x, y).as_u32x4().as_array(), [2, 0, 9, 0]);
     }
 
     #[test]
