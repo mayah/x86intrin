@@ -901,8 +901,20 @@ pub fn mm_min_sd(a: m128d, b: m128d) -> m128d {
 
 // movq
 // __m128i _mm_move_epi64 (__m128i a)
+#[inline]
+pub fn mm_move_epi64(a: m128i) -> m128i {
+    let zero = mm_setzero_si128();
+    let x: i64x2 = unsafe { simd_shuffle2(a, zero, [0, 2]) };
+    x.as_m128i()
+}
+
 // movsd
 // __m128d _mm_move_sd (__m128d a, __m128d b)
+#[inline]
+pub fn mm_move_sd(a: m128d, b: m128d) -> m128d {
+    f64x2(b.as_f64x2().extract(0), a.as_f64x2().extract(1)).as_m128d()
+}
+
 // pmovmskb
 // int _mm_movemask_epi8 (__m128i a)
 // movmskpd
@@ -1891,6 +1903,16 @@ mod tests {
         assert_eq!(mm_min_pd(xp, yp).as_f64x2().as_array(), [1.0, 1.0]);
         assert_eq!(mm_max_sd(xp, yp).as_f64x2().as_array(), [3.0, 2.0]);
         assert_eq!(mm_min_sd(xp, yp).as_f64x2().as_array(), [1.0, 2.0]);
+    }
+
+    #[test]
+    fn test_move() {
+        let x64 = i64x2(1, 2).as_m128i();
+        assert_eq!(mm_move_epi64(x64).as_i64x2().as_array(), [1, 0]);
+
+        let a = mm_setr_pd(1.0, 2.0);
+        let b = mm_setr_pd(3.0, 4.0);
+        assert_eq!(mm_move_sd(a, b).as_f64x2().as_array(), [3.0, 2.0]);
     }
 
     #[test]
