@@ -77,6 +77,13 @@ extern {
     #[link_name = "llvm.x86.sse2.min.sd"]
     fn sse2_min_sd(a: m128d, b: m128d) -> m128d;
 
+    #[link_name = "llvm.x86.sse2.packsswb.128"]
+    fn sse2_packsswb_128(a: i16x8, b: i16x8) -> i8x16;
+    #[link_name = "llvm.x86.sse2.packssdw.128"]
+    fn sse2_packssdw_128(a: i32x4, b: i32x4) -> i16x8;
+    #[link_name = "llvm.x86.sse2.packuswb.128"]
+    fn sse2_packuswb_128(a: i16x8, b: i16x8) -> i8x16;
+
     #[link_name = "llvm.x86.sse2.pmovmskb.128"]
     fn sse2_pmovmskb_128(a: i8x16) -> i32;
     #[link_name = "llvm.x86.sse2.movmsk.pd"]
@@ -1006,10 +1013,25 @@ pub fn mm_or_si128(a: m128i, b: m128i) -> m128i {
 
 // packsswb
 // __m128i _mm_packs_epi16 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_packs_epi16(a: m128i, b: m128i) -> m128i {
+    unsafe { sse2_packsswb_128(a.as_i16x8(), b.as_i16x8()).as_m128i() }
+}
+
 // packssdw
 // __m128i _mm_packs_epi32 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_packs_epi32(a: m128i, b: m128i) -> m128i {
+    unsafe { sse2_packssdw_128(a.as_i32x4(), b.as_i32x4()).as_m128i() }
+}
+
 // packuswb
 // __m128i _mm_packus_epi16 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_packus_epi16(a: m128i, b: m128i) -> m128i {
+    unsafe { sse2_packuswb_128(a.as_i16x8(), b.as_i16x8()).as_m128i() }
+}
+
 // pause
 // void _mm_pause (void)
 // psadbw
@@ -1970,6 +1992,19 @@ mod tests {
         let a = mm_setr_pd(1.0, 2.0);
         let b = mm_setr_pd(3.0, 4.0);
         assert_eq!(mm_move_sd(a, b).as_f64x2().as_array(), [3.0, 2.0]);
+    }
+
+    #[test]
+    fn test_pack() {
+        let x16 = mm_setr_epi16(1, 2, 3, 4, 5, 6, 0x1000, 0x2000);
+        let y16 = mm_setr_epi16(9, 10, 11, 12, 13, 14, 0x1000, 0x2000);
+
+        let x32 = mm_setr_epi32(1, 2, 3, 0x100000);
+        let y32 = mm_setr_epi32(5, 6, 7, 0x100000);
+
+        assert_eq!(mm_packs_epi16(x16, y16).as_i8x16().as_array(), [1, 2, 3, 4, 5, 6, 0x7F, 0x7F, 9, 10, 11, 12, 13, 14, 0x7F, 0x7F]);
+        assert_eq!(mm_packs_epi32(x32, y32).as_i16x8().as_array(), [1, 2, 3, 0x7FFF, 5, 6, 7, 0x7FFF]);
+        assert_eq!(mm_packus_epi16(x16, y16).as_u8x16().as_array(), [1, 2, 3, 4, 5, 6, 0xFF, 0xFF, 9, 10, 11, 12, 13, 14, 0xFF, 0xFF]);
     }
 
     #[test]
