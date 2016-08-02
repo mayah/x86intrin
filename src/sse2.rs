@@ -69,6 +69,9 @@ extern {
     #[link_name = "llvm.x86.sse2.cvttsd2si64"]
     fn sse2_cvttsd2si64(a: m128d) -> i64;
 
+    #[link_name = "llvm.x86.sse2.pmadd.wd"]
+    fn sse2_pmadd_wd(a: i16x8, b: i16x8) -> i32x4;
+
     #[link_name = "llvm.x86.sse2.pslli.w"]
     fn sse2_pslli_w(a: i16x8, b: i32) -> i16x8;
     #[link_name = "llvm.x86.sse2.psrli.w"]
@@ -814,8 +817,14 @@ pub fn mm_insert_epi16(a: m128i, i: i32, imm8: i32) -> m128i {
 // __m128d _mm_loadu_pd (double const* mem_addr)
 // movdqu
 // __m128i _mm_loadu_si128 (__m128i const* mem_addr)
+
 // pmaddwd
 // __m128i _mm_madd_epi16 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_madd_epi16(a: m128i, b: m128i) -> m128i {
+    unsafe { sse2_pmadd_wd(a.as_i16x8(), b.as_i16x8()).as_m128i() }
+}
+
 // maskmovdqu
 // void _mm_maskmoveu_si128 (__m128i a, __m128i mask, char* mem_addr)
 // pmaxsw
@@ -1800,6 +1809,15 @@ mod tests {
 
         assert_eq!(mm_insert_epi16(x, 10, 0).as_i16x8().as_array(), [10, 2, 3, 4, 5, 6, 7, 8]);
         assert_eq!(mm_insert_epi16(x, 10, 1).as_i16x8().as_array(), [1, 10, 3, 4, 5, 6, 7, 8]);
+    }
+
+    #[test]
+    fn test_madd() {
+        let x = mm_setr_epi16(1, 2, 3, 4, 5, 6, 7, 8);
+        let y = mm_setr_epi16(2, 3, 4, 5, 6, 7, 8, 9);
+
+        assert_eq!(mm_madd_epi16(x, y).as_i32x4().as_array(),
+                   [1 * 2 + 2 * 3, 3 * 4 + 4 * 5, 5 * 6 + 6 * 7, 7 * 8 + 8 * 9])
     }
 
     #[test]
