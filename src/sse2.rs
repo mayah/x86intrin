@@ -777,8 +777,19 @@ pub fn mm_div_sd(a: m128d, b: m128d) -> m128d {
 
 // pextrw
 // int _mm_extract_epi16 (__m128i a, int imm8)
+#[inline]
+pub fn mm_extract_epi16(a: m128i, imm8: i32) -> i32 {
+    // TODO(mayah): Should we return i16 instead?
+    a.as_i16x8().extract((imm8 & 7) as usize) as i32
+}
+
 // pinsrw
 // __m128i _mm_insert_epi16 (__m128i a, int i, int imm8)
+#[inline]
+pub fn mm_insert_epi16(a: m128i, i: i32, imm8: i32) -> m128i {
+    a.as_i16x8().insert((imm8 & 7) as usize, i as i16).as_m128i()
+}
+
 // lfence
 // void _mm_lfence (void)
 // movapd
@@ -1777,6 +1788,18 @@ mod tests {
         assert_eq!(mm_cvttsd_si32(d), 10);
         assert_eq!(mm_cvttsd_si64(d), 10);
         assert_eq!(mm_cvttsd_si64x(d), 10);
+    }
+
+    #[test]
+    fn test_extract_insert() {
+        let x = mm_setr_epi16(1, 2, 3, 4, 5, 6, 7, 8);
+
+        assert_eq!(mm_extract_epi16(x, 0), 1);
+        assert_eq!(mm_extract_epi16(x, 1), 2);
+        assert_eq!(mm_extract_epi16(x, 2), 3);
+
+        assert_eq!(mm_insert_epi16(x, 10, 0).as_i16x8().as_array(), [10, 2, 3, 4, 5, 6, 7, 8]);
+        assert_eq!(mm_insert_epi16(x, 10, 1).as_i16x8().as_array(), [1, 10, 3, 4, 5, 6, 7, 8]);
     }
 
     #[test]
