@@ -36,6 +36,39 @@ extern {
     #[link_name = "llvm.x86.sse2.ucomineq.sd"]
     pub fn sse2_ucomineq_sd(a: m128d, b: m128d) -> i32;
 
+    #[link_name = "llvm.x86.sse2.cvtdq2pd"]
+    pub fn sse2_cvtdq2pd(a: i32x4) -> m128d;
+    #[link_name = "llvm.x86.sse2.cvtdq2ps"]
+    pub fn sse2_cvtdq2ps(a: i32x4) -> m128;
+    #[link_name = "llvm.x86.sse2.cvtpd2dq"]
+    pub fn sse2_cvtpd2dq(a: m128d) -> i32x4;
+    #[link_name = "llvm.x86.sse2.cvtpd2ps"]
+    pub fn sse2_cvtpd2ps(a: m128d) -> m128;
+    #[link_name = "llvm.x86.sse2.cvtps2dq"]
+    pub fn sse2_cvtps2dq(a: m128) -> i32x4;
+    #[link_name = "llvm.x86.sse2.cvtps2pd"]
+    pub fn sse2_cvtps2pd(a: m128) -> m128d;
+    #[link_name = "llvm.x86.sse2.cvtsd2si"]
+    pub fn sse2_cvtsd2si(a: m128d) -> i32;
+    #[link_name = "llvm.x86.sse2.cvtsd2si64"]
+    pub fn sse2_cvtsd2si64(a: m128d) -> i64;
+    #[link_name = "llvm.x86.sse2.cvtsd2ss"]
+    pub fn sse2_cvtsd2ss(a: m128, b: m128d) -> m128;
+    #[link_name = "llvm.x86.sse2.cvtsi2sd"]
+    pub fn sse2_cvtsi2sd(a: m128d, b: i32) -> m128d;
+    #[link_name = "llvm.x86.sse2.cvtsi642sd"]
+    pub fn sse2_cvtsi642sd(a: m128d, b: i64) -> m128d;
+    #[link_name = "llvm.x86.sse2.cvtss2sd"]
+    pub fn sse2_cvtss2sd(a: m128d, b: m128) -> m128d;
+    #[link_name = "llvm.x86.sse2.cvttpd2dq"]
+    pub fn sse2_cvttpd2dq(a: m128d) -> i32x4;
+    #[link_name = "llvm.x86.sse2.cvttps2dq"]
+    pub fn sse2_cvttps2dq(a: m128) -> i32x4;
+    #[link_name = "llvm.x86.sse2.cvttsd2si"]
+    pub fn sse2_cvttsd2si(a: m128d) -> i32;
+    #[link_name = "llvm.x86.sse2.cvttsd2si64"]
+    pub fn sse2_cvttsd2si64(a: m128d) -> i64;
+
     #[link_name = "llvm.x86.sse2.pslli.w"]
     pub fn sse2_pslli_w(a: i16x8, b: i32) -> i16x8;
     #[link_name = "llvm.x86.sse2.psrli.w"]
@@ -538,62 +571,194 @@ pub fn mm_comineq_sd(a: m128d, b: m128d) -> i32 {
 
 // cvtdq2pd
 // __m128d _mm_cvtepi32_pd (__m128i a)
+#[inline]
+pub fn mm_cvtepi32_pd(a: m128i) -> m128d {
+    unsafe { sse2_cvtdq2pd(a.as_i32x4()) }
+}
+
 // cvtdq2ps
 // __m128 _mm_cvtepi32_ps (__m128i a)
+#[inline]
+pub fn mm_cvtepi32_ps(a: m128i) -> m128 {
+    unsafe { sse2_cvtdq2ps(a.as_i32x4()) }
+}
+
 // cvtpd2dq
 // __m128i _mm_cvtpd_epi32 (__m128d a)
+#[inline]
+pub fn mm_cvtpd_epi32(a: m128d) -> m128i {
+    unsafe { sse2_cvtpd2dq(a).as_m128i() }
+}
+
 // cvtpd2pi
 // __m64 _mm_cvtpd_pi32 (__m128d a)
+
 // cvtpd2ps
 // __m128 _mm_cvtpd_ps (__m128d a)
+#[inline]
+pub fn mm_cvtpd_ps(a: m128d) -> m128 {
+    unsafe { sse2_cvtpd2ps(a) }
+}
+
 // cvtpi2pd
 // __m128d _mm_cvtpi32_pd (__m64 a)
+
 // cvtps2dq
 // __m128i _mm_cvtps_epi32 (__m128 a)
+#[inline]
+pub fn mm_cvtps_epi32(a: m128) -> m128i {
+    unsafe { sse2_cvtps2dq(a).as_m128i() }
+}
+
 // cvtps2pd
 // __m128d _mm_cvtps_pd (__m128 a)
+#[inline]
+pub fn mm_cvtps_pd(a: m128) -> m128d {
+    unsafe { sse2_cvtps2pd(a) }
+}
+
 // movsd
 // double _mm_cvtsd_f64 (__m128d a)
+#[inline]
+pub fn mm_cvtsd_f64(a: m128d) -> f64 {
+    a.as_f64x2().extract(0)
+}
+
 // cvtsd2si
 // int _mm_cvtsd_si32 (__m128d a)
+#[inline]
+pub fn mm_cvtsd_si32(a: m128d) -> i32 {
+    unsafe { sse2_cvtsd2si(a) }
+}
+
 // cvtsd2si
 // __int64 _mm_cvtsd_si64 (__m128d a)
+#[inline]
+pub fn mm_cvtsd_si64(a: m128d) -> i64 {
+    unsafe { sse2_cvtsd2si64(a) }
+}
+
 // cvtsd2si
 // __int64 _mm_cvtsd_si64x (__m128d a)
+#[inline]
+pub fn mm_cvtsd_si64x(a: m128d) -> i64 {
+    unsafe { sse2_cvtsd2si64(a) }
+}
+
 // cvtsd2ss
 // __m128 _mm_cvtsd_ss (__m128 a, __m128d b)
+#[inline]
+pub fn mm_cvtsd_ss(a: m128, b: m128d) -> m128 {
+    unsafe { sse2_cvtsd2ss(a, b) }
+}
+
 // movd
 // int _mm_cvtsi128_si32 (__m128i a)
+#[inline]
+pub fn mm_cvtsi128_si32(a: m128i) -> i32 {
+    a.as_i32x4().extract(0)
+}
+
 // movq
 // __int64 _mm_cvtsi128_si64 (__m128i a)
+#[inline]
+pub fn mm_cvtsi128_si64(a: m128i) -> i64 {
+    a.as_i64x2().extract(0)
+}
+
 // movq
 // __int64 _mm_cvtsi128_si64x (__m128i a)
+#[inline]
+pub fn mm_cvtsi128_si64x(a: m128i) -> i64 {
+    a.as_i64x2().extract(0)
+}
+
 // cvtsi2sd
 // __m128d _mm_cvtsi32_sd (__m128d a, int b)
+#[inline]
+pub fn mm_cvtsi32_sd(a: m128d, b: i32) -> m128d {
+    unsafe { sse2_cvtsi2sd(a, b) }
+}
+
 // movd
 // __m128i _mm_cvtsi32_si128 (int a)
+#[inline]
+pub fn mm_cvtsi32_si128(a: i32) -> m128i {
+    i32x4(a, 0, 0, 0).as_m128i()
+}
+
 // cvtsi2sd
 // __m128d _mm_cvtsi64_sd (__m128d a, __int64 b)
+#[inline]
+pub fn mm_cvtsi64_sd(a: m128d, b: i64) -> m128d {
+    unsafe { sse2_cvtsi642sd(a, b) }
+}
+
 // movq
 // __m128i _mm_cvtsi64_si128 (__int64 a)
+#[inline]
+pub fn mm_cvtsi64_si128(a: i64) -> m128i {
+    i64x2(a, 0).as_m128i()
+}
+
 // cvtsi2sd
 // __m128d _mm_cvtsi64x_sd (__m128d a, __int64 b)
+#[inline]
+pub fn mm_cvtsi64x_sd(a: m128d, b: i64) -> m128d {
+    unsafe { sse2_cvtsi642sd(a, b) }
+}
+
 // movq
 // __m128i _mm_cvtsi64x_si128 (__int64 a)
+#[inline]
+pub fn mm_cvtsi64x_si128(a: i64) -> m128i {
+    i64x2(a, 0).as_m128i()
+}
+
 // cvtss2sd
 // __m128d _mm_cvtss_sd (__m128d a, __m128 b)
+#[inline]
+pub fn mm_cvtss_sd(a: m128d, b: m128) -> m128d {
+    unsafe { sse2_cvtss2sd(a, b) }
+}
+
 // cvttpd2dq
 // __m128i _mm_cvttpd_epi32 (__m128d a)
+#[inline]
+pub fn mm_cvttpd_epi32(a: m128d) -> m128i {
+    unsafe { sse2_cvttpd2dq(a).as_m128i() }
+}
+
 // cvttpd2pi
 // __m64 _mm_cvttpd_pi32 (__m128d a)
+
 // cvttps2dq
 // __m128i _mm_cvttps_epi32 (__m128 a)
+#[inline]
+pub fn mm_cvttps_epi32(a: m128) -> m128i {
+    unsafe { sse2_cvttps2dq(a).as_m128i() }
+}
+
 // cvttsd2si
 // int _mm_cvttsd_si32 (__m128d a)
+#[inline]
+pub fn mm_cvttsd_si32(a: m128d) -> i32 {
+    unsafe { sse2_cvttsd2si(a) }
+}
+
 // cvttsd2si
 // __int64 _mm_cvttsd_si64 (__m128d a)
+#[inline]
+pub fn mm_cvttsd_si64(a: m128d) -> i64 {
+    unsafe { sse2_cvttsd2si64(a) }
+}
+
 // cvttsd2si
 // __int64 _mm_cvttsd_si64x (__m128d a)
+#[inline]
+pub fn mm_cvttsd_si64x(a: m128d) -> i64 {
+    unsafe { sse2_cvttsd2si64(a) }
+}
 
 // divpd
 // __m128d _mm_div_pd (__m128d a, __m128d b)
@@ -1578,6 +1743,40 @@ mod tests {
         // assert_eq!(mm_ucomile_sd(x, z), 1);
         // assert_eq!(mm_ucomilt_sd(x, z), 1);
         // assert_eq!(mm_ucomineq_sd(x, z), 1);
+    }
+
+    #[test]
+    fn test_cvt() {
+        let i = mm_setr_epi32(1, 2, 3, 4);
+        let s = mm_setr_ps(5.75, 7.0, 8.0, 9.0);
+        let d = mm_setr_pd(10.75, 12.0);
+
+        assert_eq!(mm_cvtepi32_pd(i).as_f64x2().as_array(), [1.0, 2.0]);
+        assert_eq!(mm_cvtepi32_ps(i).as_f32x4().as_array(), [1.0, 2.0, 3.0, 4.0]);
+        assert_eq!(mm_cvtpd_epi32(d).as_i32x4().as_array(), [11, 12, 0, 0]);
+        assert_eq!(mm_cvtpd_ps(d).as_f32x4().as_array(), [10.75, 12.0, 0.0, 0.0]);
+        assert_eq!(mm_cvtps_epi32(s).as_i32x4().as_array(), [6, 7, 8, 9]);
+        assert_eq!(mm_cvtps_pd(s).as_f64x2().as_array(), [5.75, 7.0]);
+        assert_eq!(mm_cvtsd_f64(d), 10.75);
+        assert_eq!(mm_cvtsd_si32(d), 11);
+        assert_eq!(mm_cvtsd_si64(d), 11);
+        assert_eq!(mm_cvtsd_si64x(d), 11);
+        assert_eq!(mm_cvtsd_ss(s, d).as_f32x4().as_array(), [10.75, 7.0, 8.0, 9.0]);
+        assert_eq!(mm_cvtsi128_si32(i), 1);
+        assert_eq!(mm_cvtsi128_si64(i), 0x200000001);
+        assert_eq!(mm_cvtsi128_si64x(i), 0x200000001);
+        assert_eq!(mm_cvtsi32_sd(d, 1).as_f64x2().as_array(), [1.0, 12.0]);
+        assert_eq!(mm_cvtsi32_si128(1).as_i32x4().as_array(), [1, 0, 0, 0]);
+        assert_eq!(mm_cvtsi64_sd(d, 1).as_f64x2().as_array(), [1.0, 12.0]);
+        assert_eq!(mm_cvtsi64_si128(1).as_i32x4().as_array(), [1, 0, 0, 0]);
+        assert_eq!(mm_cvtsi64x_sd(d, 1).as_f64x2().as_array(), [1.0, 12.0]);
+        assert_eq!(mm_cvtsi64x_si128(1).as_i32x4().as_array(), [1, 0, 0, 0]);
+        assert_eq!(mm_cvtss_sd(d, s).as_f64x2().as_array(), [5.75, 12.0]);
+        assert_eq!(mm_cvttpd_epi32(d).as_i32x4().as_array(), [10, 12, 0, 0]);
+        assert_eq!(mm_cvttps_epi32(s).as_i32x4().as_array(), [5, 7, 8, 9]);
+        assert_eq!(mm_cvttsd_si32(d), 10);
+        assert_eq!(mm_cvttsd_si64(d), 10);
+        assert_eq!(mm_cvttsd_si64x(d), 10);
     }
 
     #[test]
