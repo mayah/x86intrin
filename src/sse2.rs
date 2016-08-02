@@ -77,6 +77,11 @@ extern {
     #[link_name = "llvm.x86.sse2.min.sd"]
     fn sse2_min_sd(a: m128d, b: m128d) -> m128d;
 
+    #[link_name = "llvm.x86.sse2.pmovmskb.128"]
+    fn sse2_pmovmskb_128(a: i8x16) -> i32;
+    #[link_name = "llvm.x86.sse2.movmsk.pd"]
+    fn sse2_movmsk_pd(a: m128d) -> i32;
+
     #[link_name = "llvm.x86.sse2.pslli.w"]
     fn sse2_pslli_w(a: i16x8, b: i32) -> i16x8;
     #[link_name = "llvm.x86.sse2.psrli.w"]
@@ -917,8 +922,18 @@ pub fn mm_move_sd(a: m128d, b: m128d) -> m128d {
 
 // pmovmskb
 // int _mm_movemask_epi8 (__m128i a)
+#[inline]
+pub fn mm_movemask_epi8(a: m128i) -> i32 {
+    unsafe { sse2_pmovmskb_128(a.as_i8x16()) }
+}
+
 // movmskpd
 // int _mm_movemask_pd (__m128d a)
+#[inline]
+pub fn mm_movemask_pd(a: m128d) -> i32 {
+    unsafe { sse2_movmsk_pd(a) }
+}
+
 // movdq2q
 // __m64 _mm_movepi64_pi64 (__m128i a)
 // movq2dq
@@ -1913,6 +1928,14 @@ mod tests {
         let a = mm_setr_pd(1.0, 2.0);
         let b = mm_setr_pd(3.0, 4.0);
         assert_eq!(mm_move_sd(a, b).as_f64x2().as_array(), [3.0, 2.0]);
+    }
+
+    #[test]
+    fn test_movemask() {
+        let pd = mm_setr_pd(1.0, -2.0);
+        let x8 = mm_setr_epi8(-1, -2, -3, -4, 5, 6, 7, 8, 9, 10, 11, 12, -13, -14, -15, -16);
+        assert_eq!(mm_movemask_epi8(x8), 0xF00F);
+        assert_eq!(mm_movemask_pd(pd), 2);
     }
 
     #[test]
