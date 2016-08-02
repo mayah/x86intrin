@@ -72,6 +72,11 @@ extern {
     #[link_name = "llvm.x86.sse2.pmadd.wd"]
     fn sse2_pmadd_wd(a: i16x8, b: i16x8) -> i32x4;
 
+    #[link_name = "llvm.x86.sse2.max.sd"]
+    fn sse2_max_sd(a: m128d, b: m128d) -> m128d;
+    #[link_name = "llvm.x86.sse2.min.sd"]
+    fn sse2_min_sd(a: m128d, b: m128d) -> m128d;
+
     #[link_name = "llvm.x86.sse2.pslli.w"]
     fn sse2_pslli_w(a: i16x8, b: i32) -> i16x8;
     #[link_name = "llvm.x86.sse2.psrli.w"]
@@ -90,6 +95,13 @@ extern "platform-intrinsic" {
 
     fn x86_mm_avg_epu8(x: u8x16, y: u8x16) -> u8x16;
     fn x86_mm_avg_epu16(x: u16x8, y: u16x8) -> u16x8;
+
+    fn x86_mm_max_epi16(x: i16x8, y: i16x8) -> i16x8;
+    fn x86_mm_max_epu8(x: u8x16, y: u8x16) -> u8x16;
+    fn x86_mm_max_pd(x: m128d, y: m128d) -> m128d;
+    fn x86_mm_min_epi16(x: i16x8, y: i16x8) -> i16x8;
+    fn x86_mm_min_epu8(x: u8x16, y: u8x16) -> u8x16;
+    fn x86_mm_min_pd(x: m128d, y: m128d) -> m128d;
 }
 
 macro_rules! m128i_operators {
@@ -827,24 +839,66 @@ pub fn mm_madd_epi16(a: m128i, b: m128i) -> m128i {
 
 // maskmovdqu
 // void _mm_maskmoveu_si128 (__m128i a, __m128i mask, char* mem_addr)
+
 // pmaxsw
 // __m128i _mm_max_epi16 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_max_epi16(a: m128i, b: m128i) -> m128i {
+    unsafe { x86_mm_max_epi16(a.as_i16x8(), b.as_i16x8()).as_m128i() }
+}
+
 // pmaxub
 // __m128i _mm_max_epu8 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_max_epu8(a: m128i, b: m128i) -> m128i {
+    unsafe { x86_mm_max_epu8(a.as_u8x16(), b.as_u8x16()).as_m128i() }
+}
+
 // maxpd
 // __m128d _mm_max_pd (__m128d a, __m128d b)
+#[inline]
+pub fn mm_max_pd(a: m128d, b: m128d) -> m128d {
+    unsafe { x86_mm_max_pd(a, b) }
+}
+
 // maxsd
 // __m128d _mm_max_sd (__m128d a, __m128d b)
+#[inline]
+pub fn mm_max_sd(a: m128d, b: m128d) -> m128d {
+    unsafe { sse2_max_sd(a, b) }
+}
+
 // mfence
 // void _mm_mfence (void)
+
 // pminsw
 // __m128i _mm_min_epi16 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_min_epi16(a: m128i, b: m128i) -> m128i {
+    unsafe { x86_mm_min_epi16(a.as_i16x8(), b.as_i16x8()).as_m128i() }
+}
+
 // pminub
 // __m128i _mm_min_epu8 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_min_epu8(a: m128i, b: m128i) -> m128i {
+    unsafe { x86_mm_min_epu8(a.as_u8x16(), b.as_u8x16()).as_m128i() }
+}
+
 // minpd
 // __m128d _mm_min_pd (__m128d a, __m128d b)
+#[inline]
+pub fn mm_min_pd(a: m128d, b: m128d) -> m128d {
+    unsafe { x86_mm_min_pd(a, b) }
+}
+
 // minsd
 // __m128d _mm_min_sd (__m128d a, __m128d b)
+#[inline]
+pub fn mm_min_sd(a: m128d, b: m128d) -> m128d {
+    unsafe { sse2_min_sd(a, b) }
+}
+
 // movq
 // __m128i _mm_move_epi64 (__m128i a)
 // movsd
@@ -1818,6 +1872,25 @@ mod tests {
 
         assert_eq!(mm_madd_epi16(x, y).as_i32x4().as_array(),
                    [1 * 2 + 2 * 3, 3 * 4 + 4 * 5, 5 * 6 + 6 * 7, 7 * 8 + 8 * 9])
+    }
+
+    #[test]
+    fn test_max_min() {
+        let x16 = mm_setr_epi16(1, 2, 3, 4, 5, 6, 7, 8);
+        let y16 = mm_setr_epi16(3, 3, 3, 3, 3, 3, 3, 3);
+        let x8 = mm_setr_epi8(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
+        let y8 = mm_setr_epi8(5, 5, 5, 5, 5, 5, 5, 5, 5,  5,  5,  5,  5,  5,  5,  5);
+        let xp = mm_setr_pd(1.0, 2.0);
+        let yp = mm_setr_pd(3.0, 1.0);
+
+        assert_eq!(mm_max_epi16(x16, y16).as_i16x8().as_array(), [3, 3, 3, 4, 5, 6, 7, 8]);
+        assert_eq!(mm_min_epi16(x16, y16).as_i16x8().as_array(), [1, 2, 3, 3, 3, 3, 3, 3]);
+        assert_eq!(mm_max_epu8(x8, y8).as_i8x16().as_array(), [5, 5, 5, 5, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
+        assert_eq!(mm_min_epu8(x8, y8).as_i8x16().as_array(), [1, 2, 3, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5]);
+        assert_eq!(mm_max_pd(xp, yp).as_f64x2().as_array(), [3.0, 2.0]);
+        assert_eq!(mm_min_pd(xp, yp).as_f64x2().as_array(), [1.0, 1.0]);
+        assert_eq!(mm_max_sd(xp, yp).as_f64x2().as_array(), [3.0, 2.0]);
+        assert_eq!(mm_min_sd(xp, yp).as_f64x2().as_array(), [1.0, 2.0]);
     }
 
     #[test]
