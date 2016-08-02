@@ -89,6 +89,9 @@ extern {
     #[link_name = "llvm.x86.sse2.movmsk.pd"]
     fn sse2_movmsk_pd(a: m128d) -> i32;
 
+    #[link_name = "llvm.x86.sse2.psad.bw"]
+    fn sse2_psad_bw(a: i8x16, b: i8x16) -> i64x2;
+
     #[link_name = "llvm.x86.sse2.pslli.w"]
     fn sse2_pslli_w(a: i16x8, b: i32) -> i16x8;
     #[link_name = "llvm.x86.sse2.psrli.w"]
@@ -1034,8 +1037,13 @@ pub fn mm_packus_epi16(a: m128i, b: m128i) -> m128i {
 
 // pause
 // void _mm_pause (void)
+
 // psadbw
 // __m128i _mm_sad_epu8 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_sad_epu8(a: m128i, b: m128i) -> m128i {
+    unsafe { sse2_psad_bw(a.as_i8x16(), b.as_i8x16()).as_m128i() }
+}
 
 // ...
 // __m128i _mm_set_epi16 (short e7, short e6, short e5, short e4, short e3, short e2, short e1, short e0)
@@ -1982,6 +1990,14 @@ mod tests {
         assert_eq!(mm_min_pd(xp, yp).as_f64x2().as_array(), [1.0, 1.0]);
         assert_eq!(mm_max_sd(xp, yp).as_f64x2().as_array(), [3.0, 2.0]);
         assert_eq!(mm_min_sd(xp, yp).as_f64x2().as_array(), [1.0, 2.0]);
+    }
+
+    #[test]
+    fn test_sad() {
+        let x8 = mm_setr_epi8(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
+        let y8 = mm_setr_epi8(5, 5, 5, 5, 5, 5, 5, 5, 5,  5,  5,  5,  5,  5,  5,  5);
+
+        assert_eq!(mm_sad_epu8(x8, y8).as_i64x2().as_array(), [16, 60]);
     }
 
     #[test]
