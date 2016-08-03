@@ -124,6 +124,9 @@ extern {
     fn sse2_psrli_d(a: i32x4, b: i32) -> i32x4;
     #[link_name = "llvm.x86.sse2.psrli.q"]
     fn sse2_psrli_q(a: i64x2, b: i32) -> i64x2;
+
+    #[link_name = "llvm.x86.sse2.sqrt.sd"]
+    fn sse2_sqrt_sd(a: m128d) -> m128d;
 }
 
 extern "platform-intrinsic" {
@@ -149,6 +152,8 @@ extern "platform-intrinsic" {
     fn x86_mm_min_epi16(x: i16x8, y: i16x8) -> i16x8;
     fn x86_mm_min_epu8(x: u8x16, y: u8x16) -> u8x16;
     fn x86_mm_min_pd(x: m128d, y: m128d) -> m128d;
+
+    fn x86_mm_sqrt_pd(x: m128d) -> m128d;
 }
 
 macro_rules! m128i_operators {
@@ -1295,8 +1300,18 @@ pub fn mm_slli_si128(a: m128i, imm8: i32) -> m128i {
 
 // sqrtpd
 // __m128d _mm_sqrt_pd (__m128d a)
+#[inline]
+pub fn mm_sqrt_pd(a: m128d) -> m128d {
+    unsafe { x86_mm_sqrt_pd(a) }
+}
+
 // sqrtsd
 // __m128d _mm_sqrt_sd (__m128d a, __m128d b)
+#[inline]
+pub fn mm_sqrt_sd(a: m128d, b: m128d) -> m128d {
+    let c = unsafe { sse2_sqrt_sd(b) };
+    f64x2(c.as_f64x2().extract(0), a.as_f64x2().extract(1)).as_m128d()
+}
 
 // psraw
 // __m128i _mm_sra_epi16 (__m128i a, __m128i count)
@@ -2299,5 +2314,14 @@ mod tests {
             assert_eq!(bx1.extract(i) as usize, if i + 2 >= 17 { 0 } else { i + 2 } );
             assert_eq!(bx2.extract(i) as usize, if i + 3 >= 17 { 0 } else { i + 3 } );
         }
+    }
+
+    #[test]
+    fn test_sqrt() {
+        let x = f64x2(9.0, 4.0).as_m128d();
+        let y = f64x2(4.0, 8.0).as_m128d();
+
+        assert_eq!(mm_sqrt_pd(x).as_f64x2().as_array(), [3.0, 2.0]);
+        assert_eq!(mm_sqrt_sd(x, y).as_f64x2().as_array(), [2.0, 4.0]);
     }
 }
