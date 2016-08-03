@@ -92,10 +92,38 @@ extern {
     #[link_name = "llvm.x86.sse2.psad.bw"]
     fn sse2_psad_bw(a: i8x16, b: i8x16) -> i64x2;
 
+    #[link_name = "llvm.x86.sse2.psll.w"]
+    fn sse2_psll_w(a: i16x8, b: i16x8) -> i16x8;
+    #[link_name = "llvm.x86.sse2.psll.d"]
+    fn sse2_psll_d(a: i32x4, b: i32x4) -> i32x4;
+    #[link_name = "llvm.x86.sse2.psll.q"]
+    fn sse2_psll_q(a: i64x2, b: i64x2) -> i64x2;
     #[link_name = "llvm.x86.sse2.pslli.w"]
     fn sse2_pslli_w(a: i16x8, b: i32) -> i16x8;
+    #[link_name = "llvm.x86.sse2.pslli.d"]
+    fn sse2_pslli_d(a: i32x4, b: i32) -> i32x4;
+    #[link_name = "llvm.x86.sse2.pslli.q"]
+    fn sse2_pslli_q(a: i64x2, b: i32) -> i64x2;
+    #[link_name = "llvm.x86.sse2.psra.w"]
+    fn sse2_psra_w(a: i16x8, b: i16x8) -> i16x8;
+    #[link_name = "llvm.x86.sse2.psra.d"]
+    fn sse2_psra_d(a: i32x4, b: i32x4) -> i32x4;
+    #[link_name = "llvm.x86.sse2.psrai.w"]
+    fn sse2_psrai_w(a: i16x8, b: i32) -> i16x8;
+    #[link_name = "llvm.x86.sse2.psrai.d"]
+    fn sse2_psrai_d(a: i32x4, b: i32) -> i32x4;
+    #[link_name = "llvm.x86.sse2.psrl.w"]
+    fn sse2_psrl_w(a: i16x8, b: i16x8) -> i16x8;
+    #[link_name = "llvm.x86.sse2.psrl.d"]
+    fn sse2_psrl_d(a: i32x4, b: i32x4) -> i32x4;
+    #[link_name = "llvm.x86.sse2.psrl.q"]
+    fn sse2_psrl_q(a: i64x2, b: i64x2) -> i64x2;
     #[link_name = "llvm.x86.sse2.psrli.w"]
     fn sse2_psrli_w(a: i16x8, b: i32) -> i16x8;
+    #[link_name = "llvm.x86.sse2.psrli.d"]
+    fn sse2_psrli_d(a: i32x4, b: i32) -> i32x4;
+    #[link_name = "llvm.x86.sse2.psrli.q"]
+    fn sse2_psrli_q(a: i64x2, b: i32) -> i64x2;
 }
 
 extern "platform-intrinsic" {
@@ -1192,12 +1220,27 @@ pub fn mm_setzero_si128() -> m128i {
 // __m128i _mm_shufflehi_epi16 (__m128i a, int imm8)
 // pshuflw
 // __m128i _mm_shufflelo_epi16 (__m128i a, int imm8)
+
 // psllw
 // __m128i _mm_sll_epi16 (__m128i a, __m128i count)
+#[inline]
+pub fn mm_sll_epi16(a: m128i, count: m128i) -> m128i {
+    unsafe { sse2_psll_w(a.as_i16x8(), count.as_i16x8()).as_m128i() }
+}
+
 // pslld
 // __m128i _mm_sll_epi32 (__m128i a, __m128i count)
+#[inline]
+pub fn mm_sll_epi32(a: m128i, count: m128i) -> m128i {
+    unsafe { sse2_psll_d(a.as_i32x4(), count.as_i32x4()).as_m128i() }
+}
+
 // psllq
 // __m128i _mm_sll_epi64 (__m128i a, __m128i count)
+#[inline]
+pub fn mm_sll_epi64(a: m128i, count: m128i) -> m128i {
+    unsafe { sse2_psll_q(a.as_i64x2(), count.as_i64x2()).as_m128i() }
+}
 
 // psllw
 // __m128i _mm_slli_epi16 (__m128i a, int imm8)
@@ -1208,8 +1251,17 @@ pub fn mm_slli_epi16(a: m128i, imm8: i32) -> m128i {
 
 // pslld
 // __m128i _mm_slli_epi32 (__m128i a, int imm8)
+#[inline]
+pub fn mm_slli_epi32(a: m128i, imm8: i32) -> m128i {
+    unsafe { sse2_pslli_d(a.as_i32x4(), imm8).as_m128i() }
+}
+
 // psllq
 // __m128i _mm_slli_epi64 (__m128i a, int imm8)
+#[inline]
+pub fn mm_slli_epi64(a: m128i, imm8: i32) -> m128i {
+    unsafe { sse2_pslli_q(a.as_i64x2(), imm8).as_m128i() }
+}
 
 // pslldq
 // __m128i _mm_slli_si128 (__m128i a, int imm8)
@@ -1245,20 +1297,55 @@ pub fn mm_slli_si128(a: m128i, imm8: i32) -> m128i {
 // __m128d _mm_sqrt_pd (__m128d a)
 // sqrtsd
 // __m128d _mm_sqrt_sd (__m128d a, __m128d b)
+
 // psraw
 // __m128i _mm_sra_epi16 (__m128i a, __m128i count)
+#[inline]
+pub fn mm_sra_epi16(a: m128i, count: m128i) -> m128i {
+    unsafe { sse2_psra_w(a.as_i16x8(), count.as_i16x8()).as_m128i() }
+}
+
 // psrad
 // __m128i _mm_sra_epi32 (__m128i a, __m128i count)
+#[inline]
+pub fn mm_sra_epi32(a: m128i, count: m128i) -> m128i {
+    unsafe { sse2_psra_d(a.as_i32x4(), count.as_i32x4()).as_m128i() }
+}
+
 // psraw
 // __m128i _mm_srai_epi16 (__m128i a, int imm8)
+#[inline]
+pub fn mm_srai_epi16(a: m128i, imm8: i32) -> m128i {
+    unsafe { sse2_psrai_w(a.as_i16x8(), imm8).as_m128i() }
+}
+
 // psrad
 // __m128i _mm_srai_epi32 (__m128i a, int imm8)
+#[inline]
+pub fn mm_srai_epi32(a: m128i, imm8: i32) -> m128i {
+    unsafe { sse2_psrai_d(a.as_i32x4(), imm8).as_m128i() }
+}
+
 // psrlw
 // __m128i _mm_srl_epi16 (__m128i a, __m128i count)
+#[inline]
+pub fn mm_srl_epi16(a: m128i, count: m128i) -> m128i {
+    unsafe { sse2_psrl_w(a.as_i16x8(), count.as_i16x8()).as_m128i() }
+}
+
 // psrld
 // __m128i _mm_srl_epi32 (__m128i a, __m128i count)
+#[inline]
+pub fn mm_srl_epi32(a: m128i, count: m128i) -> m128i {
+    unsafe { sse2_psrl_d(a.as_i32x4(), count.as_i32x4()).as_m128i() }
+}
+
 // psrlq
 // __m128i _mm_srl_epi64 (__m128i a, __m128i count)
+#[inline]
+pub fn mm_srl_epi64(a: m128i, count: m128i) -> m128i {
+    unsafe { sse2_psrl_q(a.as_i64x2(), count.as_i64x2()).as_m128i() }
+}
 
 // psrlw
 // __m128i _mm_srli_epi16 (__m128i a, int imm8)
@@ -1269,8 +1356,17 @@ pub fn mm_srli_epi16(a: m128i, imm8: i32) -> m128i {
 
 // psrld
 // __m128i _mm_srli_epi32 (__m128i a, int imm8)
+#[inline]
+pub fn mm_srli_epi32(a: m128i, imm8: i32) -> m128i {
+    unsafe { sse2_psrli_d(a.as_i32x4(), imm8).as_m128i() }
+}
+
 // psrlq
 // __m128i _mm_srli_epi64 (__m128i a, int imm8)
+#[inline]
+pub fn mm_srli_epi64(a: m128i, imm8: i32) -> m128i {
+    unsafe { sse2_psrli_q(a.as_i64x2(), imm8).as_m128i() }
+}
 
 // psrldq
 // __m128i _mm_srli_si128 (__m128i a, int imm8)
@@ -2126,31 +2222,43 @@ mod tests {
     }
 
     #[test]
-    fn test_mm_slli_epi16() {
-        let x = mm_setr_epi16(1, 2, 3, 4, 5, 6, 7, 8);
-        let x0 = mm_slli_epi16(x, 0).as_i16x8();
-        let x1 = mm_slli_epi16(x, 1).as_i16x8();
-        let x2 = mm_slli_epi16(x, 2).as_i16x8();
+    fn test_mm_shift_left() {
+        let x16 = mm_setr_epi16(4, 8, 12, 16, 20, 24, 28, 32);
+        let x32 = mm_setr_epi32(4, 8, 12, 16);
+        let x64 = mm_set_epi64x(8, 4);
 
-        for i in 0 .. 8 {
-            assert_eq!(x0.extract(i) as usize, (i + 1) << 0);
-            assert_eq!(x1.extract(i) as usize, (i + 1) << 1);
-            assert_eq!(x2.extract(i) as usize, (i + 1) << 2);
-        }
+        let count = mm_setr_epi16(1, 0, 0, 0, 0, 0, 0, 0);
+
+        assert_eq!(mm_sll_epi16(x16, count).as_i16x8().as_array(), [8, 16, 24, 32, 40, 48, 56, 64]);
+        assert_eq!(mm_sll_epi32(x32, count).as_i32x4().as_array(), [8, 16, 24, 32]);
+        assert_eq!(mm_sll_epi64(x64, count).as_i64x2().as_array(), [8, 16]);
+
+        assert_eq!(mm_slli_epi16(x16, 1).as_i16x8().as_array(), [8, 16, 24, 32, 40, 48, 56, 64]);
+        assert_eq!(mm_slli_epi32(x32, 1).as_i32x4().as_array(), [8, 16, 24, 32]);
+        assert_eq!(mm_slli_epi64(x64, 1).as_i64x2().as_array(), [8, 16]);
     }
 
     #[test]
-    fn test_mm_srli_epi16() {
-        let x = mm_setr_epi16(11, 12, 13, 14, 15, 16, 17, 18);
-        let x0 = mm_srli_epi16(x, 0).as_i16x8();
-        let x1 = mm_srli_epi16(x, 1).as_i16x8();
-        let x2 = mm_srli_epi16(x, 2).as_i16x8();
+    fn test_mm_shift_right() {
+        let x16 = mm_setr_epi16(-4, 8, 12, 16, 20, 24, 28, 32);
+        let x32 = mm_setr_epi32(-4, 8, 12, 16);
+        let x64 = mm_set_epi64x(8, -4);
 
-        for i in 0 .. 8 {
-            assert_eq!(x0.extract(i) as usize, (i + 11) >> 0);
-            assert_eq!(x1.extract(i) as usize, (i + 11) >> 1);
-            assert_eq!(x2.extract(i) as usize, (i + 11) >> 2);
-        }
+        let count = mm_setr_epi16(1, 0, 0, 0, 0, 0, 0, 0);
+
+        assert_eq!(mm_srl_epi16(x16, count).as_u16x8().as_array(), [(-4i16 as u16) >> 1, 4, 6, 8, 10, 12, 14, 16]);
+        assert_eq!(mm_srl_epi32(x32, count).as_u32x4().as_array(), [(-4i32 as u32) >> 1, 4, 6, 8]);
+        assert_eq!(mm_srl_epi64(x64, count).as_u64x2().as_array(), [(-4i64 as u64) >> 1, 4]);
+
+        assert_eq!(mm_srli_epi16(x16, 1).as_u16x8().as_array(), [(-4i16 as u16) >> 1, 4, 6, 8, 10, 12, 14, 16]);
+        assert_eq!(mm_srli_epi32(x32, 1).as_u32x4().as_array(), [(-4i32 as u32) >> 1, 4, 6, 8]);
+        assert_eq!(mm_srli_epi64(x64, 1).as_u64x2().as_array(), [(-4i64 as u64) >> 1, 4]);
+
+        assert_eq!(mm_sra_epi16(x16, count).as_i16x8().as_array(), [-2, 4, 6, 8, 10, 12, 14, 16]);
+        assert_eq!(mm_sra_epi32(x32, count).as_i32x4().as_array(), [-2, 4, 6, 8]);
+
+        assert_eq!(mm_srai_epi16(x16, 1).as_i16x8().as_array(), [-2, 4, 6, 8, 10, 12, 14, 16]);
+        assert_eq!(mm_srai_epi32(x32, 1).as_i32x4().as_array(), [-2, 4, 6, 8]);
     }
 
     #[test]
