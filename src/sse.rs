@@ -107,11 +107,6 @@ pub fn mm_andnot_ps(a: m128, b: m128) -> m128 {
     unsafe { simd_and(simd_xor(ai, ones), bi).as_m128() }
 }
 
-// pavgw
-// __m64 _mm_avg_pu16 (__m64 a, __m64 b)
-// pavgb
-// __m64 _mm_avg_pu8 (__m64 a, __m64 b)
-
 // cmpps
 // __m128 _mm_cmpeq_ps (__m128 a, __m128 b)
 #[inline]
@@ -336,11 +331,6 @@ pub fn mm_comineq_ss(a: m128, b: m128) -> i32 {
     unsafe { sse_comineq_ss(a, b) }
 }
 
-// cvtpi2ps
-// __m128 _mm_cvt_pi2ps (__m128 a, __m64 b)
-// cvtps2pi
-// __m64 _mm_cvt_ps2pi (__m128 a)
-
 // cvtsi2ss
 // __m128 _mm_cvt_si2ss (__m128 a, int b)
 #[inline]
@@ -354,25 +344,6 @@ pub fn mm_cvt_si2ss(a: m128, b: i32) -> m128 {
 pub fn mm_cvt_ss2si(a: m128) -> i32 {
     mm_cvtss_si32(a)
 }
-
-// ...
-// __m128 _mm_cvtpi16_ps (__m64 a)
-// cvtpi2ps
-// __m128 _mm_cvtpi32_ps (__m128 a, __m64 b)
-// ...
-// __m128 _mm_cvtpi32x2_ps (__m64 a, __m64 b)
-// ...
-// __m128 _mm_cvtpi8_ps (__m64 a)
-// ...
-// __m64 _mm_cvtps_pi16 (__m128 a)
-// cvtps2pi
-// __m64 _mm_cvtps_pi32 (__m128 a)
-// ...
-// __m64 _mm_cvtps_pi8 (__m128 a)
-// ...
-// __m128 _mm_cvtpu16_ps (__m64 a)
-// ...
-// __m128 _mm_cvtpu8_ps (__m64 a)
 
 // cvtsi2ss
 // __m128 _mm_cvtsi32_ss (__m128 a, int b)
@@ -409,18 +380,12 @@ pub fn mm_cvtss_si64(a: m128) -> i64 {
     unsafe { sse_cvtss2si64(a) }
 }
 
-// cvttps2pi
-// __m64 _mm_cvtt_ps2pi (__m128 a)
-
 // cvttss2si
 // int _mm_cvtt_ss2si (__m128 a)
 #[inline]
 pub fn mm_cvtt_ss2si(a: m128) -> i32 {
     mm_cvttss_si32(a)
 }
-
-// cvttps2pi
-// __m64 _mm_cvttps_pi32 (__m128 a)
 
 // cvttss2si
 // int _mm_cvttss_si32 (__m128 a)
@@ -450,16 +415,12 @@ pub fn mm_div_ss(a: m128, b: m128) -> m128 {
     a.as_f32x4().insert(0, (a.as_f32x4().extract(0) / b.as_f32x4().extract(0))).as_m128()
 }
 
-// pextrw
-// int _mm_extract_pi16 (__m64 a, int imm8)
 // unsigned int _MM_GET_EXCEPTION_MASK ()
 // unsigned int _MM_GET_EXCEPTION_STATE ()
 // unsigned int _MM_GET_FLUSH_ZERO_MODE ()
 // unsigned int _MM_GET_ROUNDING_MODE ()
 // stmxcsr
 // unsigned int _mm_getcsr (void)
-// pinsrw
-// __m64 _mm_insert_pi16 (__m64 a, int i, int imm8)
 // movaps
 // __m128 _mm_load_ps (float const* mem_addr)
 // ...
@@ -476,12 +437,6 @@ pub fn mm_div_ss(a: m128, b: m128) -> m128 {
 // __m128 _mm_loadr_ps (float const* mem_addr)
 // movups
 // __m128 _mm_loadu_ps (float const* mem_addr)
-// maskmovq
-// void _mm_maskmove_si64 (__m64 a, __m64 mask, char* mem_addr)
-// maskmovq
-// void _m_maskmovq (__m64 a, __m64 mask, char* mem_addr)
-// pmaxsw
-// __m64 _mm_max_pi16 (__m64 a, __m64 b)
 
 // maxps
 // __m128 _mm_max_ps (__m128 a, __m128 b)
@@ -490,9 +445,6 @@ pub fn mm_max_ps(a: m128, b: m128) -> m128 {
     unsafe { x86_mm_max_ps(a, b) }
 }
 
-// pmaxub
-// __m64 _mm_max_pu8 (__m64 a, __m64 b)
-
 // maxss
 // __m128 _mm_max_ss (__m128 a, __m128 b)
 #[inline]
@@ -500,18 +452,12 @@ pub fn mm_max_ss(a: m128, b: m128) -> m128 {
     unsafe { sse_max_ss(a, b) }
 }
 
-// pminsw
-// __m64 _mm_min_pi16 (__m64 a, __m64 b)
-
 // minps
 // __m128 _mm_min_ps (__m128 a, __m128 b)
 #[inline]
 pub fn mm_min_ps(a: m128, b: m128) -> m128 {
     unsafe { x86_mm_min_ps(a, b) }
 }
-
-// pminub
-// __m64 _mm_min_pu8 (__m64 a, __m64 b)
 
 // minss
 // __m128 _mm_min_ss (__m128 a, __m128 b)
@@ -541,9 +487,6 @@ pub fn mm_movelh_ps(a: m128, b: m128) -> m128 {
     unsafe { simd_shuffle4(a, b, [0, 1, 4, 5]) }
 }
 
-// pmovmskb
-// int _mm_movemask_pi8 (__m64 a)
-
 // movmskps
 // int _mm_movemask_ps (__m128 a)
 #[inline]
@@ -565,9 +508,6 @@ pub fn mm_mul_ss(a: m128, b: m128) -> m128 {
     a.as_f32x4().insert(0, (a.as_f32x4().extract(0) * b.as_f32x4().extract(0))).as_m128()
 }
 
-// pmulhuw
-// __m64 _mm_mulhi_pu16 (__m64 a, __m64 b)
-
 // orps
 // __m128 _mm_or_ps (__m128 a, __m128 b)
 #[inline]
@@ -576,33 +516,6 @@ pub fn mm_or_ps(a: m128, b: m128) -> m128 {
     let bi = b.as_m128i();
     unsafe { simd_or(ai, bi).as_m128() }
 }
-
-// pavgb
-// __m64 _m_pavgb (__m64 a, __m64 b)
-// pavgw
-// __m64 _m_pavgw (__m64 a, __m64 b)
-// pextrw
-// int _m_pextrw (__m64 a, int imm8)
-// pinsrw
-// __m64 _m_pinsrw (__m64 a, int i, int imm8)
-// pmaxsw
-// __m64 _m_pmaxsw (__m64 a, __m64 b)
-// pmaxub
-// __m64 _m_pmaxub (__m64 a, __m64 b)
-// pminsw
-// __m64 _m_pminsw (__m64 a, __m64 b)
-// pminub
-// __m64 _m_pminub (__m64 a, __m64 b)
-// pmovmskb
-// int _m_pmovmskb (__m64 a)
-// pmulhuw
-// __m64 _m_pmulhuw (__m64 a, __m64 b)
-// prefetchnta, prefetcht0, prefetcht1, prefetcht2
-// void _mm_prefetch (char const* p, int i)
-// psadbw
-// __m64 _m_psadbw (__m64 a, __m64 b)
-// pshufw
-// __m64 _m_pshufw (__m64 a, int imm8)
 
 // rcpps
 // __m128 _mm_rcp_ps (__m128 a)
@@ -632,8 +545,6 @@ pub fn mm_rsqrt_ss(a: m128) -> m128 {
     unsafe { sse_rsqrt_ss(a) }
 }
 
-// psadbw
-// __m64 _mm_sad_pu8 (__m64 a, __m64 b)
 // void _MM_SET_EXCEPTION_MASK (unsigned int a)
 // void _MM_SET_EXCEPTION_STATE (unsigned int a)
 // void _MM_SET_FLUSH_ZERO_MODE (unsigned int a)
@@ -687,8 +598,6 @@ pub fn mm_setzero_ps() -> m128 {
 
 // sfence
 // void _mm_sfence (void)
-// pshufw
-// __m64 _mm_shuffle_pi16 (__m64 a, int imm8)
 
 // shufps
 // __m128 _mm_shuffle_ps (__m128 a, __m128 b, unsigned int imm8)
@@ -783,8 +692,6 @@ pub fn mm_sqrt_ss(a: m128) -> m128 {
 // void _mm_storer_ps (float* mem_addr, __m128 a)
 // movups
 // void _mm_storeu_ps (float* mem_addr, __m128 a)
-// movntq
-// void _mm_stream_pi (__m64* mem_addr, __m64 a)
 // movntps
 // void _mm_stream_ps (float* mem_addr, __m128 a)
 
@@ -869,6 +776,88 @@ pub fn mm_xor_ps(a: m128, b: m128) -> m128 {
     let bi = b.as_m128i();
     unsafe { simd_xor(ai, bi).as_m128() }
 }
+
+// MMX methods
+// pavgw
+// __m64 _mm_avg_pu16 (__m64 a, __m64 b)
+// pavgb
+// __m64 _mm_avg_pu8 (__m64 a, __m64 b)
+// cvtpi2ps
+// __m128 _mm_cvt_pi2ps (__m128 a, __m64 b)
+// cvtps2pi
+// __m64 _mm_cvt_ps2pi (__m128 a)
+// ...
+// __m128 _mm_cvtpi16_ps (__m64 a)
+// cvtpi2ps
+// __m128 _mm_cvtpi32_ps (__m128 a, __m64 b)
+// ...
+// __m128 _mm_cvtpi32x2_ps (__m64 a, __m64 b)
+// ...
+// __m128 _mm_cvtpi8_ps (__m64 a)
+// ...
+// __m64 _mm_cvtps_pi16 (__m128 a)
+// cvtps2pi
+// __m64 _mm_cvtps_pi32 (__m128 a)
+// ...
+// __m64 _mm_cvtps_pi8 (__m128 a)
+// ...
+// __m128 _mm_cvtpu16_ps (__m64 a)
+// ...
+// __m128 _mm_cvtpu8_ps (__m64 a)
+// cvttps2pi
+// __m64 _mm_cvtt_ps2pi (__m128 a)
+// cvttps2pi
+// __m64 _mm_cvttps_pi32 (__m128 a)
+// pextrw
+// int _mm_extract_pi16 (__m64 a, int imm8)
+// pinsrw
+// __m64 _mm_insert_pi16 (__m64 a, int i, int imm8)
+// maskmovq
+// void _mm_maskmove_si64 (__m64 a, __m64 mask, char* mem_addr)
+// maskmovq
+// void _m_maskmovq (__m64 a, __m64 mask, char* mem_addr)
+// pmaxsw
+// __m64 _mm_max_pi16 (__m64 a, __m64 b)
+// pmaxub
+// __m64 _mm_max_pu8 (__m64 a, __m64 b)
+// pminsw
+// __m64 _mm_min_pi16 (__m64 a, __m64 b)
+// pminub
+// __m64 _mm_min_pu8 (__m64 a, __m64 b)
+// pmovmskb
+// int _mm_movemask_pi8 (__m64 a)
+// pmulhuw
+// __m64 _mm_mulhi_pu16 (__m64 a, __m64 b)
+// pavgb
+// __m64 _m_pavgb (__m64 a, __m64 b)
+// pavgw
+// __m64 _m_pavgw (__m64 a, __m64 b)
+// pextrw
+// int _m_pextrw (__m64 a, int imm8)
+// pinsrw
+// __m64 _m_pinsrw (__m64 a, int i, int imm8)
+// pmaxsw
+// __m64 _m_pmaxsw (__m64 a, __m64 b)
+// pmaxub
+// __m64 _m_pmaxub (__m64 a, __m64 b)
+// pminsw
+// __m64 _m_pminsw (__m64 a, __m64 b)
+// pminub
+// __m64 _m_pminub (__m64 a, __m64 b)
+// pmovmskb
+// int _m_pmovmskb (__m64 a)
+// pmulhuw
+// __m64 _m_pmulhuw (__m64 a, __m64 b)
+// prefetchnta, prefetcht0, prefetcht1, prefetcht2
+// void _mm_prefetch (char const* p, int i)
+// psadbw
+// __m64 _m_psadbw (__m64 a, __m64 b)
+// pshufw
+// __m64 _m_pshufw (__m64 a, int imm8)
+// psadbw
+// __m64 _mm_sad_pu8 (__m64 a, __m64 b)
+// movntq
+// void _mm_stream_pi (__m64* mem_addr, __m64 a)
 
 #[cfg(test)]
 mod tests {
