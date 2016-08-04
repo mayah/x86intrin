@@ -127,6 +127,13 @@ extern {
 
     #[link_name = "llvm.x86.sse2.sqrt.sd"]
     fn sse2_sqrt_sd(a: m128d) -> m128d;
+
+    #[link_name = "llvm.x86.sse2.lfence"]
+    fn sse2_lfence() -> ();
+    #[link_name = "llvm.x86.sse2.mfence"]
+    fn sse2_mfence() -> ();
+    #[link_name = "llvm.x86.sse2.pause"]
+    fn sse2_pause() -> ();
 }
 
 extern "platform-intrinsic" {
@@ -216,9 +223,6 @@ pub fn mm_add_sd(a: m128d, b: m128d) -> m128d {
     let v = a.as_f64x2().extract(0) + b.as_f64x2().extract(0);
     a.as_f64x2().insert(0, v).as_m128d()
 }
-
-// paddq
-// __m64 _mm_add_si64 (__m64 a, __m64 b)
 
 // paddsw
 // __m128i _mm_adds_epi16 (__m128i a, __m128i b)
@@ -341,6 +345,7 @@ pub fn mm_castsi128_ps(a: m128i) -> m128 {
     a.as_m128()
 }
 
+// TODO(mayah): Implement this
 // clflush
 // void _mm_clflush (void const* p)
 
@@ -657,18 +662,12 @@ pub fn mm_cvtpd_epi32(a: m128d) -> m128i {
     unsafe { sse2_cvtpd2dq(a).as_m128i() }
 }
 
-// cvtpd2pi
-// __m64 _mm_cvtpd_pi32 (__m128d a)
-
 // cvtpd2ps
 // __m128 _mm_cvtpd_ps (__m128d a)
 #[inline]
 pub fn mm_cvtpd_ps(a: m128d) -> m128 {
     unsafe { sse2_cvtpd2ps(a) }
 }
-
-// cvtpi2pd
-// __m128d _mm_cvtpi32_pd (__m64 a)
 
 // cvtps2dq
 // __m128i _mm_cvtps_epi32 (__m128 a)
@@ -796,9 +795,6 @@ pub fn mm_cvttpd_epi32(a: m128d) -> m128i {
     unsafe { sse2_cvttpd2dq(a).as_m128i() }
 }
 
-// cvttpd2pi
-// __m64 _mm_cvttpd_pi32 (__m128d a)
-
 // cvttps2dq
 // __m128i _mm_cvttps_epi32 (__m128 a)
 #[inline]
@@ -859,6 +855,12 @@ pub fn mm_insert_epi16(a: m128i, i: i32, imm8: i32) -> m128i {
 
 // lfence
 // void _mm_lfence (void)
+#[inline]
+pub fn mm_lfence() {
+    unsafe { sse2_lfence() }
+}
+
+// TODO(mayah): Implement this
 // movapd
 // __m128d _mm_load_pd (double const* mem_addr)
 // ...
@@ -889,6 +891,7 @@ pub fn mm_madd_epi16(a: m128i, b: m128i) -> m128i {
     unsafe { sse2_pmadd_wd(a.as_i16x8(), b.as_i16x8()).as_m128i() }
 }
 
+// TODO(mayah): Implement this
 // maskmovdqu
 // void _mm_maskmoveu_si128 (__m128i a, __m128i mask, char* mem_addr)
 
@@ -922,6 +925,10 @@ pub fn mm_max_sd(a: m128d, b: m128d) -> m128d {
 
 // mfence
 // void _mm_mfence (void)
+#[inline]
+pub fn mm_mfence() {
+    unsafe { sse2_mfence() }
+}
 
 // pminsw
 // __m128i _mm_min_epi16 (__m128i a, __m128i b)
@@ -981,11 +988,6 @@ pub fn mm_movemask_pd(a: m128d) -> i32 {
     unsafe { sse2_movmsk_pd(a) }
 }
 
-// movdq2q
-// __m64 _mm_movepi64_pi64 (__m128i a)
-// movq2dq
-// __m128i _mm_movpi64_epi64 (__m64 a)
-
 // pmuludq
 // __m128i _mm_mul_epu32 (__m128i a, __m128i b)
 #[inline]
@@ -1007,9 +1009,6 @@ pub fn mm_mul_sd(a: m128d, b: m128d) -> m128d {
     let v = a.as_f64x2().extract(0) * b.as_f64x2().extract(0);
     a.as_f64x2().insert(0, v).as_m128d()
 }
-
-// pmuludq
-// __m64 _mm_mul_su32 (__m64 a, __m64 b)
 
 // pmulhw
 // __m128i _mm_mulhi_epi16 (__m128i a, __m128i b)
@@ -1070,6 +1069,10 @@ pub fn mm_packus_epi16(a: m128i, b: m128i) -> m128i {
 
 // pause
 // void _mm_pause (void)
+#[inline]
+pub fn mm_pause() {
+    unsafe { sse2_pause() }
+}
 
 // psadbw
 // __m128i _mm_sad_epu8 (__m128i a, __m128i b)
@@ -1092,9 +1095,6 @@ pub fn mm_set_epi16(e7: i16, e6: i16, e5: i16, e4: i16,
 pub fn mm_set_epi32(e3: i32, e2: i32, e1: i32, e0: i32) -> m128i {
     i32x4(e0, e1, e2, e3).as_m128i()
 }
-
-// ...
-// __m128i _mm_set_epi64 (__m64 e1, __m64 e0)
 
 // ...
 // __m128i _mm_set_epi64x (__int64 e1, __int64 e0)
@@ -1147,9 +1147,6 @@ pub fn mm_set1_epi32(a: i32) -> m128i {
 }
 
 // ...
-// __m128i _mm_set1_epi64 (__m64 a)
-
-// ...
 // __m128i _mm_set1_epi64x (__int64 a)
 #[inline]
 pub fn mm_set1_epi64(a: i64) -> m128i {
@@ -1184,9 +1181,6 @@ pub fn mm_setr_epi16(e0: i16, e1: i16, e2: i16, e3: i16,
 pub fn mm_setr_epi32(e0: i32, e1: i32, e2: i32, e3: i32) -> m128i {
     i32x4(e0, e1, e2, e3).as_m128i()
 }
-
-// ...
-// __m128i _mm_setr_epi64 (__m64 e1, __m64 e0)
 
 // ...
 // __m128i _mm_setr_epi8 (char e15, char e14, char e13, char e12, char e11, char e10, char e9, char e8, char e7, char e6, char e5, char e4, char e3, char e2, char e1, char e0)
@@ -1599,6 +1593,7 @@ pub fn mm_srli_si128(a: m128i, imm8: i32) -> m128i {
     x.as_m128i()
 }
 
+// TODO(mayah): Implement this
 // movapd
 // void _mm_store_pd (double* mem_addr, __m128d a)
 // ...
@@ -1672,9 +1667,6 @@ pub fn mm_sub_sd(a: m128d, b: m128d) -> m128d {
     let v = a.as_f64x2().extract(0) - b.as_f64x2().extract(0);
     a.as_f64x2().insert(0, v).as_m128d()
 }
-
-// psubq
-// __m64 _mm_sub_si64 (__m64 a, __m64 b)
 
 // psubsw
 // __m128i _mm_subs_epi16 (__m128i a, __m128i b)
@@ -1843,6 +1835,30 @@ pub fn mm_xor_pd(a: m128d, b: m128d) -> m128d {
 pub fn mm_xor_si128(a: m128i, b: m128i) -> m128i {
     unsafe { simd_xor(a, b) }
 }
+
+// MMX methods
+// paddq
+// __m64 _mm_add_si64 (__m64 a, __m64 b)
+// cvtpd2pi
+// __m64 _mm_cvtpd_pi32 (__m128d a)
+// cvtpi2pd
+// __m128d _mm_cvtpi32_pd (__m64 a)
+// cvttpd2pi
+// __m64 _mm_cvttpd_pi32 (__m128d a)
+// movdq2q
+// __m64 _mm_movepi64_pi64 (__m128i a)
+// movq2dq
+// __m128i _mm_movpi64_epi64 (__m64 a)
+// pmuludq
+// __m64 _mm_mul_su32 (__m64 a, __m64 b)
+// ...
+// __m128i _mm_set_epi64 (__m64 e1, __m64 e0)
+// ...
+// __m128i _mm_set1_epi64 (__m64 a)
+// ...
+// __m128i _mm_setr_epi64 (__m64 e1, __m64 e0)
+// psubq
+// __m64 _mm_sub_si64 (__m64 a, __m64 b)
 
 #[cfg(test)]
 mod tests {
