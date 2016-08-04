@@ -1219,12 +1219,198 @@ pub fn mm_setzero_si128() -> m128i {
 
 // pshufd
 // __m128i _mm_shuffle_epi32 (__m128i a, int imm8)
+#[inline]
+pub fn mm_shuffle_epi32(a: m128i, imm8: i32) -> m128i {
+    macro_rules! shuffle4 {
+        ($a:expr, $b:expr, $c:expr, $d:expr) => {
+            unsafe {
+                let x: i32x4 = simd_shuffle4(a.as_i32x4(), a.as_i32x4(), [$a, $b, $c, $d]);
+                x.as_m128i()
+            }
+        }
+    }
+    macro_rules! shuffle3 {
+        ($a:expr, $b: expr, $c: expr) => {
+            match (imm8 >> 6) & 3 {
+                0 => shuffle4!($a, $b, $c, 0),
+                1 => shuffle4!($a, $b, $c, 1),
+                2 => shuffle4!($a, $b, $c, 2),
+                3 => shuffle4!($a, $b, $c, 3),
+                _ => unreachable!()
+            }
+        }
+    }
+    macro_rules! shuffle2 {
+        ($a:expr, $b:expr) => {
+            match (imm8 >> 4) & 3 {
+                0 => shuffle3!($a, $b, 0),
+                1 => shuffle3!($a, $b, 1),
+                2 => shuffle3!($a, $b, 2),
+                3 => shuffle3!($a, $b, 3),
+                _ => unreachable!()
+            }
+        }
+    }
+    macro_rules! shuffle1 {
+        ($a:expr) => {
+            match (imm8 >> 2) & 0x3 {
+                0 => shuffle2!($a, 0),
+                1 => shuffle2!($a, 1),
+                2 => shuffle2!($a, 2),
+                3 => shuffle2!($a, 3),
+                _ => unreachable!()
+            }
+        }
+    }
+    macro_rules! shuffle0 {
+        () => {
+            match (imm8 >> 0) & 0x3 {
+                0 => shuffle1!(0),
+                1 => shuffle1!(1),
+                2 => shuffle1!(2),
+                3 => shuffle1!(3),
+                _ => unreachable!()
+            }
+        }
+    }
+
+    shuffle0!()
+}
+
 // shufpd
 // __m128d _mm_shuffle_pd (__m128d a, __m128d b, int imm8)
+#[inline]
+pub fn mm_shuffle_pd(a: m128d, b: m128d, imm8: i32) -> m128d {
+    unsafe {
+        match imm8 & 0x3 {
+            0 => simd_shuffle2(a, b, [0, 2]),
+            1 => simd_shuffle2(a, b, [1, 2]),
+            2 => simd_shuffle2(a, b, [0, 3]),
+            3 => simd_shuffle2(a, b, [1, 3]),
+            _ => unreachable!()
+        }
+    }
+}
+
 // pshufhw
 // __m128i _mm_shufflehi_epi16 (__m128i a, int imm8)
+#[inline]
+pub fn mm_shufflehi_epi16(a: m128i, imm8: i32) -> m128i {
+    macro_rules! shuffle4 {
+        ($a:expr, $b:expr, $c:expr, $d:expr) => {
+            unsafe {
+                let x: i16x8 = simd_shuffle8(a.as_i16x8(), a.as_i16x8(), [0, 1, 2, 3, $a, $b, $c, $d]);
+                x.as_m128i()
+            }
+        }
+    }
+    macro_rules! shuffle3 {
+        ($a:expr, $b: expr, $c: expr) => {
+            match (imm8 >> 6) & 3 {
+                0 => shuffle4!($a, $b, $c, 4),
+                1 => shuffle4!($a, $b, $c, 5),
+                2 => shuffle4!($a, $b, $c, 6),
+                3 => shuffle4!($a, $b, $c, 7),
+                _ => unreachable!()
+            }
+        }
+    }
+    macro_rules! shuffle2 {
+        ($a:expr, $b:expr) => {
+            match (imm8 >> 4) & 3 {
+                0 => shuffle3!($a, $b, 4),
+                1 => shuffle3!($a, $b, 5),
+                2 => shuffle3!($a, $b, 6),
+                3 => shuffle3!($a, $b, 7),
+                _ => unreachable!()
+            }
+        }
+    }
+    macro_rules! shuffle1 {
+        ($a:expr) => {
+            match (imm8 >> 2) & 0x3 {
+                0 => shuffle2!($a, 4),
+                1 => shuffle2!($a, 5),
+                2 => shuffle2!($a, 6),
+                3 => shuffle2!($a, 7),
+                _ => unreachable!()
+            }
+        }
+    }
+    macro_rules! shuffle0 {
+        () => {
+            match (imm8 >> 0) & 0x3 {
+                0 => shuffle1!(4),
+                1 => shuffle1!(5),
+                2 => shuffle1!(6),
+                3 => shuffle1!(7),
+                _ => unreachable!()
+            }
+        }
+    }
+
+    shuffle0!()
+}
+
 // pshuflw
 // __m128i _mm_shufflelo_epi16 (__m128i a, int imm8)
+#[inline]
+pub fn mm_shufflelo_epi16(a: m128i, imm8: i32) -> m128i {
+    macro_rules! shuffle4 {
+        ($a:expr, $b:expr, $c:expr, $d:expr) => {
+            unsafe {
+                let x: i16x8 = simd_shuffle8(a.as_i16x8(), a.as_i16x8(), [$a, $b, $c, $d, 4, 5, 6, 7]);
+                x.as_m128i()
+            }
+        }
+    }
+    macro_rules! shuffle3 {
+        ($a:expr, $b: expr, $c: expr) => {
+            match (imm8 >> 6) & 3 {
+                0 => shuffle4!($a, $b, $c, 0),
+                1 => shuffle4!($a, $b, $c, 1),
+                2 => shuffle4!($a, $b, $c, 2),
+                3 => shuffle4!($a, $b, $c, 3),
+                _ => unreachable!()
+            }
+        }
+    }
+    macro_rules! shuffle2 {
+        ($a:expr, $b:expr) => {
+            match (imm8 >> 4) & 3 {
+                0 => shuffle3!($a, $b, 0),
+                1 => shuffle3!($a, $b, 1),
+                2 => shuffle3!($a, $b, 2),
+                3 => shuffle3!($a, $b, 3),
+                _ => unreachable!()
+            }
+        }
+    }
+    macro_rules! shuffle1 {
+        ($a:expr) => {
+            match (imm8 >> 2) & 0x3 {
+                0 => shuffle2!($a, 0),
+                1 => shuffle2!($a, 1),
+                2 => shuffle2!($a, 2),
+                3 => shuffle2!($a, 3),
+                _ => unreachable!()
+            }
+        }
+    }
+    macro_rules! shuffle0 {
+        () => {
+            match (imm8 >> 0) & 0x3 {
+                0 => shuffle1!(0),
+                1 => shuffle1!(1),
+                2 => shuffle1!(2),
+                3 => shuffle1!(3),
+                _ => unreachable!()
+            }
+        }
+    }
+
+    shuffle0!()
+}
 
 // psllw
 // __m128i _mm_sll_epi16 (__m128i a, __m128i count)
@@ -2314,6 +2500,29 @@ mod tests {
             assert_eq!(bx1.extract(i) as usize, if i + 2 >= 17 { 0 } else { i + 2 } );
             assert_eq!(bx2.extract(i) as usize, if i + 3 >= 17 { 0 } else { i + 3 } );
         }
+    }
+
+    #[test]
+    fn test_shuffle() {
+        let x16 = mm_setr_epi16(1, 2, 3, 4, 5, 6, 7, 8);
+        let x32 = mm_setr_epi32(1, 2, 3, 4);
+
+        let s32 = mm_shuffle_epi32(x32, (2 << 0) | (0 << 2) | (3 << 4) | (1 << 6));
+        assert_eq!(s32.as_i32x4().as_array(), [3, 1, 4, 2]);
+
+        let h16 = mm_shufflehi_epi16(x16, (2 << 0) | (0 << 2) | (3 << 4) | (1 << 6));
+        assert_eq!(h16.as_i16x8().as_array(), [1, 2, 3, 4, 7, 5, 8, 6]);
+        let l16 = mm_shufflelo_epi16(x16, (2 << 0) | (0 << 2) | (3 << 4) | (1 << 6));
+        assert_eq!(l16.as_i16x8().as_array(), [3, 1, 4, 2, 5, 6, 7, 8]);
+    }
+
+    #[test]
+    fn test_shuffle_pd() {
+        let p = f64x2(1.0, 2.0).as_m128d();
+        let q = f64x2(3.0, 4.0).as_m128d();
+
+        let pq = mm_shuffle_pd(p, q, (0 << 0) | (1 << 1));
+        assert_eq!(pq.as_f64x2().as_array(), [1.0, 4.0]);
     }
 
     #[test]
