@@ -72,6 +72,9 @@ extern {
     fn sse_rsqrt_ss(a: m128) -> m128;
     #[link_name = "llvm.x86.sse.sqrt.ss"]
     fn sse_sqrt_ss(a: m128) -> m128;
+
+    #[link_name = "llvm.x86.sse.sfence"]
+    fn sse_sfence() -> ();
 }
 
 // addps
@@ -415,6 +418,7 @@ pub fn mm_div_ss(a: m128, b: m128) -> m128 {
     a.as_f32x4().insert(0, (a.as_f32x4().extract(0) / b.as_f32x4().extract(0))).as_m128()
 }
 
+// TODO(mayah): Implement these
 // unsigned int _MM_GET_EXCEPTION_MASK ()
 // unsigned int _MM_GET_EXCEPTION_STATE ()
 // unsigned int _MM_GET_FLUSH_ZERO_MODE ()
@@ -545,6 +549,7 @@ pub fn mm_rsqrt_ss(a: m128) -> m128 {
     unsafe { sse_rsqrt_ss(a) }
 }
 
+// TODO(mayah): Implement these
 // void _MM_SET_EXCEPTION_MASK (unsigned int a)
 // void _MM_SET_EXCEPTION_STATE (unsigned int a)
 // void _MM_SET_FLUSH_ZERO_MODE (unsigned int a)
@@ -563,6 +568,7 @@ pub fn mm_set_ps1(a: f32) -> m128 {
     m128(a, a, a, a)
 }
 
+// TODO(mayah): Implement this
 // void _MM_SET_ROUNDING_MODE (unsigned int a)
 
 // ...
@@ -579,6 +585,7 @@ pub fn mm_set1_ps(a: f32) -> m128 {
     m128(a, a, a, a)
 }
 
+// TODO(mayah): Implement this
 // ldmxcsr
 // void _mm_setcsr (unsigned int a)
 
@@ -598,6 +605,10 @@ pub fn mm_setzero_ps() -> m128 {
 
 // sfence
 // void _mm_sfence (void)
+#[inline]
+pub fn mm_sfense() {
+    unsafe { sse_sfence() }
+}
 
 // shufps
 // __m128 _mm_shuffle_ps (__m128 a, __m128 b, unsigned int imm8)
@@ -676,6 +687,7 @@ pub fn mm_sqrt_ss(a: m128) -> m128 {
     unsafe { sse_sqrt_ss(a) }
 }
 
+// TODO(mayah): Implement these
 // movaps
 // void _mm_store_ps (float* mem_addr, __m128 a)
 // ...
@@ -709,6 +721,7 @@ pub fn mm_sub_ss(a: m128, b: m128) -> m128 {
     a.as_f32x4().insert(0, (a.as_f32x4().extract(0) - b.as_f32x4().extract(0))).as_m128()
 }
 
+// TODO(mayah): Implement this
 // ...
 // _MM_TRANSPOSE4_PS (__m128 row0, __m128 row1, __m128 row2, __m128 row3)
 
