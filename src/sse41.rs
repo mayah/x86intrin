@@ -2,9 +2,9 @@ use super::*;
 
 extern {
     #[link_name = "llvm.x86.sse41.ptestc"]
-    pub fn sse41_ptestc(a: i64x2, b: i64x2) -> i32;
+    fn sse41_ptestc(a: i64x2, b: i64x2) -> i32;
     #[link_name = "llvm.x86.sse41.ptestz"]
-    pub fn sse41_ptestz(a: i64x2, b: i64x2) -> i32;
+    fn sse41_ptestz(a: i64x2, b: i64x2) -> i32;
 }
 
 // pblendw
