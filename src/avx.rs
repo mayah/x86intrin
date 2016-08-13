@@ -256,10 +256,21 @@ pub fn mm256_set_epi8(e31: i8, e30: i8, e29: i8, e28: i8, e27: i8, e26: i8, e25:
 // __m256d _mm256_set_m128d (__m128d hi, __m128d lo)
 // vinsertf128
 // __m256i _mm256_set_m128i (__m128i hi, __m128i lo)
+
 // ...
 // __m256d _mm256_set_pd (double e3, double e2, double e1, double e0)
+#[inline]
+pub fn mm256_set_pd(e3: f64, e2: f64, e1: f64, e0: f64) -> m256d {
+    f64x4(e0, e1, e2, e3).as_m256d()
+}
+
 // ...
 // __m256 _mm256_set_ps (float e7, float e6, float e5, float e4, float e3, float e2, float e1, float e0)
+#[inline]
+pub fn mm256_set_ps(e7: f32, e6: f32, e5: f32, e4: f32, e3: f32, e2: f32, e1: f32, e0: f32) -> m256 {
+    f32x8(e0, e1, e2, e3, e4, e5, e6, e7).as_m256()
+}
+
 // ...
 // __m256i _mm256_set1_epi16 (short a)
 // ...
@@ -314,10 +325,21 @@ pub fn mm256_setr_epi8(e31: i8, e30: i8, e29: i8, e28: i8, e27: i8, e26: i8, e25
 // __m256d _mm256_setr_m128d (__m128d lo, __m128d hi)
 // vinsertf128
 // __m256i _mm256_setr_m128i (__m128i lo, __m128i hi)
+
 // ...
 // __m256d _mm256_setr_pd (double e3, double e2, double e1, double e0)
+#[inline]
+pub fn mm256_setr_pd(e3: f64, e2: f64, e1: f64, e0: f64) -> m256d {
+    f64x4(e3, e2, e1, e0).as_m256d()
+}
+
 // ...
 // __m256 _mm256_setr_ps (float e7, float e6, float e5, float e4, float e3, float e2, float e1, float e0)
+#[inline]
+pub fn mm256_setr_ps(e7: f32, e6: f32, e5: f32, e4: f32, e3: f32, e2: f32, e1: f32, e0: f32) -> m256 {
+    f32x8(e7, e6, e5, e4, e3, e2, e1, e0).as_m256()
+}
+
 // vxorpd
 // __m256d _mm256_setzero_pd (void)
 // vxorps
@@ -436,5 +458,18 @@ mod tests {
                    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
         assert_eq!(mm256_setr_epi32(1, 2, 3, 4, 5, 6, 7, 8).as_i32x8().as_array(), [1, 2, 3, 4, 5, 6, 7, 8]);
         assert_eq!(mm256_setr_epi64x(1, 2, 3, 4).as_i64x4().as_array(), [1, 2, 3, 4]);
+    }
+
+    #[test]
+    fn test_mm256_set_float() {
+        assert_eq!(mm256_set_ps(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0).as_f32x8().as_array(),
+                   [8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0]);
+        assert_eq!(mm256_set_pd(1.0, 2.0, 3.0, 4.0).as_f64x4().as_array(),
+                   [4.0, 3.0, 2.0, 1.0]);
+
+        assert_eq!(mm256_setr_ps(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0).as_f32x8().as_array(),
+                   [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]);
+        assert_eq!(mm256_setr_pd(1.0, 2.0, 3.0, 4.0).as_f64x4().as_array(),
+                   [1.0, 2.0, 3.0, 4.0]);
     }
 }

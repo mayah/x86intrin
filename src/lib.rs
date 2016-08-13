@@ -135,6 +135,15 @@ impl m256i {
 pub struct m256(f32, f32, f32, f32, f32, f32, f32, f32);
 
 impl m256 {
+    #[inline]
+    pub fn as_f32x8(self) -> f32x8 { unsafe { bitcast(self) } }
+
+    #[inline]
+    pub fn as_m256i(self) -> m256i { unsafe { bitcast(self) } }
+    #[inline]
+    pub fn as_m256(self) -> m256 { unsafe { bitcast(self) } }
+    #[inline]
+    pub fn as_m256d(self) -> m256d { unsafe { bitcast(self) } }
 }
 
 #[allow(non_camel_case_types)]
@@ -143,6 +152,15 @@ impl m256 {
 pub struct m256d(f64, f64, f64, f64);
 
 impl m256d {
+    #[inline]
+    pub fn as_f64x4(self) -> f64x4 { unsafe { bitcast(self) } }
+
+    #[inline]
+    pub fn as_m256i(self) -> m256i { unsafe { bitcast(self) } }
+    #[inline]
+    pub fn as_m256(self) -> m256 { unsafe { bitcast(self) } }
+    #[inline]
+    pub fn as_m256d(self) -> m256d { unsafe { bitcast(self) } }
 }
 
 #[allow(non_camel_case_types)]
