@@ -1,4 +1,5 @@
 use super::*;
+use super::{simd_shuffle8};
 
 // vaddpd
 // __m256d _mm256_add_pd (__m256d a, __m256d b)
@@ -252,10 +253,24 @@ pub fn mm256_set_epi8(e31: i8, e30: i8, e29: i8, e28: i8, e27: i8, e26: i8, e25:
 
 // vinsertf128
 // __m256 _mm256_set_m128 (__m128 hi, __m128 lo)
+#[inline]
+pub fn mm256_set_m128(hi: m128, lo: m128) -> m256 {
+    unsafe { simd_shuffle8(lo, hi, [0, 1, 2, 3, 4, 5, 6, 7]) }
+}
+
 // vinsertf128
 // __m256d _mm256_set_m128d (__m128d hi, __m128d lo)
+#[inline]
+pub fn mm256_set_m128d(hi: m128d, lo: m128d) -> m256d {
+    mm256_set_m128(hi.as_m128(), lo.as_m128()).as_m256d()
+}
+
 // vinsertf128
 // __m256i _mm256_set_m128i (__m128i hi, __m128i lo)
+#[inline]
+pub fn mm256_set_m128i(hi: m128i, lo: m128i) -> m256i {
+    mm256_set_m128(hi.as_m128(), lo.as_m128()).as_m256i()
+}
 
 // ...
 // __m256d _mm256_set_pd (double e3, double e2, double e1, double e0)
@@ -353,10 +368,24 @@ pub fn mm256_setr_epi8(e31: i8, e30: i8, e29: i8, e28: i8, e27: i8, e26: i8, e25
 
 // vinsertf128
 // __m256 _mm256_setr_m128 (__m128 lo, __m128 hi)
+#[inline]
+pub fn mm256_setr_m128(lo: m128, hi: m128) -> m256 {
+    mm256_set_m128(hi.as_m128(), lo.as_m128())
+}
+
 // vinsertf128
 // __m256d _mm256_setr_m128d (__m128d lo, __m128d hi)
+#[inline]
+pub fn mm256_setr_m128d(lo: m128d, hi: m128d) -> m256d {
+    mm256_set_m128(hi.as_m128(), lo.as_m128()).as_m256d()
+}
+
 // vinsertf128
 // __m256i _mm256_setr_m128i (__m128i lo, __m128i hi)
+#[inline]
+pub fn mm256_setr_m128i(lo: m128i, hi: m128i) -> m256i {
+    mm256_set_m128(hi.as_m128(), lo.as_m128()).as_m256i()
+}
 
 // ...
 // __m256d _mm256_setr_pd (double e3, double e2, double e1, double e0)
@@ -515,6 +544,11 @@ mod tests {
         assert_eq!(mm256_set1_epi64x(1).as_i64x4().as_array(), [1, 1, 1, 1]);
 
         assert_eq!(mm256_setzero_si256().as_i64x4().as_array(), [0, 0, 0, 0]);
+
+        let lo = mm_set_epi64x(2, 1);
+        let hi = mm_set_epi64x(4, 3);
+        assert_eq!(mm256_set_m128i(hi, lo).as_i64x4().as_array(), [1, 2, 3, 4]);
+        assert_eq!(mm256_setr_m128i(lo, hi).as_i64x4().as_array(), [1, 2, 3, 4]);
     }
 
     #[test]
@@ -534,5 +568,16 @@ mod tests {
 
         assert_eq!(mm256_setzero_pd().as_f64x4().as_array(), [0.0, 0.0, 0.0, 0.0]);
         assert_eq!(mm256_setzero_ps().as_f32x8().as_array(), [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
+
+        let lo32 = mm_setr_ps(1.0, 2.0, 3.0, 4.0);
+        let hi32 = mm_setr_ps(5.0, 6.0, 7.0, 8.0);
+        let lo64 = mm_setr_pd(1.0, 2.0);
+        let hi64 = mm_setr_pd(3.0, 4.0);
+        assert_eq!(mm256_set_m128(hi32, lo32).as_f32x8().as_array(), [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]);
+        assert_eq!(mm256_setr_m128(lo32, hi32).as_f32x8().as_array(), [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]);
+
+        assert_eq!(mm256_set_m128d(hi64, lo64).as_f64x4().as_array(), [1.0, 2.0, 3.0, 4.0]);
+        assert_eq!(mm256_setr_m128d(lo64, hi64).as_f64x4().as_array(), [1.0, 2.0, 3.0, 4.0]);
+
     }
 }
