@@ -1,6 +1,13 @@
 use super::*;
 use super::{simd_shuffle8};
 
+extern {
+    #[link_name = "llvm.x86.avx.vzeroall"]
+    fn avx_vzeroall();
+    #[link_name = "llvm.x86.avx.vzeroupper"]
+    fn avx_vzeroupper();
+}
+
 // vaddpd
 // __m256d _mm256_add_pd (__m256d a, __m256d b)
 // vaddps
@@ -506,10 +513,20 @@ pub fn mm256_setzero_si256() -> m256i {
 // __m256d _mm256_xor_pd (__m256d a, __m256d b)
 // vxorps
 // __m256 _mm256_xor_ps (__m256 a, __m256 b)
+
 // vzeroall
 // void _mm256_zeroall (void)
+#[inline]
+pub fn mm256_zeroall() {
+    unsafe { avx_vzeroall() }
+}
+
 // vzeroupper
 // void _mm256_zeroupper (void)
+#[inline]
+pub fn mm256_zeroupper() {
+    unsafe { avx_vzeroupper() }
+}
 
 #[cfg(test)]
 mod tests {
@@ -578,6 +595,5 @@ mod tests {
 
         assert_eq!(mm256_set_m128d(hi64, lo64).as_f64x4().as_array(), [1.0, 2.0, 3.0, 4.0]);
         assert_eq!(mm256_setr_m128d(lo64, hi64).as_f64x4().as_array(), [1.0, 2.0, 3.0, 4.0]);
-
     }
 }
