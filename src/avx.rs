@@ -374,10 +374,25 @@ pub fn mm256_setr_ps(e7: f32, e6: f32, e5: f32, e4: f32, e3: f32, e2: f32, e1: f
 
 // vxorpd
 // __m256d _mm256_setzero_pd (void)
+#[inline]
+pub fn mm256_setzero_pd() -> m256d {
+    f64x4(0.0, 0.0, 0.0, 0.0).as_m256d()
+}
+
 // vxorps
 // __m256 _mm256_setzero_ps (void)
+#[inline]
+pub fn mm256_setzero_ps() -> m256 {
+    f32x8(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0).as_m256()
+}
+
 // vpxor
 // __m256i _mm256_setzero_si256 (void)
+#[inline]
+pub fn mm256_setzero_si256() -> m256i {
+    i64x4(0, 0, 0, 0).as_m256i()
+}
+
 // vshufpd
 // __m256d _mm256_shuffle_pd (__m256d a, __m256d b, const int imm8)
 // vshufps
@@ -498,6 +513,8 @@ mod tests {
                    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]);
         assert_eq!(mm256_set1_epi32(1).as_i32x8().as_array(), [1, 1, 1, 1, 1, 1, 1, 1]);
         assert_eq!(mm256_set1_epi64x(1).as_i64x4().as_array(), [1, 1, 1, 1]);
+
+        assert_eq!(mm256_setzero_si256().as_i64x4().as_array(), [0, 0, 0, 0]);
     }
 
     #[test]
@@ -514,5 +531,8 @@ mod tests {
 
         assert_eq!(mm256_set1_pd(1.0).as_f64x4().as_array(), [1.0, 1.0, 1.0, 1.0]);
         assert_eq!(mm256_set1_ps(1.0).as_f32x8().as_array(), [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]);
+
+        assert_eq!(mm256_setzero_pd().as_f64x4().as_array(), [0.0, 0.0, 0.0, 0.0]);
+        assert_eq!(mm256_setzero_ps().as_f32x8().as_array(), [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
     }
 }
