@@ -1,3 +1,4 @@
+use super::*;
 
 // vaddpd
 // __m256d _mm256_add_pd (__m256d a, __m256d b)
@@ -215,14 +216,40 @@
 // __m256 _mm256_round_ps (__m256 a, int rounding)
 // vrsqrtps
 // __m256 _mm256_rsqrt_ps (__m256 a)
+
 // ...
 // __m256i _mm256_set_epi16 (short e15, short e14, short e13, short e12, short e11, short e10, short e9, short e8, short e7, short e6, short e5, short e4, short e3, short e2, short e1, short e0)
+#[inline]
+pub fn mm256_set_epi16(e15: i16, e14: i16, e13: i16, e12: i16, e11: i16, e10: i16, e9: i16, e8: i16,
+                       e7: i16, e6: i16, e5: i16, e4: i16, e3: i16, e2: i16, e1: i16, e0: i16) -> m256i {
+    i16x16(e0, e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15).as_m256i()
+}
+
 // ...
 // __m256i _mm256_set_epi32 (int e7, int e6, int e5, int e4, int e3, int e2, int e1, int e0)
+#[inline]
+pub fn mm256_set_epi32(e7: i32, e6: i32, e5: i32, e4: i32, e3: i32, e2: i32, e1: i32, e0: i32) -> m256i {
+    i32x8(e0, e1, e2, e3, e4, e5, e6, e7).as_m256i()
+}
+
 // ...
 // __m256i _mm256_set_epi64x (__int64 e3, __int64 e2, __int64 e1, __int64 e0)
+#[inline]
+pub fn mm256_set_epi64x(e3: i64, e2: i64, e1: i64, e0: i64) -> m256i {
+    i64x4(e0, e1, e2, e3).as_m256i()
+}
+
 // ...
 // __m256i _mm256_set_epi8 (char e31, char e30, char e29, char e28, char e27, char e26, char e25, char e24, char e23, char e22, char e21, char e20, char e19, char e18, char e17, char e16, char e15, char e14, char e13, char e12, char e11, char e10, char e9, char e8, char e7, char e6, char e5, char e4, char e3, char e2, char e1, char e0)
+#[inline]
+pub fn mm256_set_epi8(e31: i8, e30: i8, e29: i8, e28: i8, e27: i8, e26: i8, e25: i8, e24: i8,
+                      e23: i8, e22: i8, e21: i8, e20: i8, e19: i8, e18: i8, e17: i8, e16: i8,
+                      e15: i8, e14: i8, e13: i8, e12: i8, e11: i8, e10: i8, e9: i8, e8: i8,
+                      e7: i8, e6: i8, e5: i8, e4: i8, e3: i8, e2: i8, e1: i8, e0: i8) -> m256i {
+    i8x32(e0, e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15,
+          e16, e17, e18, e19, e20, e21, e22, e23, e24, e25, e26, e27, e28, e29, e30, e31).as_m256i()
+}
+
 // vinsertf128
 // __m256 _mm256_set_m128 (__m128 hi, __m128 lo)
 // vinsertf128
@@ -246,13 +273,41 @@
 // ...
 // __m256 _mm256_set1_ps (float a)
 // ...
+
 // __m256i _mm256_setr_epi16 (short e15, short e14, short e13, short e12, short e11, short e10, short e9, short e8, short e7, short e6, short e5, short e4, short e3, short e2, short e1, short e0)
+#[inline]
+pub fn mm256_setr_epi16(e15: i16, e14: i16, e13: i16, e12: i16, e11: i16, e10: i16, e9: i16, e8: i16,
+                       e7: i16, e6: i16, e5: i16, e4: i16, e3: i16, e2: i16, e1: i16, e0: i16) -> m256i {
+    i16x16(e15, e14, e13, e12, e11, e10, e9, e8, e7, e6, e5, e4, e3, e2, e1, e0).as_m256i()
+}
+
 // ...
 // __m256i _mm256_setr_epi32 (int e7, int e6, int e5, int e4, int e3, int e2, int e1, int e0)
+#[inline]
+pub fn mm256_setr_epi32(e7: i32, e6: i32, e5: i32, e4: i32, e3: i32, e2: i32, e1: i32, e0: i32) -> m256i {
+    i32x8(e7, e6, e5, e4, e3, e2, e1, e0).as_m256i()
+}
+
 // ...
 // __m256i _mm256_setr_epi64x (__int64 e3, __int64 e2, __int64 e1, __int64 e0)
+#[inline]
+pub fn mm256_setr_epi64x(e3: i64, e2: i64, e1: i64, e0: i64) -> m256i {
+    i64x4(e3, e2, e1, e0).as_m256i()
+}
+
 // ...
 // __m256i _mm256_setr_epi8 (char e31, char e30, char e29, char e28, char e27, char e26, char e25, char e24, char e23, char e22, char e21, char e20, char e19, char e18, char e17, char e16, char e15, char e14, char e13, char e12, char e11, char e10, char e9, char e8, char e7, char e6, char e5, char e4, char e3, char e2, char e1, char e0)
+#[inline]
+pub fn mm256_setr_epi8(e31: i8, e30: i8, e29: i8, e28: i8, e27: i8, e26: i8, e25: i8, e24: i8,
+                       e23: i8, e22: i8, e21: i8, e20: i8, e19: i8, e18: i8, e17: i8, e16: i8,
+                       e15: i8, e14: i8, e13: i8, e12: i8, e11: i8, e10: i8, e9: i8, e8: i8,
+                       e7: i8, e6: i8, e5: i8, e4: i8, e3: i8, e2: i8, e1: i8, e0: i8) -> m256i {
+    i8x32(e31, e30, e29, e28, e27, e26, e25, e24,
+          e23, e22, e21, e20, e19, e18, e17, e16,
+          e15, e14, e13, e12, e11, e10, e9, e8,
+          e7, e6, e5, e4, e3, e2, e1, e0).as_m256i()
+}
+
 // vinsertf128
 // __m256 _mm256_setr_m128 (__m128 lo, __m128 hi)
 // vinsertf128
@@ -357,3 +412,29 @@
 // void _mm256_zeroall (void)
 // vzeroupper
 // void _mm256_zeroupper (void)
+
+#[cfg(test)]
+mod tests {
+    use super::super::*;
+
+    #[test]
+    fn test_mm256_set_int() {
+        assert_eq!(mm256_set_epi8(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+                                   17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32).as_i8x32().as_array(),
+                   [32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17,
+                    16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]);
+        assert_eq!(mm256_set_epi16(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16).as_i16x16().as_array(),
+                   [16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]);
+        assert_eq!(mm256_set_epi32(1, 2, 3, 4, 5, 6, 7, 8).as_i32x8().as_array(), [8, 7, 6, 5, 4, 3, 2, 1]);
+        assert_eq!(mm256_set_epi64x(1, 2, 3, 4).as_i64x4().as_array(), [4, 3, 2, 1]);
+
+        assert_eq!(mm256_setr_epi8(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+                                   17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32).as_i8x32().as_array(),
+                   [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+                    17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32]);
+        assert_eq!(mm256_setr_epi16(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16).as_i16x16().as_array(),
+                   [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
+        assert_eq!(mm256_setr_epi32(1, 2, 3, 4, 5, 6, 7, 8).as_i32x8().as_array(), [1, 2, 3, 4, 5, 6, 7, 8]);
+        assert_eq!(mm256_setr_epi64x(1, 2, 3, 4).as_i64x4().as_array(), [1, 2, 3, 4]);
+    }
+}

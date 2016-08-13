@@ -111,6 +111,22 @@ impl m128d {
 pub struct m256i(i32, i32, i32, i32, i32, i32, i32, i32);
 
 impl m256i {
+    #[inline]
+    pub fn as_i64x4(self) -> i64x4 { unsafe { bitcast(self) } }
+    #[inline]
+    pub fn as_u64x4(self) -> u64x4 { unsafe { bitcast(self) } }
+    #[inline]
+    pub fn as_i32x8(self) -> i32x8 { unsafe { bitcast(self) } }
+    #[inline]
+    pub fn as_u32x8(self) -> u32x8 { unsafe { bitcast(self) } }
+    #[inline]
+    pub fn as_i16x16(self) -> i16x16 { unsafe { bitcast(self) } }
+    #[inline]
+    pub fn as_u16x16(self) -> u16x16 { unsafe { bitcast(self) } }
+    #[inline]
+    pub fn as_i8x32(self) -> i8x32 { unsafe { bitcast(self) } }
+    #[inline]
+    pub fn as_u8x32(self) -> u8x32 { unsafe { bitcast(self) } }
 }
 
 #[allow(non_camel_case_types)]
@@ -272,7 +288,6 @@ macro_rules! simd_128_type {
                 };
                 data
             }
-
         }
     }
 }
@@ -298,6 +313,12 @@ macro_rules! simd_256_type {
             }
 
             #[inline]
+            pub fn insert(self, idx: usize, v: $elem) -> $name {
+                debug_assert!(idx < $size);
+                unsafe { simd_insert(self, idx as u32, v) }
+            }
+
+            #[inline]
             pub fn as_m256i(self) -> m256i {
                 unsafe { bitcast(self) }
             }
@@ -310,6 +331,18 @@ macro_rules! simd_256_type {
             #[inline]
             pub fn as_m256d(self) -> m256d {
                 unsafe { bitcast(self) }
+            }
+
+            #[inline]
+            pub fn as_array(self) -> [$elem; $size] {
+                let mut data: [$elem; $size];
+                unsafe {
+                    data = std::mem::uninitialized();
+                    for i in 0 .. $size {
+                        data[i] = self.extract(i)
+                    }
+                };
+                data
             }
         }
     }
