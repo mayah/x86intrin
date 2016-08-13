@@ -1,3 +1,5 @@
+use super::*;
+use super::{simd_and, simd_or, simd_xor};
 
 // vpabsw
 // __m256i _mm256_abs_epi16 (__m256i a)
@@ -23,10 +25,20 @@
 // __m256i _mm256_adds_epu8 (__m256i a, __m256i b)
 // vpalignr
 // __m256i _mm256_alignr_epi8 (__m256i a, __m256i b, const int count)
+
 // vpand
 // __m256i _mm256_and_si256 (__m256i a, __m256i b)
+pub fn mm256_and_si256(a: m256i, b: m256i) -> m256i {
+    unsafe { simd_and(a, b) }
+}
+
 // vpandn
 // __m256i _mm256_andnot_si256 (__m256i a, __m256i b)
+pub fn mm256_andnot_si256(a: m256i, b: m256i) -> m256i {
+    let ones = i64x4(!0, !0, !0, !0).as_m256i();
+    mm256_and_si256(mm256_xor_si256(a, ones), b)
+}
+
 // vpavgw
 // __m256i _mm256_avg_epu16 (__m256i a, __m256i b)
 // vpavgb
@@ -251,8 +263,13 @@
 // __m256i _mm256_mullo_epi16 (__m256i a, __m256i b)
 // vpmulld
 // __m256i _mm256_mullo_epi32 (__m256i a, __m256i b)
+
 // vpor
 // __m256i _mm256_or_si256 (__m256i a, __m256i b)
+pub fn mm256_or_si256(a: m256i, b: m256i) -> m256i {
+    unsafe { simd_or(a, b) }
+}
+
 // vpacksswb
 // __m256i _mm256_packs_epi16 (__m256i a, __m256i b)
 // vpackssdw
@@ -377,5 +394,29 @@
 // __m256i _mm256_unpacklo_epi64 (__m256i a, __m256i b)
 // vpunpcklbw
 // __m256i _mm256_unpacklo_epi8 (__m256i a, __m256i b)
+
 // vpxor
 // __m256i _mm256_xor_si256 (__m256i a, __m256i b)
+pub fn mm256_xor_si256(a: m256i, b: m256i) -> m256i {
+    unsafe { simd_xor(a, b) }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::super::*;
+
+    #[test]
+    fn test_mm256_logic() {
+        let a = mm256_setr_epi32(0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8);
+        let b = mm256_setr_epi32(0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9);
+
+        assert_eq!(mm256_and_si256(a, b).as_i32x8().as_array(),
+                   [1 & 2, 2 & 3, 3 & 4, 4 & 5, 5 & 6, 6 & 7, 7 & 8, 8 & 9]);
+        assert_eq!(mm256_andnot_si256(a, b).as_i32x8().as_array(),
+                   [!1 & 2, !2 & 3, !3 & 4, !4 & 5, !5 & 6, !6 & 7, !7 & 8, !8 & 9]);
+        assert_eq!(mm256_or_si256(a, b).as_i32x8().as_array(),
+                   [1 | 2, 2 | 3, 3 | 4, 4 | 5, 5 | 6, 6 | 7, 7 | 8, 8 | 9]);
+        assert_eq!(mm256_xor_si256(a, b).as_i32x8().as_array(),
+                   [1 ^ 2, 2 ^ 3, 3 ^ 4, 4 ^ 5, 5 ^ 6, 6 ^ 7, 7 ^ 8, 8 ^ 9]);
+    }
+}
