@@ -273,18 +273,50 @@ pub fn mm256_set_ps(e7: f32, e6: f32, e5: f32, e4: f32, e3: f32, e2: f32, e1: f3
 
 // ...
 // __m256i _mm256_set1_epi16 (short a)
+#[inline]
+pub fn mm256_set1_epi16(a: i16) -> m256i {
+    i16x16(a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, a).as_m256i()
+}
+
 // ...
 // __m256i _mm256_set1_epi32 (int a)
+#[inline]
+pub fn mm256_set1_epi32(a: i32) -> m256i {
+    i32x8(a, a, a, a, a, a, a, a).as_m256i()
+}
+
 // ...
 // __m256i _mm256_set1_epi64x (long long a)
+#[inline]
+pub fn mm256_set1_epi64x(a: i64) -> m256i {
+    i64x4(a, a, a, a).as_m256i()
+}
+
 // ...
 // __m256i _mm256_set1_epi8 (char a)
+#[inline]
+pub fn mm256_set1_epi8(a: i8) -> m256i {
+    i8x32(a, a, a, a, a, a, a, a,
+          a, a, a, a, a, a, a, a,
+          a, a, a, a, a, a, a, a,
+          a, a, a, a, a, a, a, a).as_m256i()
+}
+
 // ...
 // __m256d _mm256_set1_pd (double a)
+#[inline]
+pub fn mm256_set1_pd(a: f64) -> m256d {
+    f64x4(a, a, a, a).as_m256d()
+}
+
 // ...
 // __m256 _mm256_set1_ps (float a)
-// ...
+#[inline]
+pub fn mm256_set1_ps(a: f32) -> m256 {
+    f32x8(a, a, a, a, a, a, a, a).as_m256()
+}
 
+// ...
 // __m256i _mm256_setr_epi16 (short e15, short e14, short e13, short e12, short e11, short e10, short e9, short e8, short e7, short e6, short e5, short e4, short e3, short e2, short e1, short e0)
 #[inline]
 pub fn mm256_setr_epi16(e15: i16, e14: i16, e13: i16, e12: i16, e11: i16, e10: i16, e9: i16, e8: i16,
@@ -458,6 +490,14 @@ mod tests {
                    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
         assert_eq!(mm256_setr_epi32(1, 2, 3, 4, 5, 6, 7, 8).as_i32x8().as_array(), [1, 2, 3, 4, 5, 6, 7, 8]);
         assert_eq!(mm256_setr_epi64x(1, 2, 3, 4).as_i64x4().as_array(), [1, 2, 3, 4]);
+
+        assert_eq!(mm256_set1_epi8(1).as_i8x32().as_array(),
+                   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]);
+        assert_eq!(mm256_set1_epi16(1).as_i16x16().as_array(),
+                   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]);
+        assert_eq!(mm256_set1_epi32(1).as_i32x8().as_array(), [1, 1, 1, 1, 1, 1, 1, 1]);
+        assert_eq!(mm256_set1_epi64x(1).as_i64x4().as_array(), [1, 1, 1, 1]);
     }
 
     #[test]
@@ -471,5 +511,8 @@ mod tests {
                    [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]);
         assert_eq!(mm256_setr_pd(1.0, 2.0, 3.0, 4.0).as_f64x4().as_array(),
                    [1.0, 2.0, 3.0, 4.0]);
+
+        assert_eq!(mm256_set1_pd(1.0).as_f64x4().as_array(), [1.0, 1.0, 1.0, 1.0]);
+        assert_eq!(mm256_set1_ps(1.0).as_f32x8().as_array(), [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]);
     }
 }
