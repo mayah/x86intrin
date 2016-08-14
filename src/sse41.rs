@@ -1,5 +1,6 @@
 use super::*;
-use super::{simd_eq,
+use super::{simd_mul,
+            simd_eq,
             simd_shuffle2, simd_shuffle4, simd_shuffle8};
 
 extern {
@@ -20,12 +21,35 @@ extern {
     // #[link_name = "llvm.x86.sse41.round.pd"]
     // fn sse41_round_pd(a: m128d, b: i32) -> m128d;
 
+    // #[link_name = "llvm.x86.sse41.insertps"]
+    // fn sse41_insertps(a: m128, b: m128, c: i8) -> m128;
+
     #[link_name = "llvm.x86.sse41.ptestc"]
     fn sse41_ptestc(a: i64x2, b: i64x2) -> i32;
     #[link_name = "llvm.x86.sse41.ptestnzc"]
     fn sse41_ptestnzc(a: i64x2, b: i64x2) -> i32;
     #[link_name = "llvm.x86.sse41.ptestz"]
     fn sse41_ptestz(a: i64x2, b: i64x2) -> i32;
+}
+
+extern "platform-intrinsic" {
+    // TODO(mayah): This is not implemented in rust yet?
+    // fn x86_mm_dp_pd(x: m128d, y: m128d, z: i32) -> m128d;
+    // fn x86_mm_dp_ps(x: m128, y: m128, z: i32) -> m128;
+
+    fn x86_mm_max_epi32(x: i32x4, y: i32x4) -> i32x4;
+    fn x86_mm_max_epi8(x: i8x16, y: i8x16) -> i8x16;
+    fn x86_mm_max_epu16(x: u16x8, y: u16x8) -> u16x8;
+    fn x86_mm_max_epu32(x: u32x4, y: u32x4) -> u32x4;
+    fn x86_mm_min_epi32(x: i32x4, y: i32x4) -> i32x4;
+    fn x86_mm_min_epi8(x: i8x16, y: i8x16) -> i8x16;
+    fn x86_mm_min_epu16(x: u16x8, y: u16x8) -> u16x8;
+    fn x86_mm_min_epu32(x: u32x4, y: u32x4) -> u32x4;
+
+    fn x86_mm_minpos_epu16(x: u16x8) -> u16x8;
+    // fn x86_mm_mpsadbw_epu8(x: u8x16, y: u8x16, z: i32) -> u16x8;
+    fn x86_mm_mul_epi32(x: i32x4, y: i32x4) -> i64x2;
+    fn x86_mm_packus_epi32(x: i32x4, y: i32x4) -> u16x8;
 }
 
 /* SSE4 Rounding macros. */
@@ -254,10 +278,7 @@ pub fn mm_cvtepi32_epi64(a: m128i) -> m128i {
 #[allow(unused_variables)]
 pub fn mm_cvtepi8_epi16(a: m128i) -> m128i {
     unimplemented!()
-      /* This function always performs a signed extension, but __v16qi is a char
-    285      which may be signed or unsigned, so use __v16qs. */
-   // 286   return (__m128i)__builtin_convertvector(__builtin_shufflevector((__v16qs)__V, (__v16qs)__V, 0, 1, 2, 3, 4, 5, 6, 7), __v8hi);
-     // 287
+   // return (__m128i)__builtin_convertvector(__builtin_shufflevector((__v16qs)__V, (__v16qs)__V, 0, 1, 2, 3, 4, 5, 6, 7), __v8hi);
 }
 
 // pmovsxbd
@@ -266,10 +287,7 @@ pub fn mm_cvtepi8_epi16(a: m128i) -> m128i {
 #[allow(unused_variables)]
 pub fn mm_cvtepi8_epi32(a: m128i) -> m128i {
     unimplemented!()
-      /* This function always performs a signed extension, but __v16qi is a char
-    293      which may be signed or unsigned, so use __v16qs. */
-//    294   return (__m128i)__builtin_convertvector(__builtin_shufflevector((__v16qs)__V, (__v16qs)__V, 0, 1, 2, 3), __v4si);
-//      295
+    // return (__m128i)__builtin_convertvector(__builtin_shufflevector((__v16qs)__V, (__v16qs)__V, 0, 1, 2, 3), __v4si);
 }
 
 // pmovsxbq
@@ -278,10 +296,7 @@ pub fn mm_cvtepi8_epi32(a: m128i) -> m128i {
 #[allow(unused_variables)]
 pub fn mm_cvtepi8_epi64(a: m128i) -> m128i {
     unimplemented!()
-      /* This function always performs a signed extension, but __v16qi is a char
-    301      which may be signed or unsigned, so use __v16qs. */
-//    302   return (__m128i)__builtin_convertvector(__builtin_shufflevector((__v16qs)__V, (__v16qs)__V, 0, 1), __v2di);
-//      303
+    // return (__m128i)__builtin_convertvector(__builtin_shufflevector((__v16qs)__V, (__v16qs)__V, 0, 1), __v2di);
 }
 
 // pmovzxwd
@@ -290,8 +305,7 @@ pub fn mm_cvtepi8_epi64(a: m128i) -> m128i {
 #[allow(unused_variables)]
 pub fn mm_cvtepu16_epi32(a: m128i) -> m128i {
     unimplemented!()
-//    return (__m128i)__builtin_convertvector(__builtin_shufflevector((__v8hu)__V, (__v8hu)__V, 0, 1, 2, 3), __v4si);
-//      346
+    // return (__m128i)__builtin_convertvector(__builtin_shufflevector((__v8hu)__V, (__v8hu)__V, 0, 1, 2, 3), __v4si);
 }
 
 // pmovzxwq
@@ -300,8 +314,7 @@ pub fn mm_cvtepu16_epi32(a: m128i) -> m128i {
 #[allow(unused_variables)]
 pub fn mm_cvtepu16_epi64(a: m128i) -> m128i {
     unimplemented!()
-//    return (__m128i)__builtin_convertvector(__builtin_shufflevector((__v8hu)__V, (__v8hu)__V, 0, 1), __v2di);
-//      352
+    // return (__m128i)__builtin_convertvector(__builtin_shufflevector((__v8hu)__V, (__v8hu)__V, 0, 1), __v2di);
 }
 
 // pmovzxdq
@@ -310,9 +323,7 @@ pub fn mm_cvtepu16_epi64(a: m128i) -> m128i {
 #[allow(unused_variables)]
 pub fn mm_cvtepu32_epi64(a: m128i) -> m128i {
     unimplemented!()
-
-        //return (__m128i)__builtin_convertvector(__builtin_shufflevector((__v4su)__V, (__v4su)__V, 0, 1), __v2di);
-//      358
+    // return (__m128i)__builtin_convertvector(__builtin_shufflevector((__v4su)__V, (__v4su)__V, 0, 1), __v2di);
 }
 
 // pmovzxbw
@@ -321,9 +332,7 @@ pub fn mm_cvtepu32_epi64(a: m128i) -> m128i {
 #[allow(unused_variables)]
 pub fn mm_cvtepu8_epi16(a: m128i) -> m128i {
     unimplemented!()
-
-        //return (__m128i)__builtin_convertvector(__builtin_shufflevector((__v16qu)__V, (__v16qu)__V, 0, 1, 2, 3, 4, 5, 6, 7), __v8hi);
-//      328
+    // return (__m128i)__builtin_convertvector(__builtin_shufflevector((__v16qu)__V, (__v16qu)__V, 0, 1, 2, 3, 4, 5, 6, 7), __v8hi);
 }
 
 // pmovzxbd
@@ -332,9 +341,7 @@ pub fn mm_cvtepu8_epi16(a: m128i) -> m128i {
 #[allow(unused_variables)]
 pub fn mm_cvtepu8_epi32(a: m128i) -> m128i {
     unimplemented!()
-
-        //return (__m128i)__builtin_convertvector(__builtin_shufflevector((__v16qu)__V, (__v16qu)__V, 0, 1, 2, 3), __v4si);
-//    334 }
+    // return (__m128i)__builtin_convertvector(__builtin_shufflevector((__v16qu)__V, (__v16qu)__V, 0, 1, 2, 3), __v4si);
 }
 
 // pmovzxbq
@@ -343,22 +350,54 @@ pub fn mm_cvtepu8_epi32(a: m128i) -> m128i {
 #[allow(unused_variables)]
 pub fn mm_cvtepu8_epi64(a: m128i) -> m128i {
     unimplemented!()
-//    return (__m128i)__builtin_convertvector(__builtin_shufflevector((__v16qu)__V, (__v16qu)__V, 0, 1), __v2di);
-//  340
+    // return (__m128i)__builtin_convertvector(__builtin_shufflevector((__v16qu)__V, (__v16qu)__V, 0, 1), __v2di);
 }
 
 // dppd
 // __m128d _mm_dp_pd (__m128d a, __m128d b, const int imm8)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm_dp_pd(a: m128d, b: m128d, imm8: i32) -> m128d {
+    unimplemented!()
+    // unsafe { x86_mm_dp_pd(a, b, imm8) }
+}
+
 // dpps
 // __m128 _mm_dp_ps (__m128 a, __m128 b, const int imm8)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm_dp_ps(a: m128, b: m128, imm8: i32) -> m128 {
+    unimplemented!()
+    // unsafe { x86_mm_dp_ps(a, b, imm8) }
+}
+
 // pextrd
 // int _mm_extract_epi32 (__m128i a, const int imm8)
+#[inline]
+pub fn mm_extract_epi32(a: m128i, imm8: i32) -> i32 {
+    a.as_i32x4().extract(imm8 as usize)
+}
+
 // pextrq
 // __int64 _mm_extract_epi64 (__m128i a, const int imm8)
+#[inline]
+pub fn mm_extract_epi64(a: m128i, imm8: i32) -> i64 {
+    a.as_i64x2().extract(imm8 as usize)
+}
+
 // pextrb
 // int _mm_extract_epi8 (__m128i a, const int imm8)
+#[inline]
+pub fn mm_extract_epi8(a: m128i, imm8: i32) -> i32 {
+    a.as_i8x16().extract(imm8 as usize) as i32
+}
+
 // extractps
 // int _mm_extract_ps (__m128 a, const int imm8)
+#[inline]
+pub fn mm_extract_ps(a: m128, imm8: i32) -> i32 {
+    a.as_m128i().as_i32x4().extract(imm8 as usize)
+}
 
 // roundpd
 // __m128d _mm_floor_pd (__m128d a)
@@ -390,38 +429,126 @@ pub fn mm_floor_ss(a: m128, b: m128) -> m128 {
 
 // pinsrd
 // __m128i _mm_insert_epi32 (__m128i a, int i, const int imm8)
+#[inline]
+pub fn mm_insert_epi32(a: m128i, i: i32, imm8: i32) -> m128i {
+    a.as_i32x4().insert(imm8 as usize, i).as_m128i()
+}
+
 // pinsrq
 // __m128i _mm_insert_epi64 (__m128i a, __int64 i, const int imm8)
+#[inline]
+pub fn mm_insert_epi64(a: m128i, i: i64, imm8: i32) -> m128i {
+    a.as_i64x2().insert(imm8 as usize, i).as_m128i()
+}
+
 // pinsrb
 // __m128i _mm_insert_epi8 (__m128i a, int i, const int imm8)
+#[inline]
+pub fn mm_insert_epi8(a: m128i, i: i32, imm8: i32) -> m128i {
+    a.as_i8x16().insert(imm8 as usize, i as i8).as_m128i()
+}
+
 // insertps
 // __m128 _mm_insert_ps (__m128 a, __m128 b, const int imm8)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm_insert_ps(a: m128, b: m128, imm8: i32) -> m128 {
+    unimplemented!()
+    // unsafe { sse41_insertps(a, b, imm8 as i8) }
+}
+
 // pmaxsd
 // __m128i _mm_max_epi32 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_max_epi32(a: m128i, b: m128i) -> m128i {
+    unsafe { x86_mm_max_epi32(a.as_i32x4(), b.as_i32x4()).as_m128i() }
+}
+
 // pmaxsb
 // __m128i _mm_max_epi8 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_max_epi8(a: m128i, b: m128i) -> m128i {
+    unsafe { x86_mm_max_epi8(a.as_i8x16(), b.as_i8x16()).as_m128i() }
+}
+
 // pmaxuw
 // __m128i _mm_max_epu16 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_max_epu16(a: m128i, b: m128i) -> m128i {
+    unsafe { x86_mm_max_epu16(a.as_u16x8(), b.as_u16x8()).as_m128i() }
+}
+
 // pmaxud
 // __m128i _mm_max_epu32 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_max_epu32(a: m128i, b: m128i) -> m128i {
+    unsafe { x86_mm_max_epu32(a.as_u32x4(), b.as_u32x4()).as_m128i() }
+}
+
 // pminsd
 // __m128i _mm_min_epi32 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_min_epi32(a: m128i, b: m128i) -> m128i {
+    unsafe { x86_mm_min_epi32(a.as_i32x4(), b.as_i32x4()).as_m128i() }
+}
+
 // pminsb
 // __m128i _mm_min_epi8 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_min_epi8(a: m128i, b: m128i) -> m128i {
+    unsafe { x86_mm_min_epi8(a.as_i8x16(), b.as_i8x16()).as_m128i() }
+}
+
 // pminuw
 // __m128i _mm_min_epu16 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_min_epu16(a: m128i, b: m128i) -> m128i {
+    unsafe { x86_mm_min_epu16(a.as_u16x8(), b.as_u16x8()).as_m128i() }
+}
+
 // pminud
 // __m128i _mm_min_epu32 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_min_epu32(a: m128i, b: m128i) -> m128i {
+    unsafe { x86_mm_min_epu32(a.as_u32x4(), b.as_u32x4()).as_m128i() }
+}
+
 // phminposuw
 // __m128i _mm_minpos_epu16 (__m128i a)
+#[inline]
+pub fn mm_minpos_epu16(a: m128i) -> m128i {
+    unsafe { x86_mm_minpos_epu16(a.as_u16x8()).as_m128i() }
+}
+
 // mpsadbw
 // __m128i _mm_mpsadbw_epu8 (__m128i a, __m128i b, const int imm8)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm_mpsadbw_epu8(a: m128i, b: m128i, imm8: i32) -> m128i {
+    unimplemented!()
+    // unsafe { x86_mm_mpsadbw_epu8(a.as_u8x16(), b.as_u8x16(), imm8).as_m128i() }
+}
+
 // pmuldq
 // __m128i _mm_mul_epi32 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_mul_epi32(a: m128i, b: m128i) -> m128i {
+    unsafe { x86_mm_mul_epi32(a.as_i32x4(), b.as_i32x4()).as_m128i() }
+}
+
 // pmulld
 // __m128i _mm_mullo_epi32 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_mullo_epi32(a: m128i, b: m128i) -> m128i {
+    unsafe { simd_mul(a.as_i32x4(), b.as_i32x4()).as_m128i() }
+}
+
 // packusdw
 // __m128i _mm_packus_epi32 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_packus_epi32(a: m128i, b: m128i) -> m128i {
+    unsafe { x86_mm_packus_epi32(a.as_i32x4(), b.as_i32x4()).as_m128i() }
+}
 
 // roundpd
 // __m128d _mm_round_pd (__m128d a, int rounding)
@@ -666,5 +793,95 @@ mod tests {
         // assert_eq!(mm_cvtepu8_epi16(x8).as_i16x8().as_array(), [1, -2 & 0xFF, 3, -4 & 0xFF, 5, -6 & 0xFF, 7, -8 & 0xFF]);
         // assert_eq!(mm_cvtepu8_epi32(x8).as_i32x4().as_array(), [1, -2 & 0xFF, 3, -4 & 0xFF]);
         // assert_eq!(mm_cvtepu8_epi64(x8).as_i64x2().as_array(), [1, -2 & 0xFF]);
+    }
+
+    #[test]
+    fn test_mm_dp_pd() {
+        // let a = mm_setr_pd(1.5, 10.25);
+        // let b = mm_setr_pd(-1.5, 3.125);
+        // assert_eq!(mm_dp_pd(a, b, 0x31).as_f64x2().as_array(), [-1.5 * 1.5 + 10.25 * 3.125, 0.0]);
+    }
+
+    #[test]
+    fn test_mm_dp_ps() {
+        // let a = mm_setr_ps(1.5, 10.25, -11.0625, 81.0);
+        // let b = mm_setr_ps(-1.5, 3.125, -50.5, 100.0);
+        // assert_eq!(mm_dp_ps(a, b, 0x55).as_f32x4().as_array(), [556.406250, 0.000000, 556.406250, 0.000000]);
+    }
+
+    #[test]
+    fn test_insert_epi() {
+        assert_eq!(mm_insert_epi32(mm_setr_epi32(0, 11, 2222, 333333), -65536, 2).as_i32x4().as_array(),
+                   [0, 11, -65536, 333333]);
+        assert_eq!(mm_insert_epi64(i64x2(500000, 3200000).as_m128i(), 4294901750, 0).as_i64x2().as_array(),
+                   [4294901750, 3200000]);
+        assert_eq!(mm_insert_epi8(mm_setr_epi8(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15), -32, 7).as_i8x16().as_array(),
+                   [0, 1, 2, 3, 4, 5, 6, -32, 8, 9, 10, 11, 12, 13, 14, 15]);
+    }
+
+    #[test]
+    fn test_insert_ps() {
+        // let a = mm_setr_ps(1.0, -1.0, 1.5, 105.5);
+        // let b = mm_setr_ps(-5.0, 10.0, -325.0625, 81.125);
+        // assert_eq!(mm_insert_ps(a, b, 0xD9).as_f32x4().as_array(),
+        //            [0.0, 81.125, 1.5, 0.0]);
+    }
+
+    #[test]
+    fn test_extract() {
+        assert_eq!(mm_extract_epi32(mm_setr_epi32(-1, 2, 3, 4), 0), -1);
+        assert_eq!(mm_extract_epi64(i64x2(-1, 2).as_m128i(), 0), -1);
+        assert_eq!(mm_extract_epi8(mm_setr_epi8(-1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16), 0), -1);
+        assert_eq!(mm_extract_ps(mm_setr_ps(1.25, -5.125, 16.0, 3.5), 1), 0xc0a40000u32 as i32);
+    }
+
+    #[test]
+    fn test_maxmin() {
+        let a8 = mm_setr_epi8(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
+        let b8 = mm_setr_epi8(-1, -2, -3, -4, -5, -6, -7, -8, 9, 10, 11, 12, 13, 14, 15, 16);
+        let a16 = mm_setr_epi16(1, 2, 3, 4, 5, 6, 7, 8);
+        let b16 = mm_setr_epi16(-1, -2, -3, -4, 5, 6, 7, 8);
+        let a32 = mm_setr_epi32(1, 2, 3, 4);
+        let b32 = mm_setr_epi32(-1, -2, 3, 4);
+
+        assert_eq!(mm_max_epu16(a16, b16).as_u16x8().as_array(), [-1i16 as u16, -2i16 as u16, -3i16 as u16, -4i16 as u16, 5, 6, 7, 8]);
+        assert_eq!(mm_min_epu16(a16, b16).as_u16x8().as_array(), [1, 2, 3, 4, 5, 6, 7, 8]);
+        assert_eq!(mm_max_epi32(a32, b32).as_i32x4().as_array(), [1, 2, 3, 4]);
+        assert_eq!(mm_min_epi32(a32, b32).as_i32x4().as_array(), [-1, -2, 3, 4]);
+        assert_eq!(mm_max_epu32(a32, b32).as_u32x4().as_array(), [-1i32 as u32, -2i32 as u32, 3, 4]);
+        assert_eq!(mm_min_epu32(a32, b32).as_u32x4().as_array(), [1, 2, 3, 4]);
+        assert_eq!(mm_max_epi8(a8, b8).as_i8x16().as_array(), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
+        assert_eq!(mm_min_epi8(a8, b8).as_i8x16().as_array(), [-1, -2, -3, -4, -5, -6, -7, -8, 9, 10, 11, 12, 13, 14, 15, 16]);
+    }
+
+    #[test]
+    fn test_minpos() {
+        let a = mm_setr_epi16(127, 10000, -1, 1, 2, 64, 314, 27);
+        assert_eq!(mm_minpos_epu16(a).as_u16x8().as_array(), [1, 3, 0, 0, 0, 0, 0, 0]);
+    }
+
+    #[test]
+    fn test_mpsadbw() {
+        // let a = u8x16(15, 60, 55, 31, 0, 1, 2, 4, 8, 16, 32, 64, 128, 255, 1, 17).as_m128i();
+        // let b = u8x16(2, 4, 8, 64, 255, 0, 1, 16, 32, 64, 128, 255, 75, 31, 42, 11).as_m128i();
+        // assert_eq!(mm_mpsadbw_epu8(a, b, 5).as_u16x8().as_array(), [269, 267, 264, 290, 342, 446, 653, 588]);
+    }
+
+    #[test]
+    fn test_mul() {
+        let a = mm_setr_epi32(65000, 0, 24000000, 0);
+        let b = mm_setr_epi32(-320000, 0, 56400000, 0);
+        assert_eq!(mm_mul_epi32(a, b).as_i64x2().as_array(), [-20800000000, 1353600000000000]);
+
+        let a = mm_setr_epi32(65535, -512, 77910, 0);
+        let b = mm_setr_epi32(2, 4431, -7969, 240000000);
+        assert_eq!(mm_mullo_epi32(a, b).as_i32x4().as_array(), [131070, -2268672, -620864790, 0]);
+    }
+
+    #[test]
+    fn test_packus() {
+        let a = mm_setr_epi32(0, -1, 70000, 128);
+        let b = mm_setr_epi32(-512, 5200, 32768, 65536);
+        assert_eq!(mm_packus_epi32(a, b).as_u16x8().as_array(), [0, 0, 65535, 128, 0, 5200, 32768, 65535]);
     }
 }
