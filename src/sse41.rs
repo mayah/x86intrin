@@ -313,6 +313,7 @@ pub fn mm_floor_ss(a: m128, b: m128) -> m128 {
 
 // roundpd
 // __m128d _mm_round_pd (__m128d a, int rounding)
+// TODO(mayah): Implement this in librustc_platform_intrinsics.
 #[inline]
 #[allow(unused_variables)]
 pub fn mm_round_pd(a: m128d, rounding: i32) -> m128d {
@@ -322,6 +323,7 @@ pub fn mm_round_pd(a: m128d, rounding: i32) -> m128d {
 
 // roundps
 // __m128 _mm_round_ps (__m128 a, int rounding)
+// TODO(mayah): Implement this in librustc_platform_intrinsics.
 #[inline]
 #[allow(unused_variables)]
 pub fn mm_round_ps(a: m128, rounding: i32) -> m128 {
@@ -331,6 +333,7 @@ pub fn mm_round_ps(a: m128, rounding: i32) -> m128 {
 
 // roundsd
 // __m128d _mm_round_sd (__m128d a, __m128d b, int rounding)
+// TODO(mayah): Implement this in librustc_platform_intrinsics.
 #[inline]
 #[allow(unused_variables)]
 pub fn mm_round_sd(a: m128d, b: m128d, rounding: i32) -> m128d {
@@ -340,6 +343,7 @@ pub fn mm_round_sd(a: m128d, b: m128d, rounding: i32) -> m128d {
 
 // roundss
 // __m128 _mm_round_ss (__m128 a, __m128 b, int rounding)
+// TODO(mayah): Implement this in librustc_platform_intrinsics.
 #[inline]
 #[allow(unused_variables)]
 pub fn mm_round_ss(a: m128, b: m128, rounding: i32) -> m128 {
