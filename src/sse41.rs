@@ -9,6 +9,16 @@ extern {
     #[link_name = "llvm.x86.sse41.blendvps"]
     fn sse41_blendvps(a: m128, b: m128, c: m128) -> m128;
 
+    // TODO(mayah): These functions are not published yet?
+    // #[link_name = "llvm.x86.sse41.round.ss"]
+    // fn sse41_round_ss(a: m128, b: m128, c: i32) -> m128;
+    // #[link_name = "llvm.x86.sse41.round.ps"]
+    // fn sse41_round_ps(a: m128, b: i32) -> m128;
+    // #[link_name = "llvm.x86.sse41.round.sd"]
+    // fn sse41_round_sd(a: m128d, b: m128d, c: i32) -> m128d;
+    // #[link_name = "llvm.x86.sse41.round.pd"]
+    // fn sse41_round_pd(a: m128d, b: i32) -> m128d;
+
     #[link_name = "llvm.x86.sse41.ptestc"]
     fn sse41_ptestc(a: i64x2, b: i64x2) -> i32;
     #[link_name = "llvm.x86.sse41.ptestnzc"]
@@ -16,6 +26,36 @@ extern {
     #[link_name = "llvm.x86.sse41.ptestz"]
     fn sse41_ptestz(a: i64x2, b: i64x2) -> i32;
 }
+
+/* SSE4 Rounding macros. */
+//#define _MM_FROUND_TO_NEAREST_INT    0x00
+pub const MM_FROUND_TO_NEAREST_INT: i32 = 0x00;
+//#define _MM_FROUND_TO_NEG_INF        0x01
+pub const MM_FROUND_TO_NEG_INF: i32 = 0x01;
+//#define _MM_FROUND_TO_POS_INF        0x02
+pub const MM_FROUND_TO_POS_INF: i32 = 0x02;
+//#define _MM_FROUND_TO_ZERO           0x03
+pub const MM_FROUND_TO_ZERO: i32 = 0x03;
+//#define _MM_FROUND_CUR_DIRECTION     0x04
+pub const MM_FROUND_CUR_DIRECTION: i32 = 0x04;
+
+//#define _MM_FROUND_RAISE_EXC         0x00
+pub const MM_FROUND_RAISE_EXC: i32 = 0x00;
+//#define _MM_FROUND_NO_EXC            0x08
+pub const MM_FROUND_NO_EXC: i32 = 0x08;
+
+//#define _MM_FROUND_NINT      (_MM_FROUND_RAISE_EXC | _MM_FROUND_TO_NEAREST_INT)
+pub const MM_FROUND_NINT: i32 = MM_FROUND_RAISE_EXC | MM_FROUND_TO_NEAREST_INT;
+//#define _MM_FROUND_FLOOR     (_MM_FROUND_RAISE_EXC | _MM_FROUND_TO_NEG_INF)
+pub const MM_FROUND_FLOOR: i32 = MM_FROUND_RAISE_EXC | MM_FROUND_TO_NEG_INF;
+//#define _MM_FROUND_CEIL      (_MM_FROUND_RAISE_EXC | _MM_FROUND_TO_POS_INF)
+pub const MM_FROUND_CEIL: i32 = MM_FROUND_RAISE_EXC | MM_FROUND_TO_POS_INF;
+//#define _MM_FROUND_TRUNC     (_MM_FROUND_RAISE_EXC | _MM_FROUND_TO_ZERO)
+pub const MM_FROUND_TRUNC: i32 = MM_FROUND_RAISE_EXC | MM_FROUND_TO_ZERO;
+//#define _MM_FROUND_RINT      (_MM_FROUND_RAISE_EXC | _MM_FROUND_CUR_DIRECTION)
+pub const MM_FROUND_RINT: i32 = MM_FROUND_RAISE_EXC | MM_FROUND_CUR_DIRECTION;
+//#define _MM_FROUND_NEARBYINT (_MM_FROUND_NO_EXC | _MM_FROUND_CUR_DIRECTION)
+pub const MM_FROUND_NEARBYINT: i32 = MM_FROUND_NO_EXC | MM_FROUND_CUR_DIRECTION;
 
 // pblendw
 // __m128i _mm_blend_epi16 (__m128i a, __m128i b, const int imm8)
@@ -143,12 +183,32 @@ pub fn mm_blendv_ps(a: m128, b: m128, mask: m128) -> m128 {
 
 // roundpd
 // __m128d _mm_ceil_pd (__m128d a)
+#[inline]
+pub fn mm_ceil_pd(a: m128d) -> m128d {
+    mm_round_pd(a, MM_FROUND_CEIL)
+}
+
 // roundps
 // __m128 _mm_ceil_ps (__m128 a)
+#[inline]
+pub fn mm_ceil_ps(a: m128) -> m128 {
+    mm_round_ps(a, MM_FROUND_CEIL)
+}
+
 // roundsd
 // __m128d _mm_ceil_sd (__m128d a, __m128d b)
+#[inline]
+pub fn mm_ceil_sd(a: m128d, b: m128d) -> m128d {
+    mm_round_sd(a, b, MM_FROUND_CEIL)
+}
+
 // roundss
 // __m128 _mm_ceil_ss (__m128 a, __m128 b)
+#[inline]
+pub fn mm_ceil_ss(a: m128, b: m128) -> m128 {
+    mm_round_ss(a, b, MM_FROUND_CEIL)
+}
+
 // pcmpeqq
 // __m128i _mm_cmpeq_epi64 (__m128i a, __m128i b)
 // pmovsxwd
@@ -187,14 +247,35 @@ pub fn mm_blendv_ps(a: m128, b: m128, mask: m128) -> m128 {
 // int _mm_extract_epi8 (__m128i a, const int imm8)
 // extractps
 // int _mm_extract_ps (__m128 a, const int imm8)
+
 // roundpd
 // __m128d _mm_floor_pd (__m128d a)
+#[inline]
+pub fn mm_floor_pd(a: m128d) -> m128d {
+    mm_round_pd(a, MM_FROUND_FLOOR)
+}
+
 // roundps
 // __m128 _mm_floor_ps (__m128 a)
+#[inline]
+pub fn mm_floor_ps(a: m128) -> m128 {
+    mm_round_ps(a, MM_FROUND_FLOOR)
+}
+
 // roundsd
 // __m128d _mm_floor_sd (__m128d a, __m128d b)
+#[inline]
+pub fn mm_floor_sd(a: m128d, b: m128d) -> m128d {
+    mm_round_sd(a, b, MM_FROUND_FLOOR)
+}
+
 // roundss
 // __m128 _mm_floor_ss (__m128 a, __m128 b)
+#[inline]
+pub fn mm_floor_ss(a: m128, b: m128) -> m128 {
+    mm_round_ss(a, b, MM_FROUND_FLOOR)
+}
+
 // pinsrd
 // __m128i _mm_insert_epi32 (__m128i a, int i, const int imm8)
 // pinsrq
@@ -229,14 +310,43 @@ pub fn mm_blendv_ps(a: m128, b: m128, mask: m128) -> m128 {
 // __m128i _mm_mullo_epi32 (__m128i a, __m128i b)
 // packusdw
 // __m128i _mm_packus_epi32 (__m128i a, __m128i b)
+
 // roundpd
 // __m128d _mm_round_pd (__m128d a, int rounding)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm_round_pd(a: m128d, rounding: i32) -> m128d {
+    // unsafe { sse41_round_pd(a, rounding) }
+    unimplemented!()
+}
+
 // roundps
 // __m128 _mm_round_ps (__m128 a, int rounding)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm_round_ps(a: m128, rounding: i32) -> m128 {
+    // unsafe { sse41_round_ps(a, rounding) }
+    unimplemented!()
+}
+
 // roundsd
 // __m128d _mm_round_sd (__m128d a, __m128d b, int rounding)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm_round_sd(a: m128d, b: m128d, rounding: i32) -> m128d {
+    // unsafe { sse41_round_sd(a, b, rounding) }
+    unimplemented!()
+}
+
 // roundss
 // __m128 _mm_round_ss (__m128 a, __m128 b, int rounding)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm_round_ss(a: m128, b: m128, rounding: i32) -> m128 {
+    // unsafe { sse41_round_ss(a, b, rounding) }
+    unimplemented!()
+}
+
 // movntdqa
 // __m128i _mm_stream_load_si128 (__m128i* mem_addr)
 
@@ -388,5 +498,27 @@ mod tests {
         let mps = i32x4(0, !0, 0, !0).as_m128();
 
         assert_eq!(mm_blendv_ps(aps, bps, mps).as_f32x4().as_array(), [1.0, 6.0, 3.0, 8.0]);
+    }
+
+    #[test]
+    fn test_ceil_floor_round() {
+        // TODO(mayah): Since mm_round_* are not published, these won't work.
+
+        // let ps = mm_setr_ps(1.5, 2.5, 3.5, 4.5);
+        // let pd = mm_setr_pd(1.5, 2.5);
+        // let ps1 = mm_set1_ps(6.0);
+        // let pd1 = mm_set1_pd(6.0);
+
+        // assert_eq!(mm_ceil_pd(pd).as_f64x2().as_array(), [2.0, 3.0]);
+        // assert_eq!(mm_floor_pd(pd).as_f64x2().as_array(), [1.0, 2.0]);
+
+        // assert_eq!(mm_ceil_ps(ps).as_f32x4().as_array(), [2.0, 3.0, 4.0, 5.0]);
+        // assert_eq!(mm_floor_ps(ps).as_f32x4().as_array(), [1.0, 2.0, 3.0, 4.0]);
+
+        // assert_eq!(mm_ceil_sd(pd1, pd).as_f64x2().as_array(), [2.0, 6.0]);
+        // assert_eq!(mm_floor_sd(pd1, pd).as_f64x2().as_array(), [1.0, 6.0]);
+
+        // assert_eq!(mm_ceil_ss(ps1, ps).as_f32x4().as_array(), [2.0, 6.0, 6.0, 6.0]);
+        // assert_eq!(mm_floor_ss(ps1, ps).as_f32x4().as_array(), [1.0, 6.0, 6.0, 6.0]);
     }
 }
