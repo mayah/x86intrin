@@ -1,4 +1,5 @@
 use super::*;
+use super::{simd_shuffle8};
 
 extern {
     #[link_name = "llvm.x86.sse41.ptestc"]
@@ -11,6 +12,65 @@ extern {
 
 // pblendw
 // __m128i _mm_blend_epi16 (__m128i a, __m128i b, const int imm8)
+#[inline]
+pub fn mm_blend_epi16(a: m128i, b: m128i, imm8: i32) -> m128i {
+    macro_rules! shuffle4 {
+        ($e1: expr, $e2: expr, $e3: expr, $e4: expr, $e5: expr, $e6: expr, $e7: expr, $e8: expr) => {
+            unsafe {
+                let x: i16x8 = simd_shuffle8(a.as_i16x8(), b.as_i16x8(),
+                                             [$e1, $e2, $e3, $e4, $e5, $e6, $e7, $e8]);
+                x.as_m128i()
+            }
+        }
+    }
+    macro_rules! shuffle3 {
+        ($e1: expr, $e2: expr, $e3: expr, $e4: expr, $e5: expr, $e6: expr) => {
+            match (imm8 >> 6) & 3 {
+                0 => shuffle4!($e1, $e2, $e3, $e4, $e5, $e6,  6,  7),
+                1 => shuffle4!($e1, $e2, $e3, $e4, $e5, $e6, 14,  7),
+                2 => shuffle4!($e1, $e2, $e3, $e4, $e5, $e6,  6, 15),
+                3 => shuffle4!($e1, $e2, $e3, $e4, $e5, $e6, 14, 15),
+                _ => unreachable!()
+            }
+        }
+    }
+    macro_rules! shuffle2 {
+        ($e1: expr, $e2: expr, $e3: expr, $e4: expr) => {
+            match (imm8 >> 4) & 3 {
+                0 => shuffle3!($e1, $e2, $e3, $e4,  4,  5),
+                1 => shuffle3!($e1, $e2, $e3, $e4, 12,  5),
+                2 => shuffle3!($e1, $e2, $e3, $e4,  4, 13),
+                3 => shuffle3!($e1, $e2, $e3, $e4, 12, 13),
+                _ => unreachable!()
+            }
+        }
+    }
+    macro_rules! shuffle1 {
+        ($e1: expr, $e2: expr) => {
+            match (imm8 >> 2) & 0x3 {
+                0 => shuffle2!($e1, $e2,  2,  3),
+                1 => shuffle2!($e1, $e2, 10, 11),
+                2 => shuffle2!($e1, $e2,  2,  3),
+                3 => shuffle2!($e1, $e2, 10, 11),
+                _ => unreachable!()
+            }
+        }
+    }
+    macro_rules! shuffle0 {
+        () => {
+            match (imm8 >> 0) & 0x3 {
+                0 => shuffle1!(0, 1),
+                1 => shuffle1!(8, 1),
+                2 => shuffle1!(0, 9),
+                3 => shuffle1!(8, 9),
+                _ => unreachable!()
+            }
+        }
+    }
+
+    shuffle0!()
+}
+
 // blendpd
 // __m128d _mm_blend_pd (__m128d a, __m128d b, const int imm8)
 // blendps
@@ -220,5 +280,15 @@ mod tests {
         assert_eq!(mm_test_mix_ones_zeros(zero, zero), 0);
         assert_eq!(mm_test_mix_ones_zeros(one, one), 0);
         assert_eq!(mm_test_mix_ones_zeros(mix, one), 1);
+    }
+
+    #[test]
+    fn test_mm_blend() {
+        let a = mm_setr_epi16(1, 2, 3, 4, 5, 6, 7, 8);
+        let b = mm_setr_epi16(11, 12, 13, 14, 15, 16, 17, 18);
+
+        assert_eq!(mm_blend_epi16(a, b, 0).as_i16x8().as_array(), [1, 2, 3, 4, 5, 6, 7, 8]);
+        assert_eq!(mm_blend_epi16(a, b, 0xFF).as_i16x8().as_array(), [11, 12, 13, 14, 15, 16, 17, 18]);
+        assert_eq!(mm_blend_epi16(a, b, 0x11).as_i16x8().as_array(), [11, 2, 3, 4, 15, 6, 7, 8]);
     }
 }
