@@ -119,12 +119,27 @@ extern {
 // __m128 _mm_round_ss (__m128 a, __m128 b, int rounding)
 // movntdqa
 // __m128i _mm_stream_load_si128 (__m128i* mem_addr)
+
 // ...
 // int _mm_test_all_ones (__m128i a)
+#[inline]
+pub fn mm_test_all_ones(a: m128i) -> i32 {
+    mm_testc_si128(a, mm_cmpeq_epi32(a, a))
+}
+
 // ptest
 // int _mm_test_all_zeros (__m128i a, __m128i mask)
+#[inline]
+pub fn mm_test_all_zeros(a: m128i, mask: m128i) -> i32 {
+    mm_testz_si128(a, mask)
+}
+
 // ptest
 // int _mm_test_mix_ones_zeros (__m128i a, __m128i mask)
+#[inline]
+pub fn mm_test_mix_ones_zeros(a: m128i, mask: m128i) -> i32 {
+    mm_testnzc_si128(a, mask)
+}
 
 // ptest
 // int _mm_testc_si128 (__m128i a, __m128i b)
@@ -186,5 +201,24 @@ mod tests {
         assert_eq!(mm_testz_si128(y, y), 0);
         assert_eq!(mm_testz_si128(z, z), 0);
         assert_eq!(mm_testz_si128(y, z), 1);
+    }
+
+    #[test]
+    fn test_mm_test() {
+        let zero = mm_setzero_si128();
+        let one = mm_setr_epi32(!0, !0, !0, !0);
+        let mix = mm_setr_epi32(0, !0, 0, !0);
+
+        assert_eq!(mm_test_all_zeros(zero, zero), 1);
+        assert_eq!(mm_test_all_zeros(one, one), 0);
+        assert_eq!(mm_test_all_zeros(mix, one), 0);
+
+        assert_eq!(mm_test_all_ones(zero), 0);
+        assert_eq!(mm_test_all_ones(one), 1);
+        assert_eq!(mm_test_all_ones(mix), 0);
+
+        assert_eq!(mm_test_mix_ones_zeros(zero, zero), 0);
+        assert_eq!(mm_test_mix_ones_zeros(one, one), 0);
+        assert_eq!(mm_test_mix_ones_zeros(mix, one), 1);
     }
 }
