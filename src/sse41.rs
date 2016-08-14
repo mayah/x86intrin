@@ -1,5 +1,6 @@
 use super::*;
-use super::{simd_shuffle2, simd_shuffle4, simd_shuffle8};
+use super::{simd_eq,
+            simd_shuffle2, simd_shuffle4, simd_shuffle8};
 
 extern {
     #[link_name = "llvm.x86.sse41.pblendvb"]
@@ -211,6 +212,12 @@ pub fn mm_ceil_ss(a: m128, b: m128) -> m128 {
 
 // pcmpeqq
 // __m128i _mm_cmpeq_epi64 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_cmpeq_epi64(a: m128i, b: m128i) -> m128i {
+    let x: i64x2 = unsafe { simd_eq(a.as_i64x2(), b.as_i64x2()) };
+    x.as_m128i()
+}
+
 // pmovsxwd
 // __m128i _mm_cvtepi16_epi32 (__m128i a)
 // pmovsxwq
@@ -524,5 +531,12 @@ mod tests {
 
         // assert_eq!(mm_ceil_ss(ps1, ps).as_f32x4().as_array(), [2.0, 6.0, 6.0, 6.0]);
         // assert_eq!(mm_floor_ss(ps1, ps).as_f32x4().as_array(), [1.0, 6.0, 6.0, 6.0]);
+    }
+
+    #[test]
+    fn test_cmpeq_epi64() {
+        let x = i64x2(1, 1).as_m128i();
+        let y = i64x2(0, 1).as_m128i();
+        assert_eq!(mm_cmpeq_epi64(x, y).as_i64x2().as_array(), [0, !0]);
     }
 }
