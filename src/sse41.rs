@@ -1,5 +1,5 @@
 use super::*;
-use super::{simd_shuffle8};
+use super::{simd_shuffle2, simd_shuffle4, simd_shuffle8};
 
 extern {
     #[link_name = "llvm.x86.sse41.ptestc"]
@@ -73,8 +73,46 @@ pub fn mm_blend_epi16(a: m128i, b: m128i, imm8: i32) -> m128i {
 
 // blendpd
 // __m128d _mm_blend_pd (__m128d a, __m128d b, const int imm8)
+#[inline]
+pub fn mm_blend_pd(a: m128d, b: m128d, imm8: i32) -> m128d {
+    unsafe {
+        match imm8 & 0x3 {
+            0 => simd_shuffle2(a, b, [0, 1]),
+            1 => simd_shuffle2(a, b, [2, 1]),
+            2 => simd_shuffle2(a, b, [0, 3]),
+            3 => simd_shuffle2(a, b, [2, 3]),
+            _ => unreachable!()
+        }
+    }
+}
+
 // blendps
 // __m128 _mm_blend_ps (__m128 a, __m128 b, const int imm8)
+#[inline]
+pub fn mm_blend_ps(a: m128, b: m128, imm8: i32) -> m128 {
+    unsafe {
+        match imm8 & 0xF {
+            0x0 => simd_shuffle4(a, b, [0, 1, 2, 3]),
+            0x1 => simd_shuffle4(a, b, [4, 1, 2, 3]),
+            0x2 => simd_shuffle4(a, b, [0, 5, 2, 3]),
+            0x3 => simd_shuffle4(a, b, [4, 5, 2, 3]),
+            0x4 => simd_shuffle4(a, b, [0, 1, 6, 3]),
+            0x5 => simd_shuffle4(a, b, [4, 1, 6, 3]),
+            0x6 => simd_shuffle4(a, b, [0, 5, 6, 3]),
+            0x7 => simd_shuffle4(a, b, [4, 5, 6, 3]),
+            0x8 => simd_shuffle4(a, b, [0, 1, 2, 7]),
+            0x9 => simd_shuffle4(a, b, [4, 1, 2, 7]),
+            0xA => simd_shuffle4(a, b, [0, 5, 2, 7]),
+            0xB => simd_shuffle4(a, b, [4, 5, 2, 7]),
+            0xC => simd_shuffle4(a, b, [0, 1, 6, 7]),
+            0xD => simd_shuffle4(a, b, [4, 1, 6, 7]),
+            0xE => simd_shuffle4(a, b, [0, 5, 6, 7]),
+            0xF => simd_shuffle4(a, b, [4, 5, 6, 7]),
+            _ => unreachable!()
+        }
+    }
+}
+
 // pblendvb
 // __m128i _mm_blendv_epi8 (__m128i a, __m128i b, __m128i mask)
 // blendvpd
@@ -290,5 +328,21 @@ mod tests {
         assert_eq!(mm_blend_epi16(a, b, 0).as_i16x8().as_array(), [1, 2, 3, 4, 5, 6, 7, 8]);
         assert_eq!(mm_blend_epi16(a, b, 0xFF).as_i16x8().as_array(), [11, 12, 13, 14, 15, 16, 17, 18]);
         assert_eq!(mm_blend_epi16(a, b, 0x11).as_i16x8().as_array(), [11, 2, 3, 4, 15, 6, 7, 8]);
+
+        let apd = mm_setr_pd(1.0, 2.0);
+        let bpd = mm_setr_pd(3.0, 4.0);
+
+        assert_eq!(mm_blend_pd(apd, bpd, 0).as_f64x2().as_array(), [1.0, 2.0]);
+        assert_eq!(mm_blend_pd(apd, bpd, 1).as_f64x2().as_array(), [3.0, 2.0]);
+        assert_eq!(mm_blend_pd(apd, bpd, 2).as_f64x2().as_array(), [1.0, 4.0]);
+        assert_eq!(mm_blend_pd(apd, bpd, 3).as_f64x2().as_array(), [3.0, 4.0]);
+
+        let aps = mm_setr_ps(1.0, 2.0, 3.0, 4.0);
+        let bps = mm_setr_ps(5.0, 6.0, 7.0, 8.0);
+
+        assert_eq!(mm_blend_ps(aps, bps, 0).as_f32x4().as_array(), [1.0, 2.0, 3.0, 4.0]);
+        assert_eq!(mm_blend_ps(aps, bps, 15).as_f32x4().as_array(), [5.0, 6.0, 7.0, 8.0]);
+        assert_eq!(mm_blend_ps(aps, bps, 3).as_f32x4().as_array(), [5.0, 6.0, 3.0, 4.0]);
+        assert_eq!(mm_blend_ps(aps, bps, 7).as_f32x4().as_array(), [5.0, 6.0, 7.0, 4.0]);
     }
 }
