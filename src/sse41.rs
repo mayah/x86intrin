@@ -218,30 +218,135 @@ pub fn mm_cmpeq_epi64(a: m128i, b: m128i) -> m128i {
     x.as_m128i()
 }
 
+// TODO(mayah): Hard to implement these?
 // pmovsxwd
 // __m128i _mm_cvtepi16_epi32 (__m128i a)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm_cvtepi16_epi32(a: m128i) -> m128i {
+//    let x: i32x4 = unsafe { simd_shuffle4(a.as_i16x8(), a.as_i16x8(), [0, 1, 2, 3]) };
+//    let y: i32x4 = unsafe { simd_cast(x) };
+//    y.as_m128i()
+    unimplemented!()
+}
+
 // pmovsxwq
 // __m128i _mm_cvtepi16_epi64 (__m128i a)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm_cvtepi16_epi64(a: m128i) -> m128i {
+    unimplemented!()
+    // return (__m128i)__builtin_convertvector(__builtin_shufflevector((__v8hi)__V, (__v8hi)__V, 0, 1), __v2di);
+}
+
 // pmovsxdq
 // __m128i _mm_cvtepi32_epi64 (__m128i a)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm_cvtepi32_epi64(a: m128i) -> m128i {
+    unimplemented!()
+    // return (__m128i)__builtin_convertvector(__builtin_shufflevector((__v4si)__V, (__v4si)__V, 0, 1), __v2di);
+}
+
 // pmovsxbw
 // __m128i _mm_cvtepi8_epi16 (__m128i a)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm_cvtepi8_epi16(a: m128i) -> m128i {
+    unimplemented!()
+      /* This function always performs a signed extension, but __v16qi is a char
+    285      which may be signed or unsigned, so use __v16qs. */
+   // 286   return (__m128i)__builtin_convertvector(__builtin_shufflevector((__v16qs)__V, (__v16qs)__V, 0, 1, 2, 3, 4, 5, 6, 7), __v8hi);
+     // 287
+}
+
 // pmovsxbd
 // __m128i _mm_cvtepi8_epi32 (__m128i a)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm_cvtepi8_epi32(a: m128i) -> m128i {
+    unimplemented!()
+      /* This function always performs a signed extension, but __v16qi is a char
+    293      which may be signed or unsigned, so use __v16qs. */
+//    294   return (__m128i)__builtin_convertvector(__builtin_shufflevector((__v16qs)__V, (__v16qs)__V, 0, 1, 2, 3), __v4si);
+//      295
+}
+
 // pmovsxbq
 // __m128i _mm_cvtepi8_epi64 (__m128i a)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm_cvtepi8_epi64(a: m128i) -> m128i {
+    unimplemented!()
+      /* This function always performs a signed extension, but __v16qi is a char
+    301      which may be signed or unsigned, so use __v16qs. */
+//    302   return (__m128i)__builtin_convertvector(__builtin_shufflevector((__v16qs)__V, (__v16qs)__V, 0, 1), __v2di);
+//      303
+}
+
 // pmovzxwd
 // __m128i _mm_cvtepu16_epi32 (__m128i a)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm_cvtepu16_epi32(a: m128i) -> m128i {
+    unimplemented!()
+//    return (__m128i)__builtin_convertvector(__builtin_shufflevector((__v8hu)__V, (__v8hu)__V, 0, 1, 2, 3), __v4si);
+//      346
+}
+
 // pmovzxwq
 // __m128i _mm_cvtepu16_epi64 (__m128i a)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm_cvtepu16_epi64(a: m128i) -> m128i {
+    unimplemented!()
+//    return (__m128i)__builtin_convertvector(__builtin_shufflevector((__v8hu)__V, (__v8hu)__V, 0, 1), __v2di);
+//      352
+}
+
 // pmovzxdq
 // __m128i _mm_cvtepu32_epi64 (__m128i a)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm_cvtepu32_epi64(a: m128i) -> m128i {
+    unimplemented!()
+
+        //return (__m128i)__builtin_convertvector(__builtin_shufflevector((__v4su)__V, (__v4su)__V, 0, 1), __v2di);
+//      358
+}
+
 // pmovzxbw
 // __m128i _mm_cvtepu8_epi16 (__m128i a)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm_cvtepu8_epi16(a: m128i) -> m128i {
+    unimplemented!()
+
+        //return (__m128i)__builtin_convertvector(__builtin_shufflevector((__v16qu)__V, (__v16qu)__V, 0, 1, 2, 3, 4, 5, 6, 7), __v8hi);
+//      328
+}
+
 // pmovzxbd
 // __m128i _mm_cvtepu8_epi32 (__m128i a)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm_cvtepu8_epi32(a: m128i) -> m128i {
+    unimplemented!()
+
+        //return (__m128i)__builtin_convertvector(__builtin_shufflevector((__v16qu)__V, (__v16qu)__V, 0, 1, 2, 3), __v4si);
+//    334 }
+}
+
 // pmovzxbq
 // __m128i _mm_cvtepu8_epi64 (__m128i a)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm_cvtepu8_epi64(a: m128i) -> m128i {
+    unimplemented!()
+//    return (__m128i)__builtin_convertvector(__builtin_shufflevector((__v16qu)__V, (__v16qu)__V, 0, 1), __v2di);
+//  340
+}
+
 // dppd
 // __m128d _mm_dp_pd (__m128d a, __m128d b, const int imm8)
 // dpps
@@ -538,5 +643,28 @@ mod tests {
         let x = i64x2(1, 1).as_m128i();
         let y = i64x2(0, 1).as_m128i();
         assert_eq!(mm_cmpeq_epi64(x, y).as_i64x2().as_array(), [0, !0]);
+    }
+
+    #[test]
+    fn test_convert() {
+        // TODO(mayah): Currently hard to implement these intrinsics.
+
+        // let x8 = mm_setr_epi8(1, -2, 3, -4, 5, -6, 7, -8, 9, -10, 11, -12, 13, -14, 15, -16);
+        // let x16 = mm_setr_epi16(1, -2, 3, -4, 5, -6, 7, -8);
+        // let x32 = mm_setr_epi32(1, -2, 3, -4);
+
+        // assert_eq!(mm_cvtepi16_epi32(x16).as_i32x4().as_array(), [1, -2, 3, -4]);
+        // assert_eq!(mm_cvtepi16_epi64(x16).as_i64x2().as_array(), [1, -2]);
+        // assert_eq!(mm_cvtepi32_epi64(x32).as_i64x2().as_array(), [1, -2]);
+        // assert_eq!(mm_cvtepi8_epi16(x8).as_i16x8().as_array(), [1, -2, 3, -4, 5, -6, 7, -8]);
+        // assert_eq!(mm_cvtepi8_epi32(x8).as_i32x4().as_array(), [1, -2, 3, -4]);
+        // assert_eq!(mm_cvtepi8_epi64(x8).as_i64x2().as_array(), [1, -2]);
+
+        // assert_eq!(mm_cvtepu16_epi32(x16).as_i32x4().as_array(), [1, -2 & 0xFFFF, 3, -4 & 0xFFFF]);
+        // assert_eq!(mm_cvtepu16_epi64(x16).as_i64x2().as_array(), [1, -2 & 0xFFFF]);
+        // assert_eq!(mm_cvtepu32_epi64(x32).as_i64x2().as_array(), [1, -2 & 0xFFFFFFFF]);
+        // assert_eq!(mm_cvtepu8_epi16(x8).as_i16x8().as_array(), [1, -2 & 0xFF, 3, -4 & 0xFF, 5, -6 & 0xFF, 7, -8 & 0xFF]);
+        // assert_eq!(mm_cvtepu8_epi32(x8).as_i32x4().as_array(), [1, -2 & 0xFF, 3, -4 & 0xFF]);
+        // assert_eq!(mm_cvtepu8_epi64(x8).as_i64x2().as_array(), [1, -2 & 0xFF]);
     }
 }
