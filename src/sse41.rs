@@ -2,6 +2,13 @@ use super::*;
 use super::{simd_shuffle2, simd_shuffle4, simd_shuffle8};
 
 extern {
+    #[link_name = "llvm.x86.sse41.pblendvb"]
+    fn sse41_pblendvb(a: i8x16, b: i8x16, c: i8x16) -> i8x16;
+    #[link_name = "llvm.x86.sse41.blendvpd"]
+    fn sse41_blendvpd(a: m128d, b: m128d, c: m128d) -> m128d;
+    #[link_name = "llvm.x86.sse41.blendvps"]
+    fn sse41_blendvps(a: m128, b: m128, c: m128) -> m128;
+
     #[link_name = "llvm.x86.sse41.ptestc"]
     fn sse41_ptestc(a: i64x2, b: i64x2) -> i32;
     #[link_name = "llvm.x86.sse41.ptestnzc"]
@@ -115,10 +122,25 @@ pub fn mm_blend_ps(a: m128, b: m128, imm8: i32) -> m128 {
 
 // pblendvb
 // __m128i _mm_blendv_epi8 (__m128i a, __m128i b, __m128i mask)
+#[inline]
+pub fn mm_blendv_epi8(a: m128i, b: m128i, mask: m128i) -> m128i {
+    unsafe { sse41_pblendvb(a.as_i8x16(), b.as_i8x16(), mask.as_i8x16()).as_m128i() }
+}
+
 // blendvpd
 // __m128d _mm_blendv_pd (__m128d a, __m128d b, __m128d mask)
+#[inline]
+pub fn mm_blendv_pd(a: m128d, b: m128d, mask: m128d) -> m128d {
+    unsafe { sse41_blendvpd(a, b, mask) }
+}
+
 // blendvps
 // __m128 _mm_blendv_ps (__m128 a, __m128 b, __m128 mask)
+#[inline]
+pub fn mm_blendv_ps(a: m128, b: m128, mask: m128) -> m128 {
+    unsafe { sse41_blendvps(a, b, mask) }
+}
+
 // roundpd
 // __m128d _mm_ceil_pd (__m128d a)
 // roundps
@@ -344,5 +366,27 @@ mod tests {
         assert_eq!(mm_blend_ps(aps, bps, 15).as_f32x4().as_array(), [5.0, 6.0, 7.0, 8.0]);
         assert_eq!(mm_blend_ps(aps, bps, 3).as_f32x4().as_array(), [5.0, 6.0, 3.0, 4.0]);
         assert_eq!(mm_blend_ps(aps, bps, 7).as_f32x4().as_array(), [5.0, 6.0, 7.0, 4.0]);
+    }
+
+    #[test]
+    fn test_mm_blendv() {
+        let a8 = mm_setr_epi8(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
+        let b8 = mm_setr_epi8(101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116);
+        let m8 = mm_setr_epi8(0, 0, 0, 0, !0, !0, !0, !0, 0, 0, 0, 0, !0, !0, !0, !0);
+
+        assert_eq!(mm_blendv_epi8(a8, b8, m8).as_i8x16().as_array(),
+                   [1, 2, 3, 4, 105, 106, 107, 108, 9, 10, 11, 12, 113, 114, 115, 116]);
+
+        let apd = mm_setr_pd(1.0, 2.0);
+        let bpd = mm_setr_pd(3.0, 4.0);
+        let mpd = i64x2(0, !0).as_m128d();
+
+        assert_eq!(mm_blendv_pd(apd, bpd, mpd).as_f64x2().as_array(), [1.0, 4.0]);
+
+        let aps = mm_setr_ps(1.0, 2.0, 3.0, 4.0);
+        let bps = mm_setr_ps(5.0, 6.0, 7.0, 8.0);
+        let mps = i32x4(0, !0, 0, !0).as_m128();
+
+        assert_eq!(mm_blendv_ps(aps, bps, mps).as_f32x4().as_array(), [1.0, 6.0, 3.0, 8.0]);
     }
 }
