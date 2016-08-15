@@ -9,6 +9,11 @@ extern {
     fn avx_vzeroupper();
 }
 
+extern "platform-intrinsic" {
+    fn x86_mm256_addsub_pd(x: m256d, y: m256d) -> m256d;
+    fn x86_mm256_addsub_ps(x: m256, y: m256) -> m256;
+}
+
 // vaddpd
 // __m256d _mm256_add_pd (__m256d a, __m256d b)
 #[inline]
@@ -25,8 +30,18 @@ pub fn mm256_add_ps(a: m256, b: m256) -> m256 {
 
 // vaddsubpd
 // __m256d _mm256_addsub_pd (__m256d a, __m256d b)
+#[inline]
+pub fn mm256_addsub_pd(a: m256d, b: m256d) -> m256d {
+    unsafe { x86_mm256_addsub_pd(a, b) }
+}
+
 // vaddsubps
 // __m256 _mm256_addsub_ps (__m256 a, __m256 b)
+#[inline]
+pub fn mm256_addsub_ps(a: m256, b: m256) -> m256 {
+    unsafe { x86_mm256_addsub_ps(a, b) }
+}
+
 // vandpd
 // __m256d _mm256_and_pd (__m256d a, __m256d b)
 // vandps
@@ -653,9 +668,13 @@ mod tests {
         assert_eq!(mm256_mul_ps(aps, bps).as_f32x8().as_array(), [2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0]);
         assert_eq!(mm256_div_ps(aps, bps).as_f32x8().as_array(), [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0]);
 
+        assert_eq!(mm256_addsub_ps(aps, bps).as_f32x8().as_array(), [-1.0, 4.0, 1.0, 6.0, 3.0, 8.0, 5.0, 10.0]);
+
         assert_eq!(mm256_add_pd(apd, bpd).as_f64x4().as_array(), [3.0, 4.0, 5.0, 6.0]);
         assert_eq!(mm256_sub_pd(apd, bpd).as_f64x4().as_array(), [-1.0, 0.0, 1.0, 2.0]);
         assert_eq!(mm256_mul_pd(apd, bpd).as_f64x4().as_array(), [2.0, 4.0, 6.0, 8.0]);
         assert_eq!(mm256_div_pd(apd, bpd).as_f64x4().as_array(), [0.5, 1.0, 1.5, 2.0]);
+
+        assert_eq!(mm256_addsub_pd(apd, bpd).as_f64x4().as_array(), [-1.0, 4.0, 1.0, 6.0]);
     }
 }
