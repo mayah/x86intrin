@@ -377,6 +377,9 @@ simd_256_type! { u16x16, u16, 16 }
 simd_256_type! { i8x32, i8, 32 }
 simd_256_type! { u8x32, u8, 32 }
 
+#[macro_use]
+pub mod util;
+
 #[cfg(any(feature = "doc", target_feature = "sse"))]
 pub mod sse;
 #[cfg(any(feature = "doc", target_feature = "sse"))]
