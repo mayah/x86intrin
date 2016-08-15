@@ -1,7 +1,7 @@
 use super::*;
 use super::{simd_add, simd_sub, simd_mul, simd_div,
             simd_and, simd_or, simd_xor,
-            simd_shuffle8};
+            simd_shuffle2, simd_shuffle8};
 
 extern {
     #[link_name = "llvm.x86.avx.vzeroall"]
@@ -99,10 +99,38 @@ pub fn mm256_andnot_ps(a: m256, b: m256) -> m256 {
 // __m128 _mm_broadcast_ss (float const * mem_addr)
 // vbroadcastss
 // __m256 _mm256_broadcast_ss (float const * mem_addr)
+
 // __m256 _mm256_castpd_ps (__m256d a)
+#[inline]
+pub fn mm256_castpd_ps(a: m256d) -> m256 {
+    a.as_m256()
+}
+
 // __m256i _mm256_castpd_si256 (__m256d a)
+#[inline]
+pub fn mm256_castpd_si256(a: m256d) -> m256i {
+    a.as_m256i()
+}
+
 // __m256d _mm256_castpd128_pd256 (__m128d a)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm256_castpd128_pd256(a: m128d) -> m256d {
+    // return __builtin_shufflevector(__a, __a, 0, 1, -1, -1);
+
+    // TODO(mayah): Why simd_shuffle takes u32? It should be i32?
+    // TODO(mayah): Uguh, simd_shuffe4 takes only 0-3 as index?
+    // unsafe { simd_shuffle4(a, a, [0, 1, -1i32 as u32, -1i32 as u32]) }
+
+    unimplemented!()
+}
+
 // __m128d _mm256_castpd256_pd128 (__m256d a)
+#[inline]
+pub fn mm256_castpd256_pd128(a: m256d) -> m128d {
+    unsafe { simd_shuffle2(a, a, [0, 1]) }
+}
+
 // __m256d _mm256_castps_pd (__m256 a)
 // __m256i _mm256_castps_si256 (__m256 a)
 // __m256 _mm256_castps128_ps256 (__m128 a)
@@ -764,5 +792,21 @@ mod tests {
                    [0x1 ^ 0x3, 0x2 ^ 0x4, 0x3 ^ 0x5, 0x4 ^ 0x6, 0x5 ^ 0x7, 0x6 ^ 0x8, 0x7 ^ 0x9, 0x8 ^ 0xA]);
         assert_eq!(mm256_andnot_ps(x, y).as_m256i().as_i32x8().as_array(),
                    [!0x1 & 0x3, !0x2 & 0x4, !0x3 & 0x5, !0x4 & 0x6, !0x5 & 0x7, !0x6 & 0x8, !0x7 & 0x9, !0x8 & 0xA]);
+    }
+
+    #[test]
+    fn test_mm256_castpd128_pd256() {
+        // TODO(mayah): mm256_castpd128_pd256 is not implemented yet.
+
+        // let xpd = mm_setr_pd(1.0, 2.0);
+        // let x256 = mm256_castpd128_pd256(xpd).as_f64x4().as_array();
+        // assert_eq!(x256[0], 1.0);
+        // assert_eq!(x256[1], 2.0);
+    }
+
+    #[test]
+    fn test_mm256_castpd256_pd128() {
+        let x = mm256_setr_pd(1.0, 2.0, 3.0, 4.0);
+        assert_eq!(mm256_castpd256_pd128(x).as_f64x2().as_array(), [1.0, 2.0]);
     }
 }
