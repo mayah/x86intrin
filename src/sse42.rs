@@ -1,3 +1,6 @@
+use super::*;
+use super::{simd_gt};
+
 extern {
     #[link_name = "llvm.x86.sse42.crc32.32.8"]
     fn sse42_crc32_32_8(a: u32, b: u8) -> u32;
@@ -22,8 +25,15 @@ extern {
 // int _mm_cmpestrs (__m128i a, int la, __m128i b, int lb, const int imm8)
 // pcmpestri
 // int _mm_cmpestrz (__m128i a, int la, __m128i b, int lb, const int imm8)
+
 // pcmpgtq
 // __m128i _mm_cmpgt_epi64 (__m128i a, __m128i b)
+#[inline]
+pub fn mm_cmpgt_epi64(a: m128i, b: m128i) -> m128i {
+    let x: i64x2 = unsafe { simd_gt(a.as_i64x2(), b.as_i64x2()) };
+    x.as_m128i()
+}
+
 // pcmpistri
 // int _mm_cmpistra (__m128i a, __m128i b, const int imm8)
 // pcmpistri
@@ -77,5 +87,13 @@ mod tests {
         assert_eq!(mm_crc32_u16(1, 1000), 3870914500);
         assert_eq!(mm_crc32_u32(1, 50000), 971731851);
         assert_eq!(mm_crc32_u64(0x000011115555AAAA, 0x88889999EEEE3333), 0x0000000016F57621);
+    }
+
+    #[test]
+    fn test_cmpgt() {
+        let a = i64x2(1, 2).as_m128i();
+        let b = i64x2(1, 1).as_m128i();
+
+        assert_eq!(mm_cmpgt_epi64(a, b).as_i64x2().as_array(), [0, !0]);
     }
 }
