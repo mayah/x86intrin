@@ -1,5 +1,6 @@
 use super::*;
-use super::{simd_shuffle8};
+use super::{simd_add, simd_sub, simd_mul, simd_div,
+            simd_shuffle8};
 
 extern {
     #[link_name = "llvm.x86.avx.vzeroall"]
@@ -10,8 +11,18 @@ extern {
 
 // vaddpd
 // __m256d _mm256_add_pd (__m256d a, __m256d b)
+#[inline]
+pub fn mm256_add_pd(a: m256d, b: m256d) -> m256d {
+    unsafe { simd_add(a, b) }
+}
+
 // vaddps
 // __m256 _mm256_add_ps (__m256 a, __m256 b)
+#[inline]
+pub fn mm256_add_ps(a: m256, b: m256) -> m256 {
+    unsafe { simd_add(a, b) }
+}
+
 // vaddsubpd
 // __m256d _mm256_addsub_pd (__m256d a, __m256d b)
 // vaddsubps
@@ -86,10 +97,21 @@ extern {
 // __m128i _mm256_cvttpd_epi32 (__m256d a)
 // vcvttps2dq
 // __m256i _mm256_cvttps_epi32 (__m256 a)
+
 // vdivpd
 // __m256d _mm256_div_pd (__m256d a, __m256d b)
+#[inline]
+pub fn mm256_div_pd(a: m256d, b: m256d) -> m256d {
+    unsafe { simd_div(a, b) }
+}
+
 // vdivps
 // __m256 _mm256_div_ps (__m256 a, __m256 b)
+#[inline]
+pub fn mm256_div_ps(a: m256, b: m256) -> m256 {
+    unsafe { simd_div(a, b) }
+}
+
 // vdpps
 // __m256 _mm256_dp_ps (__m256 a, __m256 b, const int imm8)
 // ...
@@ -186,10 +208,21 @@ extern {
 // int _mm256_movemask_pd (__m256d a)
 // vmovmskps
 // int _mm256_movemask_ps (__m256 a)
+
 // vmulpd
 // __m256d _mm256_mul_pd (__m256d a, __m256d b)
+#[inline]
+pub fn mm256_mul_pd(a: m256d, b: m256d) -> m256d {
+    unsafe { simd_mul(a, b) }
+}
+
 // vmulps
 // __m256 _mm256_mul_ps (__m256 a, __m256 b)
+#[inline]
+pub fn mm256_mul_ps(a: m256, b: m256) -> m256 {
+    unsafe { simd_mul(a, b) }
+}
+
 // vorpd
 // __m256d _mm256_or_pd (__m256d a, __m256d b)
 // vorps
@@ -461,10 +494,21 @@ pub fn mm256_setzero_si256() -> m256i {
 // void _mm256_stream_ps (float * mem_addr, __m256 a)
 // vmovntdq
 // void _mm256_stream_si256 (__m256i * mem_addr, __m256i a)
+
 // vsubpd
 // __m256d _mm256_sub_pd (__m256d a, __m256d b)
+#[inline]
+pub fn mm256_sub_pd(a: m256d, b: m256d) -> m256d {
+    unsafe { simd_sub(a, b) }
+}
+
 // vsubps
 // __m256 _mm256_sub_ps (__m256 a, __m256 b)
+#[inline]
+pub fn mm256_sub_ps(a: m256, b: m256) -> m256 {
+    unsafe { simd_sub(a, b) }
+}
+
 // vtestpd
 // int _mm_testc_pd (__m128d a, __m128d b)
 // vtestpd
@@ -595,5 +639,23 @@ mod tests {
 
         assert_eq!(mm256_set_m128d(hi64, lo64).as_f64x4().as_array(), [1.0, 2.0, 3.0, 4.0]);
         assert_eq!(mm256_setr_m128d(lo64, hi64).as_f64x4().as_array(), [1.0, 2.0, 3.0, 4.0]);
+    }
+
+    #[test]
+    fn test_mm256_arith() {
+        let aps = mm256_setr_ps(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0);
+        let bps = mm256_set1_ps(2.0);
+        let apd = mm256_setr_pd(1.0, 2.0, 3.0, 4.0);
+        let bpd = mm256_set1_pd(2.0);
+
+        assert_eq!(mm256_add_ps(aps, bps).as_f32x8().as_array(), [3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]);
+        assert_eq!(mm256_sub_ps(aps, bps).as_f32x8().as_array(), [-1.0, 0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
+        assert_eq!(mm256_mul_ps(aps, bps).as_f32x8().as_array(), [2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0]);
+        assert_eq!(mm256_div_ps(aps, bps).as_f32x8().as_array(), [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0]);
+
+        assert_eq!(mm256_add_pd(apd, bpd).as_f64x4().as_array(), [3.0, 4.0, 5.0, 6.0]);
+        assert_eq!(mm256_sub_pd(apd, bpd).as_f64x4().as_array(), [-1.0, 0.0, 1.0, 2.0]);
+        assert_eq!(mm256_mul_pd(apd, bpd).as_f64x4().as_array(), [2.0, 4.0, 6.0, 8.0]);
+        assert_eq!(mm256_div_pd(apd, bpd).as_f64x4().as_array(), [0.5, 1.0, 1.5, 2.0]);
     }
 }
