@@ -127,6 +127,13 @@ impl m256i {
     pub fn as_i8x32(self) -> i8x32 { unsafe { bitcast(self) } }
     #[inline]
     pub fn as_u8x32(self) -> u8x32 { unsafe { bitcast(self) } }
+
+    #[inline]
+    pub fn as_m256i(self) -> m256i { unsafe { bitcast(self) } }
+    #[inline]
+    pub fn as_m256(self) -> m256 { unsafe { bitcast(self) } }
+    #[inline]
+    pub fn as_m256d(self) -> m256d { unsafe { bitcast(self) } }
 }
 
 #[allow(non_camel_case_types)]

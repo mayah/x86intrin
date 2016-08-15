@@ -1,5 +1,6 @@
 use super::*;
 use super::{simd_add, simd_sub, simd_mul, simd_div,
+            simd_and, simd_or, simd_xor,
             simd_shuffle8};
 
 extern {
@@ -44,12 +45,42 @@ pub fn mm256_addsub_ps(a: m256, b: m256) -> m256 {
 
 // vandpd
 // __m256d _mm256_and_pd (__m256d a, __m256d b)
+#[inline]
+pub fn mm256_and_pd(a: m256d, b: m256d) -> m256d {
+    let ai = a.as_m256i();
+    let bi = b.as_m256i();
+    unsafe { simd_and(ai, bi).as_m256d() }
+}
+
 // vandps
 // __m256 _mm256_and_ps (__m256 a, __m256 b)
+#[inline]
+pub fn mm256_and_ps(a: m256, b: m256) -> m256 {
+    let ai = a.as_m256i();
+    let bi = b.as_m256i();
+    unsafe { simd_and(ai, bi).as_m256() }
+}
+
 // vandnpd
 // __m256d _mm256_andnot_pd (__m256d a, __m256d b)
+#[inline]
+pub fn mm256_andnot_pd(a: m256d, b: m256d) -> m256d {
+    let ones = i64x4(!0, !0, !0, !0).as_m256i();
+    let ai = a.as_m256i();
+    let bi = b.as_m256i();
+    unsafe { simd_and(simd_xor(ai, ones), bi).as_m256d() }
+}
+
 // vandnps
 // __m256 _mm256_andnot_ps (__m256 a, __m256 b)
+#[inline]
+pub fn mm256_andnot_ps(a: m256, b: m256) -> m256 {
+    let ones = i64x4(!0, !0, !0, !0).as_m256i();
+    let ai = a.as_m256i();
+    let bi = b.as_m256i();
+    unsafe { simd_and(simd_xor(ai, ones), bi).as_m256() }
+}
+
 // vblendpd
 // __m256d _mm256_blend_pd (__m256d a, __m256d b, const int imm8)
 // vblendps
@@ -240,8 +271,22 @@ pub fn mm256_mul_ps(a: m256, b: m256) -> m256 {
 
 // vorpd
 // __m256d _mm256_or_pd (__m256d a, __m256d b)
+#[inline]
+pub fn mm256_or_pd(a: m256d, b: m256d) -> m256d {
+    let ai = a.as_m256i();
+    let bi = b.as_m256i();
+    unsafe { simd_or(ai, bi).as_m256d() }
+}
+
 // vorps
 // __m256 _mm256_or_ps (__m256 a, __m256 b)
+#[inline]
+pub fn mm256_or_ps(a: m256, b: m256) -> m256 {
+    let ai = a.as_m256i();
+    let bi = b.as_m256i();
+    unsafe { simd_or(ai, bi).as_m256() }
+}
+
 // vpermilpd
 // __m128d _mm_permute_pd (__m128d a, int imm8)
 // vpermilpd
@@ -568,10 +613,23 @@ pub fn mm256_sub_ps(a: m256, b: m256) -> m256 {
 // __m256d _mm256_unpacklo_pd (__m256d a, __m256d b)
 // vunpcklps
 // __m256 _mm256_unpacklo_ps (__m256 a, __m256 b)
+
 // vxorpd
 // __m256d _mm256_xor_pd (__m256d a, __m256d b)
+#[inline]
+pub fn mm256_xor_pd(a: m256d, b: m256d) -> m256d {
+    let ai = a.as_m256i();
+    let bi = b.as_m256i();
+    unsafe { simd_xor(ai, bi).as_m256d() }
+}
 // vxorps
 // __m256 _mm256_xor_ps (__m256 a, __m256 b)
+#[inline]
+pub fn mm256_xor_ps(a: m256, b: m256) -> m256 {
+    let ai = a.as_m256i();
+    let bi = b.as_m256i();
+    unsafe { simd_xor(ai, bi).as_m256() }
+}
 
 // vzeroall
 // void _mm256_zeroall (void)
@@ -676,5 +734,35 @@ mod tests {
         assert_eq!(mm256_div_pd(apd, bpd).as_f64x4().as_array(), [0.5, 1.0, 1.5, 2.0]);
 
         assert_eq!(mm256_addsub_pd(apd, bpd).as_f64x4().as_array(), [-1.0, 4.0, 1.0, 6.0]);
+    }
+
+    #[test]
+    fn test_mm256_logic_pd() {
+        let x = i64x4(0x1, 0x2, 0x3, 0x4).as_m256d();
+        let y = i64x4(0x3, 0x4, 0x5, 0x6).as_m256d();
+
+        assert_eq!(mm256_and_pd(x, y).as_m256i().as_i64x4().as_array(),
+                   [0x1 & 0x3, 0x2 & 0x4, 0x3 & 0x5, 0x4 & 0x6]);
+        assert_eq!(mm256_or_pd(x, y).as_m256i().as_i64x4().as_array(),
+                   [0x1 | 0x3, 0x2 | 0x4, 0x3 | 0x5, 0x4 | 0x6]);
+        assert_eq!(mm256_xor_pd(x, y).as_m256i().as_i64x4().as_array(),
+                   [0x1 ^ 0x3, 0x2 ^ 0x4, 0x3 ^ 0x5, 0x4 ^ 0x6]);
+        assert_eq!(mm256_andnot_pd(x, y).as_m256i().as_i64x4().as_array(),
+                   [!0x1 & 0x3, !0x2 & 0x4, !0x3 & 0x5, !0x4 & 0x6]);
+    }
+
+    #[test]
+    fn test_mm256_logic_ps() {
+        let x = i32x8(0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8).as_m256();
+        let y = i32x8(0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xA).as_m256();
+
+        assert_eq!(mm256_and_ps(x, y).as_m256i().as_i32x8().as_array(),
+                   [0x1 & 0x3, 0x2 & 0x4, 0x3 & 0x5, 0x4 & 0x6, 0x5 & 0x7, 0x6 & 0x8, 0x7 & 0x9, 0x8 & 0xA]);
+        assert_eq!(mm256_or_ps(x, y).as_m256i().as_i32x8().as_array(),
+                   [0x1 | 0x3, 0x2 | 0x4, 0x3 | 0x5, 0x4 | 0x6, 0x5 | 0x7, 0x6 | 0x8, 0x7 | 0x9, 0x8 | 0xA]);
+        assert_eq!(mm256_xor_ps(x, y).as_m256i().as_i32x8().as_array(),
+                   [0x1 ^ 0x3, 0x2 ^ 0x4, 0x3 ^ 0x5, 0x4 ^ 0x6, 0x5 ^ 0x7, 0x6 ^ 0x8, 0x7 ^ 0x9, 0x8 ^ 0xA]);
+        assert_eq!(mm256_andnot_ps(x, y).as_m256i().as_i32x8().as_array(),
+                   [!0x1 & 0x3, !0x2 & 0x4, !0x3 & 0x5, !0x4 & 0x6, !0x5 & 0x7, !0x6 & 0x8, !0x7 & 0x9, !0x8 & 0xA]);
     }
 }
