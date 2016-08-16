@@ -4,6 +4,11 @@ use super::{simd_add, simd_sub, simd_mul, simd_div,
             simd_shuffle2, simd_shuffle4, simd_shuffle8};
 
 extern {
+    #[link_name = "llvm.x86.avx.blendv.pd.256"]
+    fn avx_blendv_pd_256(a: m256d, b: m256d, c: m256d) -> m256d;
+    #[link_name = "llvm.x86.avx.blendv.ps.256"]
+    fn avx_blendv_ps_256(a: m256, b: m256, c: m256) -> m256;
+
     #[link_name = "llvm.x86.avx.vzeroall"]
     fn avx_vzeroall();
     #[link_name = "llvm.x86.avx.vzeroupper"]
@@ -97,8 +102,18 @@ pub fn mm256_blend_ps(a: m256, b: m256, imm8: i32) -> m256 {
 
 // vblendvpd
 // __m256d _mm256_blendv_pd (__m256d a, __m256d b, __m256d mask)
+#[inline]
+pub fn mm256_blendv_pd(a: m256d, b: m256d, mask: m256d) -> m256d {
+    unsafe { avx_blendv_pd_256(a, b, mask) }
+}
+
 // vblendvps
 // __m256 _mm256_blendv_ps (__m256 a, __m256 b, __m256 mask)
+#[inline]
+pub fn mm256_blendv_ps(a: m256, b: m256, mask: m256) -> m256 {
+    unsafe { avx_blendv_ps_256(a, b, mask) }
+}
+
 // vbroadcastf128
 // __m256d _mm256_broadcast_pd (__m128d const * mem_addr)
 // vbroadcastf128
@@ -828,6 +843,11 @@ mod tests {
         assert_eq!(mm256_blend_pd(a, b, 0x0).as_f64x4().as_array(), [0.0, 1.0, 2.0, 3.0]);
         assert_eq!(mm256_blend_pd(a, b, 0x3).as_f64x4().as_array(), [4.0, 5.0, 2.0, 3.0]);
         assert_eq!(mm256_blend_pd(a, b, 0xF).as_f64x4().as_array(), [4.0, 5.0, 6.0, 7.0]);
+
+        assert_eq!(mm256_blendv_pd(a, b, i64x4(0, 0, 0, 0).as_m256i().as_m256d()).as_f64x4().as_array(), [0.0, 1.0, 2.0, 3.0]);
+        assert_eq!(mm256_blendv_pd(a, b, i64x4(!0, !0, 0, 0).as_m256i().as_m256d()).as_f64x4().as_array(), [4.0, 5.0, 2.0, 3.0]);
+        assert_eq!(mm256_blendv_pd(a, b, i64x4(!0, !0, !0, !0).as_m256i().as_m256d()).as_f64x4().as_array(), [4.0, 5.0, 6.0, 7.0]);
+
     }
 
     #[test]
@@ -838,5 +858,13 @@ mod tests {
         assert_eq!(mm256_blend_ps(a, b, 0x00).as_f32x8().as_array(), [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0]);
         assert_eq!(mm256_blend_ps(a, b, 0x33).as_f32x8().as_array(), [8.0, 9.0, 2.0, 3.0, 12.0, 13.0, 6.0, 7.0]);
         assert_eq!(mm256_blend_ps(a, b, 0xFF).as_f32x8().as_array(), [8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0]);
+
+        assert_eq!(mm256_blendv_ps(a, b, i32x8(0, 0, 0, 0, 0, 0, 0, 0).as_m256i().as_m256()).as_f32x8().as_array(),
+                   [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0]);
+        assert_eq!(mm256_blendv_ps(a, b, i32x8(!0, !0, 0, 0, !0, !0, 0, 0).as_m256i().as_m256()).as_f32x8().as_array(),
+                   [8.0, 9.0, 2.0, 3.0, 12.0, 13.0, 6.0, 7.0]);
+        assert_eq!(mm256_blendv_ps(a, b, i32x8(!0, !0, !0, !0, !0, !0, !0, !0).as_m256i().as_m256()).as_f32x8().as_array(),
+                   [8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0]);
+
     }
 }
