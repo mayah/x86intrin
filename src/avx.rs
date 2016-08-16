@@ -90,6 +90,11 @@ pub fn mm256_blend_pd(a: m256d, b: m256d, imm8: i32) -> m256d {
 
 // vblendps
 // __m256 _mm256_blend_ps (__m256 a, __m256 b, const int imm8)
+#[inline]
+pub fn mm256_blend_ps(a: m256, b: m256, imm8: i32) -> m256 {
+    blend_shuffle8!(a, b, imm8)
+}
+
 // vblendvpd
 // __m256d _mm256_blendv_pd (__m256d a, __m256d b, __m256d mask)
 // vblendvps
@@ -823,5 +828,15 @@ mod tests {
         assert_eq!(mm256_blend_pd(a, b, 0x0).as_f64x4().as_array(), [0.0, 1.0, 2.0, 3.0]);
         assert_eq!(mm256_blend_pd(a, b, 0x3).as_f64x4().as_array(), [4.0, 5.0, 2.0, 3.0]);
         assert_eq!(mm256_blend_pd(a, b, 0xF).as_f64x4().as_array(), [4.0, 5.0, 6.0, 7.0]);
+    }
+
+    #[test]
+    fn test_mm256_blend_ps() {
+        let a = mm256_setr_ps(0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0);
+        let b = mm256_setr_ps(8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0);
+
+        assert_eq!(mm256_blend_ps(a, b, 0x00).as_f32x8().as_array(), [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0]);
+        assert_eq!(mm256_blend_ps(a, b, 0x33).as_f32x8().as_array(), [8.0, 9.0, 2.0, 3.0, 12.0, 13.0, 6.0, 7.0]);
+        assert_eq!(mm256_blend_ps(a, b, 0xFF).as_f32x8().as_array(), [8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0]);
     }
 }
