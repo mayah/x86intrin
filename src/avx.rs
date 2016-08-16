@@ -114,6 +114,7 @@ pub fn mm256_blendv_ps(a: m256, b: m256, mask: m256) -> m256 {
     unsafe { avx_blendv_ps_256(a, b, mask) }
 }
 
+// TODO(mayah): Implement these.
 // vbroadcastf128
 // __m256d _mm256_broadcast_pd (__m128d const * mem_addr)
 // vbroadcastf128
@@ -144,7 +145,7 @@ pub fn mm256_castpd128_pd256(a: m128d) -> m256d {
     // return __builtin_shufflevector(__a, __a, 0, 1, -1, -1);
 
     // TODO(mayah): Why simd_shuffle takes u32? It should be i32?
-    // TODO(mayah): Uguh, simd_shuffe4 takes only 0-3 as index?
+    // TODO(mayah): Uguu, simd_shuffe4 takes only 0-3 as index?
     // unsafe { simd_shuffle4(a, a, [0, 1, -1i32 as u32, -1i32 as u32]) }
 
     unimplemented!()
@@ -257,14 +258,35 @@ pub fn mm256_div_ps(a: m256, b: m256) -> m256 {
 
 // vdpps
 // __m256 _mm256_dp_ps (__m256 a, __m256 b, const int imm8)
+
 // ...
 // __int16 _mm256_extract_epi16 (__m256i a, const int index)
+#[inline]
+pub fn mm256_extract_epi16(a: m256i, index: i32) -> i16 {
+    a.as_i16x16().extract((index as usize) & 0xF)
+}
+
 // ...
 // __int32 _mm256_extract_epi32 (__m256i a, const int index)
+#[inline]
+pub fn mm256_extract_epi32(a: m256i, index: i32) -> i32 {
+    a.as_i32x8().extract((index as usize) & 0x7)
+}
+
 // ...
 // __int64 _mm256_extract_epi64 (__m256i a, const int index)
+#[inline]
+pub fn mm256_extract_epi64(a: m256i, index: i32) -> i64 {
+    a.as_i64x4().extract((index as usize) & 0x3)
+}
+
 // ...
 // __int8 _mm256_extract_epi8 (__m256i a, const int index)
+#[inline]
+pub fn mm256_extract_epi8(a: m256i, index: i32) -> i8 {
+    a.as_i8x32().extract((index as usize) & 31)
+}
+
 // vextractf128
 // __m128d _mm256_extractf128_pd (__m256d a, const int imm8)
 // vextractf128
@@ -909,6 +931,17 @@ mod tests {
                    [8.0, 9.0, 2.0, 3.0, 12.0, 13.0, 6.0, 7.0]);
         assert_eq!(mm256_blendv_ps(a, b, i32x8(!0, !0, !0, !0, !0, !0, !0, !0).as_m256i().as_m256()).as_f32x8().as_array(),
                    [8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0]);
+    }
 
+    #[test]
+    fn test_extract() {
+        let a = mm256_setr_epi8(0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+                                0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
+                                0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
+                                0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F);
+        assert_eq!(mm256_extract_epi8(a, 3), 0x03);
+        assert_eq!(mm256_extract_epi16(a, 3), 0x0706);
+        assert_eq!(mm256_extract_epi32(a, 3), 0x0F0E0D0C);
+        assert_eq!(mm256_extract_epi64(a, 3), 0x1F1E1D1C1B1A1918);
     }
 }
