@@ -9,6 +9,11 @@ extern {
     #[link_name = "llvm.x86.avx.blendv.ps.256"]
     fn avx_blendv_ps_256(a: m256, b: m256, c: m256) -> m256;
 
+    // #[link_name = "llvm.x86.sse2.cmp.ps"]
+    // fn sse2_cmp_ps(a: m128, b: m128, c: i8) -> m128;
+    // #[link_name = "llvm.x86.sse2.cmp.pd"]
+    // fn sse2_cmp_pd(a: m128d, b: m128d, c: i8) -> m128d;
+
     #[link_name = "llvm.x86.avx.vzeroall"]
     fn avx_vzeroall();
     #[link_name = "llvm.x86.avx.vzeroupper"]
@@ -18,7 +23,43 @@ extern {
 extern "platform-intrinsic" {
     fn x86_mm256_addsub_pd(x: m256d, y: m256d) -> m256d;
     fn x86_mm256_addsub_ps(x: m256, y: m256) -> m256;
+
+    // fn x86_mm256_cmp_pd(a: m256d, b: m256d, c: i8) -> m256d;
+    // fn x86_mm256_cmp_ps(a: m256, b: m256, c: i8) -> m256;
 }
+
+pub const CMP_EQ_OQ: i32 = 0x00;
+pub const CMP_LT_OS: i32 = 0x01;
+pub const CMP_LE_OS: i32 = 0x02;
+pub const CMP_UNORD_Q: i32 = 0x03;
+pub const CMP_NEQ_UQ: i32 = 0x04;
+pub const CMP_NLT_US: i32 = 0x05;
+pub const CMP_NLE_US: i32 = 0x06;
+pub const CMP_ORD_Q: i32 = 0x07;
+pub const CMP_EQ_UQ: i32 = 0x08;
+pub const CMP_NGE_US: i32 = 0x09;
+pub const CMP_NGT_US: i32 = 0x0a;
+pub const CMP_FALSE_OQ: i32 = 0x0b;
+pub const CMP_NEQ_OQ: i32 = 0x0c;
+pub const CMP_GE_OS: i32 = 0x0d;
+pub const CMP_GT_OS: i32 = 0x0e;
+pub const CMP_TRUE_UQ: i32 = 0x0f;
+pub const CMP_EQ_OS: i32 = 0x10;
+pub const CMP_LT_OQ: i32 = 0x11;
+pub const CMP_LE_OQ: i32 = 0x12;
+pub const CMP_UNORD_S: i32 = 0x13;
+pub const CMP_NEQ_US: i32 = 0x14;
+pub const CMP_NLT_UQ: i32 = 0x15;
+pub const CMP_NLE_UQ: i32 = 0x16;
+pub const CMP_ORD_S: i32 = 0x17;
+pub const CMP_EQ_US: i32 = 0x18;
+pub const CMP_NGE_UQ: i32 = 0x19;
+pub const CMP_NGT_UQ: i32 = 0x1a;
+pub const CMP_FALSE_OS: i32 = 0x1b;
+pub const CMP_NEQ_OS: i32 = 0x1c;
+pub const CMP_GE_OQ: i32 = 0x1d;
+pub const CMP_GT_OQ: i32 = 0x1e;
+pub const CMP_TRUE_US: i32 = 0x1f;
 
 // vaddpd
 // __m256d _mm256_add_pd (__m256d a, __m256d b)
@@ -225,12 +266,41 @@ pub fn mm256_ceil_ps(a: m256) -> m256 {
 
 // vcmppd
 // __m128d _mm_cmp_pd (__m128d a, __m128d b, const int imm8)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm_cmp_pd(a: m128d, b: m128d, imm8: i32) -> m128d {
+    unimplemented!()
+    // unsafe { sse2_cmp_pd(a, b, imm8 as i8) }
+}
+
 // vcmppd
 // __m256d _mm256_cmp_pd (__m256d a, __m256d b, const int imm8)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm256_cmp_pd(a: m256d, b: m256d, imm8: i32) -> m256d {
+    unimplemented!()
+    // fn_imm8_arg2!(x86_mm256_cmp_pd, a, b, imm8)
+    // unsafe { x86_mm256_cmp_pd(a, b, imm8 as i8) }
+}
+
 // vcmpps
 // __m128 _mm_cmp_ps (__m128 a, __m128 b, const int imm8)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm_cmp_ps(a: m128, b: m128, imm8: i32) -> m128 {
+    unimplemented!()
+    // unsafe { sse2_cmp_ps(a, b, imm8 as i8) }
+}
+
 // vcmpps
 // __m256 _mm256_cmp_ps (__m256 a, __m256 b, const int imm8)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm256_cmp_ps(a: m256, b: m256, imm8: i32) -> m256 {
+    unimplemented!()
+    // unsafe { x86_mm256_cmp_ps(a, b, imm8 as i8) }
+}
+
 // vcmpsd
 // __m128d _mm_cmp_sd (__m128d a, __m128d b, const int imm8)
 // vcmpss
@@ -979,5 +1049,39 @@ mod tests {
         assert_eq!(mm256_extract_epi16(a, 3), 0x0706);
         assert_eq!(mm256_extract_epi32(a, 3), 0x0F0E0D0C);
         assert_eq!(mm256_extract_epi64(a, 3), 0x1F1E1D1C1B1A1918);
+    }
+
+    #[test]
+    fn test_cmp_pd() {
+        // let apd = mm_setr_pd(1.0, 2.0);
+        // let bpd = mm_setr_pd(2.0, 2.0);
+        // let apd256 = mm256_setr_pd(1.0, 2.0, 3.0, 4.0);
+        // let bpd256 = mm256_setr_pd(3.0, 3.0, 3.0, 3.0);
+        //
+        // assert_eq!(mm_cmp_pd(apd, bpd, CMP_NLE_US).as_m128i().as_i64x2().as_array(),
+        //            [!0, !0]);
+        // assert_eq!(mm_cmp_pd(apd, bpd, CMP_NLT_US).as_m128i().as_i64x2().as_array(),
+        //            [!0, 0]);
+        // assert_eq!(mm256_cmp_pd(apd256, bpd256, CMP_NLE_US).as_m256i().as_i64x4().as_array(),
+        //            [!0, !0, !0, 0]);
+        // assert_eq!(mm256_cmp_pd(apd256, bpd256, CMP_NLT_US).as_m256i().as_i64x4().as_array(),
+        //            [!0, !0, 0, 0]);
+    }
+
+    #[test]
+    fn test_cmp_ps() {
+        // let aps = mm_setr_ps(1.0, 2.0, 3.0, 4.0);
+        // let bps = mm_setr_ps(3.0, 3.0, 3.0, 3.0);
+        // let aps256 = mm256_setr_ps(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0);
+        // let bps256 = mm256_setr_ps(3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0);
+        //
+        // assert_eq!(mm_cmp_ps(aps, bps, CMP_NLE_US).as_m128i().as_i32x4().as_array(),
+        //            [!0, !0, !0, 0]);
+        // assert_eq!(mm_cmp_ps(aps, bps, CMP_NLT_US).as_m128i().as_i32x4().as_array(),
+        //            [!0, !0, 0, 0]);
+        // assert_eq!(mm256_cmp_ps(aps256, bps256, CMP_NLE_US).as_m256i().as_i32x8().as_array(),
+        //            [!0, !0, !0, 0, 0, 0, 0, 0]);
+        // assert_eq!(mm256_cmp_ps(aps256, bps256, CMP_NLT_US).as_m256i().as_i32x8().as_array(),
+        //            [!0, !0, 0, 0, 0, 0, 0, 0]);
     }
 }
