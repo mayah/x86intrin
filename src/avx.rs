@@ -211,8 +211,18 @@ pub fn mm256_castsi256_si128(a: m256i) -> m128i {
 
 // vroundpd
 // __m256d _mm256_ceil_pd (__m256d a)
+#[inline]
+pub fn mm256_ceil_pd(a: m256d) -> m256d {
+    mm256_round_pd(a, MM_FROUND_CEIL)
+}
+
 // vroundps
 // __m256 _mm256_ceil_ps (__m256 a)
+#[inline]
+pub fn mm256_ceil_ps(a: m256) -> m256 {
+    mm256_round_ps(a, MM_FROUND_CEIL)
+}
+
 // vcmppd
 // __m128d _mm_cmp_pd (__m128d a, __m128d b, const int imm8)
 // vcmppd
@@ -293,10 +303,21 @@ pub fn mm256_extract_epi8(a: m256i, index: i32) -> i8 {
 // __m128 _mm256_extractf128_ps (__m256 a, const int imm8)
 // vextractf128
 // __m128i _mm256_extractf128_si256 (__m256i a, const int imm8)
+
 // vroundpd
 // __m256d _mm256_floor_pd (__m256d a)
+#[inline]
+pub fn mm256_floor_pd(a: m256d) -> m256d {
+    mm256_round_pd(a, MM_FROUND_FLOOR)
+}
+
 // vroundps
 // __m256 _mm256_floor_ps (__m256 a)
+#[inline]
+pub fn mm256_floor_ps(a: m256) -> m256 {
+    mm256_round_ps(a, MM_FROUND_FLOOR)
+}
+
 // vhaddpd
 // __m256d _mm256_hadd_pd (__m256d a, __m256d b)
 // vhaddps
@@ -430,10 +451,25 @@ pub fn mm256_or_ps(a: m256, b: m256) -> m256 {
 // __m256 _mm256_permutevar_ps (__m256 a, __m256i b)
 // vrcpps
 // __m256 _mm256_rcp_ps (__m256 a)
+
 // vroundpd
 // __m256d _mm256_round_pd (__m256d a, int rounding)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm256_round_pd(a: m256d, rounding: i32) -> m256d {
+    // TODO(mayah): Needs llvm.x86.avx.round.pd.256
+    unimplemented!()
+}
+
 // vroundps
 // __m256 _mm256_round_ps (__m256 a, int rounding)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm256_round_ps(a: m256, rounding: i32) -> m256 {
+    // TODO(mayah): Needs llvm.x86.avx.round.ps.256
+    unimplemented!()
+}
+
 // vrsqrtps
 // __m256 _mm256_rsqrt_ps (__m256 a)
 
