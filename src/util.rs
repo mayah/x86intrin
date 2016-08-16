@@ -1,3 +1,29 @@
+macro_rules! blend_shuffle4 {
+    ($a: expr, $b: expr, $imm8: expr) => {
+        unsafe {
+            match $imm8 & 0xF {
+                0x0 => simd_shuffle4($a, $b, [0, 1, 2, 3]),
+                0x1 => simd_shuffle4($a, $b, [4, 1, 2, 3]),
+                0x2 => simd_shuffle4($a, $b, [0, 5, 2, 3]),
+                0x3 => simd_shuffle4($a, $b, [4, 5, 2, 3]),
+                0x4 => simd_shuffle4($a, $b, [0, 1, 6, 3]),
+                0x5 => simd_shuffle4($a, $b, [4, 1, 6, 3]),
+                0x6 => simd_shuffle4($a, $b, [0, 5, 6, 3]),
+                0x7 => simd_shuffle4($a, $b, [4, 5, 6, 3]),
+                0x8 => simd_shuffle4($a, $b, [0, 1, 2, 7]),
+                0x9 => simd_shuffle4($a, $b, [4, 1, 2, 7]),
+                0xA => simd_shuffle4($a, $b, [0, 5, 2, 7]),
+                0xB => simd_shuffle4($a, $b, [4, 5, 2, 7]),
+                0xC => simd_shuffle4($a, $b, [0, 1, 6, 7]),
+                0xD => simd_shuffle4($a, $b, [4, 1, 6, 7]),
+                0xE => simd_shuffle4($a, $b, [0, 5, 6, 7]),
+                0xF => simd_shuffle4($a, $b, [4, 5, 6, 7]),
+                _ => unreachable!()
+            }
+        }
+    }
+}
+
 macro_rules! fn_imm8_arg2 {
     ($fn_name: expr, $a: expr, $b: expr, $imm8: expr) => {
         unsafe {

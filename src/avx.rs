@@ -1,7 +1,7 @@
 use super::*;
 use super::{simd_add, simd_sub, simd_mul, simd_div,
             simd_and, simd_or, simd_xor,
-            simd_shuffle2, simd_shuffle8};
+            simd_shuffle2, simd_shuffle4, simd_shuffle8};
 
 extern {
     #[link_name = "llvm.x86.avx.vzeroall"]
@@ -83,6 +83,11 @@ pub fn mm256_andnot_ps(a: m256, b: m256) -> m256 {
 
 // vblendpd
 // __m256d _mm256_blend_pd (__m256d a, __m256d b, const int imm8)
+#[inline]
+pub fn mm256_blend_pd(a: m256d, b: m256d, imm8: i32) -> m256d {
+    blend_shuffle4!(a, b, imm8)
+}
+
 // vblendps
 // __m256 _mm256_blend_ps (__m256 a, __m256 b, const int imm8)
 // vblendvpd
@@ -808,5 +813,15 @@ mod tests {
     fn test_mm256_castpd256_pd128() {
         let x = mm256_setr_pd(1.0, 2.0, 3.0, 4.0);
         assert_eq!(mm256_castpd256_pd128(x).as_f64x2().as_array(), [1.0, 2.0]);
+    }
+
+    #[test]
+    fn test_mm256_blend_pd() {
+        let a = mm256_setr_pd(0.0, 1.0, 2.0, 3.0);
+        let b = mm256_setr_pd(4.0, 5.0, 6.0, 7.0);
+
+        assert_eq!(mm256_blend_pd(a, b, 0x0).as_f64x4().as_array(), [0.0, 1.0, 2.0, 3.0]);
+        assert_eq!(mm256_blend_pd(a, b, 0x3).as_f64x4().as_array(), [4.0, 5.0, 2.0, 3.0]);
+        assert_eq!(mm256_blend_pd(a, b, 0xF).as_f64x4().as_array(), [4.0, 5.0, 6.0, 7.0]);
     }
 }
