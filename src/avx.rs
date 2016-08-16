@@ -157,13 +157,57 @@ pub fn mm256_castpd256_pd128(a: m256d) -> m128d {
 }
 
 // __m256d _mm256_castps_pd (__m256 a)
+#[inline]
+pub fn mm256_castps_pd(a: m256) -> m256d {
+    a.as_m256d()
+}
+
 // __m256i _mm256_castps_si256 (__m256 a)
+#[inline]
+pub fn mm256_castps_si256(a: m256) -> m256i {
+    a.as_m256i()
+}
+
 // __m256 _mm256_castps128_ps256 (__m128 a)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm256_castps128_ps256(a: m128) -> m256 {
+    unimplemented!()
+}
+
 // __m128 _mm256_castps256_ps128 (__m256 a)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm256_castps256_ps128(a: m256) -> m128 {
+    unimplemented!()
+}
+
 // __m256i _mm256_castsi128_si256 (__m128i a)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm256_castsi128_si256(a: m128i) -> m256i {
+    unimplemented!()
+}
+
 // __m256d _mm256_castsi256_pd (__m256i a)
+#[inline]
+pub fn mm256_castsi256_pd(a: m256i) -> m256d {
+    a.as_m256d()
+}
+
 // __m256 _mm256_castsi256_ps (__m256i a)
+#[inline]
+pub fn mm256_castsi256_ps(a: m256i) -> m256 {
+    a.as_m256()
+}
+
 // __m128i _mm256_castsi256_si128 (__m256i a)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm256_castsi256_si128(a: m256i) -> m128i {
+    unimplemented!()
+}
+
 // vroundpd
 // __m256d _mm256_ceil_pd (__m256d a)
 // vroundps
