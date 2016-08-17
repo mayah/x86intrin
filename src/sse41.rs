@@ -34,8 +34,8 @@ extern {
 
 extern "platform-intrinsic" {
     // TODO(mayah): This is not implemented in rust yet?
-    // fn x86_mm_dp_pd(x: m128d, y: m128d, z: i32) -> m128d;
-    // fn x86_mm_dp_ps(x: m128, y: m128, z: i32) -> m128;
+    fn x86_mm_dp_pd(x: m128d, y: m128d, z: i32) -> m128d;
+    fn x86_mm_dp_ps(x: m128, y: m128, z: i32) -> m128;
 
     fn x86_mm_max_epi32(x: i32x4, y: i32x4) -> i32x4;
     fn x86_mm_max_epi8(x: i8x16, y: i8x16) -> i8x16;
@@ -285,8 +285,7 @@ pub fn mm_cvtepu8_epi64(a: m128i) -> m128i {
 #[inline]
 #[allow(unused_variables)]
 pub fn mm_dp_pd(a: m128d, b: m128d, imm8: i32) -> m128d {
-    unimplemented!()
-    // unsafe { x86_mm_dp_pd(a, b, imm8) }
+    fn_imm8_arg2!(x86_mm_dp_pd, a, b, imm8)
 }
 
 // dpps
@@ -294,8 +293,7 @@ pub fn mm_dp_pd(a: m128d, b: m128d, imm8: i32) -> m128d {
 #[inline]
 #[allow(unused_variables)]
 pub fn mm_dp_ps(a: m128, b: m128, imm8: i32) -> m128 {
-    unimplemented!()
-    // unsafe { x86_mm_dp_ps(a, b, imm8) }
+    fn_imm8_arg2!(x86_mm_dp_ps, a, b, imm8)
 }
 
 // pextrd
@@ -723,16 +721,16 @@ mod tests {
 
     #[test]
     fn test_mm_dp_pd() {
-        // let a = mm_setr_pd(1.5, 10.25);
-        // let b = mm_setr_pd(-1.5, 3.125);
-        // assert_eq!(mm_dp_pd(a, b, 0x31).as_f64x2().as_array(), [-1.5 * 1.5 + 10.25 * 3.125, 0.0]);
+        let a = mm_setr_pd(1.5, 10.25);
+        let b = mm_setr_pd(-1.5, 3.125);
+        assert_eq!(mm_dp_pd(a, b, 0x31).as_f64x2().as_array(), [-1.5 * 1.5 + 10.25 * 3.125, 0.0]);
     }
 
     #[test]
     fn test_mm_dp_ps() {
-        // let a = mm_setr_ps(1.5, 10.25, -11.0625, 81.0);
-        // let b = mm_setr_ps(-1.5, 3.125, -50.5, 100.0);
-        // assert_eq!(mm_dp_ps(a, b, 0x55).as_f32x4().as_array(), [556.406250, 0.000000, 556.406250, 0.000000]);
+        let a = mm_setr_ps(1.5, 10.25, -11.0625, 81.0);
+        let b = mm_setr_ps(-1.5, 3.125, -50.5, 100.0);
+        assert_eq!(mm_dp_ps(a, b, 0x55).as_f32x4().as_array(), [556.406250, 0.000000, 556.406250, 0.000000]);
     }
 
     #[test]
