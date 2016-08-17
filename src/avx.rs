@@ -14,6 +14,9 @@ extern {
     // #[link_name = "llvm.x86.sse2.cmp.pd"]
     // fn sse2_cmp_pd(a: m128d, b: m128d, c: i8) -> m128d;
 
+    #[link_name = "llvm.x86.avx.dp.ps.256"]
+    pub fn avx_dp_ps_256(a: m256, b: m256, c: u8) -> m256;
+
     #[link_name = "llvm.x86.avx.vzeroall"]
     fn avx_vzeroall();
     #[link_name = "llvm.x86.avx.vzeroupper"]
@@ -303,8 +306,22 @@ pub fn mm256_cmp_ps(a: m256, b: m256, imm8: i32) -> m256 {
 
 // vcmpsd
 // __m128d _mm_cmp_sd (__m128d a, __m128d b, const int imm8)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm256_cmp_sd(a: m128d, b: m128d, imm8: i32) -> m128d {
+    unimplemented!()
+    // unsafe { sse2_cmp_sd(a, b, imm8 as i8) }
+}
+
 // vcmpss
 // __m128 _mm_cmp_ss (__m128 a, __m128 b, const int imm8)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm256_cmp_ss(a: m128, b: m128, imm8: i32) -> m128 {
+    unimplemented!()
+    // unsafe { sse2_cmp_ss(a, b, imm8 as i8) }
+}
+
 // vcvtdq2pd
 // __m256d _mm256_cvtepi32_pd (__m128i a)
 // vcvtdq2ps
@@ -338,6 +355,10 @@ pub fn mm256_div_ps(a: m256, b: m256) -> m256 {
 
 // vdpps
 // __m256 _mm256_dp_ps (__m256 a, __m256 b, const int imm8)
+#[inline]
+pub fn mm256_dp_ps(a: m256, b: m256, imm8: i32) -> m256 {
+    fn_imm8_arg2!(avx_dp_ps_256, a, b, imm8)
+}
 
 // ...
 // __int16 _mm256_extract_epi16 (__m256i a, const int index)
@@ -1062,6 +1083,7 @@ mod tests {
         //            [!0, !0]);
         // assert_eq!(mm_cmp_pd(apd, bpd, CMP_NLT_US).as_m128i().as_i64x2().as_array(),
         //            [!0, 0]);
+        // assert_eq!(mm_cmp_sd(apd, bpd, CMP_NLE_US).as_m128i().as_i64x2().extract(0), !0);
         // assert_eq!(mm256_cmp_pd(apd256, bpd256, CMP_NLE_US).as_m256i().as_i64x4().as_array(),
         //            [!0, !0, !0, 0]);
         // assert_eq!(mm256_cmp_pd(apd256, bpd256, CMP_NLT_US).as_m256i().as_i64x4().as_array(),
@@ -1079,9 +1101,22 @@ mod tests {
         //            [!0, !0, !0, 0]);
         // assert_eq!(mm_cmp_ps(aps, bps, CMP_NLT_US).as_m128i().as_i32x4().as_array(),
         //            [!0, !0, 0, 0]);
+        // assert_eq!(mm_cmp_ss(aps, bps, CMP_NLE_US).as_m128i().as_i32x4().extract(0), !0);
         // assert_eq!(mm256_cmp_ps(aps256, bps256, CMP_NLE_US).as_m256i().as_i32x8().as_array(),
         //            [!0, !0, !0, 0, 0, 0, 0, 0]);
         // assert_eq!(mm256_cmp_ps(aps256, bps256, CMP_NLT_US).as_m256i().as_i32x8().as_array(),
         //            [!0, !0, 0, 0, 0, 0, 0, 0]);
+    }
+
+    #[test]
+    fn test_mm256_dp_ps() {
+        let a = mm256_setr_ps(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0);
+        let b = mm256_setr_ps(2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0);
+
+        let t1 = 1.0 * 2.0 + 2.0 * 3.0 + 3.0 * 4.0 + 4.0 * 5.0;
+        let t2 = 5.0 * 6.0 + 6.0 * 7.0 + 7.0 * 8.0 + 8.0 * 9.0;
+
+        assert_eq!(mm256_dp_ps(a, b, 0xFF).as_f32x8().as_array(),
+                   [t1, t1, t1, t1, t2, t2, t2, t2]);
     }
 }
