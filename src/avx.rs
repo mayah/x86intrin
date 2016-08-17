@@ -390,10 +390,42 @@ pub fn mm256_extract_epi8(a: m256i, index: i32) -> i8 {
 
 // vextractf128
 // __m128d _mm256_extractf128_pd (__m256d a, const int imm8)
+#[inline]
+pub fn mm256_extractf128_pd(a: m256d, imm8: i32) -> m128d {
+    unsafe {
+        match imm8 & 0x1 {
+            0 => simd_shuffle2(a, a, [0, 1]),
+            1 => simd_shuffle2(a, a, [2, 3]),
+            _ => unreachable!()
+        }
+    }
+}
+
 // vextractf128
 // __m128 _mm256_extractf128_ps (__m256 a, const int imm8)
+#[inline]
+pub fn mm256_extractf128_ps(a: m256, imm8: i32) -> m128 {
+    unsafe {
+        match imm8 & 0x1 {
+            0 => simd_shuffle4(a, a, [0, 1, 2, 3]),
+            1 => simd_shuffle4(a, a, [4, 5, 6, 7]),
+            _ => unreachable!()
+        }
+    }
+}
+
 // vextractf128
 // __m128i _mm256_extractf128_si256 (__m256i a, const int imm8)
+pub fn mm256_extractf128_si256(a: m256i, imm8: i32) -> m128i {
+    let ai = a.as_i64x4();
+    unsafe {
+        match imm8 & 0x1 {
+            0 => simd_shuffle2(ai, ai, [0, 1]),
+            1 => simd_shuffle2(ai, ai, [2, 3]),
+            _ => unreachable!()
+        }
+    }
+}
 
 // vroundpd
 // __m256d _mm256_floor_pd (__m256d a)
@@ -1118,5 +1150,26 @@ mod tests {
 
         assert_eq!(mm256_dp_ps(a, b, 0xFF).as_f32x8().as_array(),
                    [t1, t1, t1, t1, t2, t2, t2, t2]);
+    }
+
+    #[test]
+    fn test_mm256_extractf128_pd() {
+        let a = mm256_setr_pd(1.0, 2.0, 3.0, 4.0);
+        assert_eq!(mm256_extractf128_pd(a, 0).as_f64x2().as_array(), [1.0, 2.0]);
+        assert_eq!(mm256_extractf128_pd(a, 1).as_f64x2().as_array(), [3.0, 4.0]);
+    }
+
+    #[test]
+    fn test_mm256_extractf128_ps() {
+        let a = mm256_setr_ps(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0);
+        assert_eq!(mm256_extractf128_ps(a, 0).as_f32x4().as_array(), [1.0, 2.0, 3.0, 4.0]);
+        assert_eq!(mm256_extractf128_ps(a, 1).as_f32x4().as_array(), [5.0, 6.0, 7.0, 8.0]);
+    }
+
+    #[test]
+    fn test_mm256_extractf128_si256() {
+        let a = mm256_setr_epi64x(1, 2, 3, 4);
+        assert_eq!(mm256_extractf128_si256(a, 0).as_i64x2().as_array(), [1, 2]);
+        assert_eq!(mm256_extractf128_si256(a, 1).as_i64x2().as_array(), [3, 4]);
     }
 }
