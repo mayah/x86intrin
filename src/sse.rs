@@ -77,6 +77,43 @@ extern {
     fn sse_sfence() -> ();
 }
 
+pub const MM_HINT_T0: i32 = 3;
+pub const MM_HINT_T1: i32 = 2;
+pub const MM_HINT_T2: i32 = 1;
+pub const MM_HINT_NTA: i32 = 0;
+
+// #define _MM_SHUFFLE(z, y, x, w) (((z) << 6) | ((y) << 4) | ((x) << 2) | (w))
+#[inline]
+pub fn mm_shuffle(z: u32, y: u32, x: u32, w: u32) -> u32 {
+    (z << 6) | (y << 4) | (x << 2) | w
+}
+
+pub const MM_EXCEPT_INVALID:   u32 = 0x0001;
+pub const MM_EXCEPT_DENORM:    u32 = 0x0002;
+pub const MM_EXCEPT_DIV_ZERO:  u32 = 0x0004;
+pub const MM_EXCEPT_OVERFLOW:  u32 = 0x0008;
+pub const MM_EXCEPT_UNDERFLOW: u32 = 0x0010;
+pub const MM_EXCEPT_INEXACT:   u32 = 0x0020;
+pub const MM_EXCEPT_MASK:      u32 = 0x003f;
+
+pub const MM_MASK_INVALID:   u32 = 0x0080;
+pub const MM_MASK_DENORM:    u32 = 0x0100;
+pub const MM_MASK_DIV_ZERO:  u32 = 0x0200;
+pub const MM_MASK_OVERFLOW:  u32 = 0x0400;
+pub const MM_MASK_UNDERFLOW: u32 = 0x0800;
+pub const MM_MASK_INEXACT:   u32 = 0x1000;
+pub const MM_MASK_MASK:      u32 = 0x1f80;
+
+pub const MM_ROUND_NEAREST:     u32 = 0x0000;
+pub const MM_ROUND_DOWN:        u32 = 0x2000;
+pub const MM_ROUND_UP:          u32 = 0x4000;
+pub const MM_ROUND_TOWARD_ZERO: u32 = 0x6000;
+pub const MM_ROUND_MASK:        u32 = 0x6000;
+
+pub const MM_FLUSH_ZERO_MASK: u32 = 0x8000;
+pub const MM_FLUSH_ZERO_ON:   u32 = 0x8000;
+pub const MM_FLUSH_ZERO_OFF:  u32 = 0x0000;
+
 // addps
 // __m128 _mm_add_ps (__m128 a, __m128 b)
 #[inline]
