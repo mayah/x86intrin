@@ -470,10 +470,6 @@ pub fn mm_div_ss(a: m128, b: m128) -> m128 {
 // __m128 _mm_load_ss (float const* mem_addr)
 // ...
 // __m128 _mm_load1_ps (float const* mem_addr)
-// movhps
-// __m128 _mm_loadh_pi (__m128 a, __m64 const* mem_addr)
-// movlps
-// __m128 _mm_loadl_pi (__m128 a, __m64 const* mem_addr)
 // ...
 // __m128 _mm_loadr_ps (float const* mem_addr)
 // movups
@@ -733,10 +729,6 @@ pub fn mm_sqrt_ss(a: m128) -> m128 {
 // void _mm_store_ss (float* mem_addr, __m128 a)
 // ...
 // void _mm_store1_ps (float* mem_addr, __m128 a)
-// movhps
-// void _mm_storeh_pi (__m64* mem_addr, __m128 a)
-// movlps
-// void _mm_storel_pi (__m64* mem_addr, __m128 a)
 // ...
 // void _mm_storer_ps (float* mem_addr, __m128 a)
 // movups
@@ -908,6 +900,14 @@ pub fn mm_xor_ps(a: m128, b: m128) -> m128 {
 // __m64 _mm_sad_pu8 (__m64 a, __m64 b)
 // movntq
 // void _mm_stream_pi (__m64* mem_addr, __m64 a)
+// movhps
+// __m128 _mm_loadh_pi (__m128 a, __m64 const* mem_addr)
+// movlps
+// __m128 _mm_loadl_pi (__m128 a, __m64 const* mem_addr)
+// movhps
+// void _mm_storeh_pi (__m64* mem_addr, __m128 a)
+// movlps
+// void _mm_storel_pi (__m64* mem_addr, __m128 a)
 
 #[cfg(test)]
 mod tests {
