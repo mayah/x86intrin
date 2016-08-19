@@ -1,3 +1,4 @@
+use std;
 use super::*;
 use super::{simd_add, simd_sub, simd_mul, simd_div,
             simd_and, simd_or, simd_xor,
@@ -72,6 +73,11 @@ extern {
     fn sse_rsqrt_ss(a: m128) -> m128;
     #[link_name = "llvm.x86.sse.sqrt.ss"]
     fn sse_sqrt_ss(a: m128) -> m128;
+
+    #[link_name = "llvm.x86.sse.stmxcsr"]
+    fn sse_stmxcsr(a: *mut i8) -> ();
+    #[link_name = "llvm.x86.sse.ldmxcsr"]
+    fn sse_ldmxcsr(a: *mut i8) -> ();
 
     #[link_name = "llvm.x86.sse.sfence"]
     fn sse_sfence() -> ();
@@ -455,13 +461,41 @@ pub fn mm_div_ss(a: m128, b: m128) -> m128 {
     a.as_f32x4().insert(0, (a.as_f32x4().extract(0) / b.as_f32x4().extract(0))).as_m128()
 }
 
-// TODO(mayah): Implement these
 // unsigned int _MM_GET_EXCEPTION_MASK ()
+#[inline]
+pub fn mm_get_exception_mask() -> u32 {
+    mm_getcsr() & MM_MASK_MASK
+}
+
 // unsigned int _MM_GET_EXCEPTION_STATE ()
+#[inline]
+pub fn mm_get_exception_state() -> u32 {
+    mm_getcsr() & MM_EXCEPT_MASK
+}
+
 // unsigned int _MM_GET_FLUSH_ZERO_MODE ()
+#[inline]
+pub fn mm_get_flush_zero_mode() -> u32 {
+    mm_getcsr() & MM_FLUSH_ZERO_MASK
+}
+
 // unsigned int _MM_GET_ROUNDING_MODE ()
+#[inline]
+pub fn mm_get_rounding_mode() -> u32 {
+    mm_getcsr() & MM_ROUND_MASK
+}
+
 // stmxcsr
 // unsigned int _mm_getcsr (void)
+#[inline]
+pub fn mm_getcsr() -> u32 {
+    unsafe {
+        let mut x: u32 = std::mem::uninitialized();
+        sse_stmxcsr(&mut x as *mut u32 as *mut i8);
+        x
+    }
+}
+
 // movaps
 // __m128 _mm_load_ps (float const* mem_addr)
 // ...
@@ -582,10 +616,23 @@ pub fn mm_rsqrt_ss(a: m128) -> m128 {
     unsafe { sse_rsqrt_ss(a) }
 }
 
-// TODO(mayah): Implement these
 // void _MM_SET_EXCEPTION_MASK (unsigned int a)
+#[inline]
+pub fn mm_set_exception_mask(a: u32) {
+    mm_setcsr((mm_getcsr() & !MM_MASK_MASK) | a)
+}
+
 // void _MM_SET_EXCEPTION_STATE (unsigned int a)
+#[inline]
+pub fn mm_set_exception_state(a: u32) {
+    mm_setcsr((mm_getcsr() & !MM_EXCEPT_MASK) | a)
+}
+
 // void _MM_SET_FLUSH_ZERO_MODE (unsigned int a)
+#[inline]
+pub fn mm_set_flush_zero_mode(a: u32) {
+    mm_setcsr((mm_getcsr() & !MM_FLUSH_ZERO_MASK) | a)
+}
 
 // ...
 // __m128 _mm_set_ps (float e3, float e2, float e1, float e0)
@@ -601,8 +648,11 @@ pub fn mm_set_ps1(a: f32) -> m128 {
     m128(a, a, a, a)
 }
 
-// TODO(mayah): Implement this
 // void _MM_SET_ROUNDING_MODE (unsigned int a)
+#[inline]
+pub fn mm_set_rounding_mode(a: u32) {
+    mm_setcsr((mm_getcsr() & !MM_ROUND_MASK) | a)
+}
 
 // ...
 // __m128 _mm_set_ss (float a)
@@ -618,9 +668,12 @@ pub fn mm_set1_ps(a: f32) -> m128 {
     m128(a, a, a, a)
 }
 
-// TODO(mayah): Implement this
 // ldmxcsr
 // void _mm_setcsr (unsigned int a)
+#[inline]
+pub fn mm_setcsr(a: u32) {
+    unsafe { sse_ldmxcsr(&a as *const u32 as *mut i8) }
+}
 
 // ...
 // __m128 _mm_setr_ps (float e3, float e2, float e1, float e0)
