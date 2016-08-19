@@ -77,7 +77,7 @@ extern {
     #[link_name = "llvm.x86.sse.stmxcsr"]
     fn sse_stmxcsr(a: *mut i8) -> ();
     #[link_name = "llvm.x86.sse.ldmxcsr"]
-    fn sse_ldmxcsr(a: *mut i8) -> ();
+    fn sse_ldmxcsr(a: *const i8) -> ();
 
     #[link_name = "llvm.x86.sse.sfence"]
     fn sse_sfence() -> ();
@@ -672,7 +672,7 @@ pub fn mm_set1_ps(a: f32) -> m128 {
 // void _mm_setcsr (unsigned int a)
 #[inline]
 pub fn mm_setcsr(a: u32) {
-    unsafe { sse_ldmxcsr(&a as *const u32 as *mut i8) }
+    unsafe { sse_ldmxcsr(&a as *const u32 as *const i8) }
 }
 
 // ...
