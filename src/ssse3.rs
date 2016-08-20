@@ -39,9 +39,14 @@ pub fn mm_abs_epi8(a: m128i) -> m128i {
     unsafe { x86_mm_abs_epi8(a.as_i8x16()).as_m128i() }
 }
 
-// TODO(mayah): How to implement this with palignr?
 // palignr
 // __m128i _mm_alignr_epi8 (__m128i a, __m128i b, int count)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm_alignr_epi8 (a: m128i, b: m128i, count: i32) -> m128i {
+    // rust doesn't expose __builtin_ia32_palignr128 equivalent?
+    unimplemented!()
+}
 
 // phaddw
 // __m128i _mm_hadd_epi16 (__m128i a, __m128i b)
