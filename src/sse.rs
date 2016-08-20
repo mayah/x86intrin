@@ -79,6 +79,9 @@ extern {
     #[link_name = "llvm.x86.sse.ldmxcsr"]
     fn sse_ldmxcsr(a: *const i8) -> ();
 
+    #[link_name = "llvm.x86.sse.storeu.ps"]
+    fn sse_storeu_ps(a: *mut i8, b: m128) -> ();
+
     #[link_name = "llvm.x86.sse.sfence"]
     fn sse_sfence() -> ();
 }
@@ -773,21 +776,59 @@ pub fn mm_sqrt_ss(a: m128) -> m128 {
     unsafe { sse_sqrt_ss(a) }
 }
 
-// TODO(mayah): Implement these
 // movaps
 // void _mm_store_ps (float* mem_addr, __m128 a)
+#[inline]
+pub unsafe fn mm_store_ps(mem_addr: *mut f32, a: m128) {
+    let p = mem_addr as *mut m128;
+    *p = a
+}
+
 // ...
 // void _mm_store_ps1 (float* mem_addr, __m128 a)
+#[inline]
+pub unsafe fn mm_store_ps1(mem_addr: *mut f32, a: m128) {
+    mm_store1_ps(mem_addr, a)
+}
+
 // movss
 // void _mm_store_ss (float* mem_addr, __m128 a)
+#[inline]
+pub unsafe fn mm_store_ss(mem_addr: *mut f32, a: m128) {
+    *mem_addr = *(&a as *const m128 as *const f32);
+}
+
 // ...
 // void _mm_store1_ps (float* mem_addr, __m128 a)
+#[inline]
+pub unsafe fn mm_store1_ps(mem_addr: *mut f32, a: m128) {
+    let x = simd_shuffle4(a, a, [0, 0, 0, 0]);
+    mm_store_ps(mem_addr, x)
+}
+
 // ...
 // void _mm_storer_ps (float* mem_addr, __m128 a)
+#[inline]
+pub unsafe fn mm_storer_ps(mem_addr: *mut f32, a: m128) {
+    let x = simd_shuffle4(a, a, [3, 2, 1, 0]);
+    mm_store_ps(mem_addr, x)
+}
+
 // movups
 // void _mm_storeu_ps (float* mem_addr, __m128 a)
+#[inline]
+pub unsafe fn mm_storeu_ps(mem_addr: *mut f32, a: m128) {
+    sse_storeu_ps(mem_addr as *mut i8, a)
+}
+
 // movntps
 // void _mm_stream_ps (float* mem_addr, __m128 a)
+#[inline]
+#[allow(unused_variables)]
+pub unsafe fn mm_stream_ps(mem_addr: *mut f32, a: m128) {
+    // TODO(mayah): No __builtin_ia32_movntps equivalent in rust?
+    unimplemented!()
+}
 
 // subps
 // __m128 _mm_sub_ps (__m128 a, __m128 b)
@@ -1326,5 +1367,28 @@ mod tests {
 
         assert_eq!(mm_unpackhi_ps(x, y).as_f32x4().as_array(), [3.0, 7.0, 4.0, 8.0]);
         assert_eq!(mm_unpacklo_ps(x, y).as_f32x4().as_array(), [1.0, 5.0, 2.0, 6.0]);
+    }
+
+    #[test]
+    fn test_store() {
+        let ps = mm_setr_ps(1.0, 2.0, 3.0, 4.0);
+
+        let mut buf: [f32; 4] = [0.0; 4];
+        let p: *mut f32 = unsafe { std::mem::transmute(&mut buf) };
+
+        unsafe { mm_store_ps(p, ps) };
+        assert_eq!(buf, [1.0, 2.0, 3.0, 4.0]);
+
+        unsafe { mm_store1_ps(p, ps) };
+        assert_eq!(buf, [1.0, 1.0, 1.0, 1.0]);
+
+        unsafe { mm_storer_ps(p, ps) };
+        assert_eq!(buf, [4.0, 3.0, 2.0, 1.0]);
+
+        unsafe { mm_store_ss(p, ps) };
+        assert_eq!(buf, [1.0, 3.0, 2.0, 1.0]);
+
+        unsafe { mm_storeu_ps(p, ps) };
+        assert_eq!(buf, [1.0, 2.0, 3.0, 4.0]);
     }
 }
