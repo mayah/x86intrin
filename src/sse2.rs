@@ -128,6 +128,9 @@ extern {
     #[link_name = "llvm.x86.sse2.sqrt.sd"]
     fn sse2_sqrt_sd(a: m128d) -> m128d;
 
+    #[link_name = "llvm.x86.sse2.maskmov.dqu"]
+    fn sse2_maskmov_dqu(a: i8x16, b: i8x16, c: *mut u8) -> ();
+
     #[link_name = "llvm.x86.sse2.clflush"]
     fn sse2_clflush(a: *const u8) -> ();
 
@@ -897,9 +900,12 @@ pub fn mm_madd_epi16(a: m128i, b: m128i) -> m128i {
     unsafe { sse2_pmadd_wd(a.as_i16x8(), b.as_i16x8()).as_m128i() }
 }
 
-// TODO(mayah): Implement this
 // maskmovdqu
 // void _mm_maskmoveu_si128 (__m128i a, __m128i mask, char* mem_addr)
+#[inline]
+pub unsafe fn mm_maskmoveu_si128(a: m128i, mask: m128i, mem_addr: *mut u8) {
+    sse2_maskmov_dqu(a.as_i8x16(), mask.as_i8x16(), mem_addr)
+}
 
 // pmaxsw
 // __m128i _mm_max_epi16 (__m128i a, __m128i b)
@@ -2309,6 +2315,17 @@ mod tests {
         assert_eq!(mm_min_pd(xp, yp).as_f64x2().as_array(), [1.0, 1.0]);
         assert_eq!(mm_max_sd(xp, yp).as_f64x2().as_array(), [3.0, 2.0]);
         assert_eq!(mm_min_sd(xp, yp).as_f64x2().as_array(), [1.0, 2.0]);
+    }
+
+    #[test]
+    fn test_maskmoveu() {
+        let a = mm_setr_epi8(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
+        let b = mm_setr_epi8(!0, !0, !0, !0, 0, 0, 0, 0, !0, !0, !0, !0, 0, 0, 0, 0);
+        let mut c: [u8; 16] = [0; 16];
+        let p = &mut c as *mut [u8;16] as *mut u8;
+        unsafe { mm_maskmoveu_si128(a, b, p) }
+
+        assert_eq!(c, [1, 2, 3, 4, 0, 0, 0, 0, 9, 10, 11, 12, 0, 0, 0, 0]);
     }
 
     #[test]
