@@ -131,6 +131,11 @@ extern {
     #[link_name = "llvm.x86.sse2.maskmov.dqu"]
     fn sse2_maskmov_dqu(a: i8x16, b: i8x16, c: *mut u8) -> ();
 
+    #[link_name = "llvm.x86.sse2.storeu.pd"]
+    fn sse2_storeu_pd(a: *mut u8, b: m128d) -> ();
+    #[link_name = "llvm.x86.sse2.storeu.dq"]
+    fn sse2_storeu_dq(a: *mut u8, b: i8x16) -> ();
+
     #[link_name = "llvm.x86.sse2.clflush"]
     fn sse2_clflush(a: *const u8) -> ();
 
@@ -1676,29 +1681,86 @@ pub fn mm_srli_si128(a: m128i, imm8: i32) -> m128i {
     x.as_m128i()
 }
 
-// TODO(mayah): Implement this
 // movapd
 // void _mm_store_pd (double* mem_addr, __m128d a)
+#[inline]
+pub unsafe fn mm_store_pd(mem_addr: *mut f64, a: m128d) {
+    *(mem_addr as *mut m128d) = a
+}
+
 // ...
 // void _mm_store_pd1 (double* mem_addr, __m128d a)
+#[inline]
+pub unsafe fn mm_store_pd1(mem_addr: *mut f64, a: m128d) {
+    mm_store1_pd(mem_addr, a)
+}
+
 // movsd
 // void _mm_store_sd (double* mem_addr, __m128d a)
+#[inline]
+pub unsafe fn mm_store_sd(mem_addr: *mut f64, a: m128d) {
+    *mem_addr = a.as_f64x2().extract(0)
+}
+
 // movdqa
 // void _mm_store_si128 (__m128i* mem_addr, __m128i a)
+#[inline]
+pub unsafe fn mm_store_si128(mem_addr: *mut m128i, a: m128i) {
+    *mem_addr = a
+}
+
 // ...
 // void _mm_store1_pd (double* mem_addr, __m128d a)
+#[inline]
+pub unsafe fn mm_store1_pd(mem_addr: *mut f64, a: m128d) {
+    let x = a.as_f64x2().extract(0);
+
+    let p = mem_addr as *mut [f64; 2];
+    (*p)[0] = x;
+    (*p)[1] = x;
+}
+
 // movhpd
 // void _mm_storeh_pd (double* mem_addr, __m128d a)
+#[inline]
+pub unsafe fn mm_storeh_pd(mem_addr: *mut f64, a: m128d) {
+    *mem_addr = a.as_f64x2().extract(1)
+}
+
 // movq
 // void _mm_storel_epi64 (__m128i* mem_addr, __m128i a)
+#[inline]
+pub unsafe fn mm_storel_epi64(mem_addr: *mut m128i, a: m128i) {
+    *(mem_addr as *mut i64) = a.as_i64x2().extract(0)
+}
+
 // movlpd
 // void _mm_storel_pd (double* mem_addr, __m128d a)
+#[inline]
+pub unsafe fn mm_storel_pd(mem_addr: *mut f64, a: m128d) {
+    *mem_addr = a.as_f64x2().extract(0)
+}
+
 // ...
 // void _mm_storer_pd (double* mem_addr, __m128d a)
+#[inline]
+pub unsafe fn mm_storer_pd(mem_addr: *mut f64, a: m128d) {
+    *(mem_addr as *mut m128d) = simd_shuffle2(a, a, [1, 0])
+}
+
 // movupd
 // void _mm_storeu_pd (double* mem_addr, __m128d a)
+#[inline]
+pub unsafe fn mm_storeu_pd(mem_addr: *mut f64, a: m128d) {
+    sse2_storeu_pd(mem_addr as *mut u8, a)
+}
+
 // movdqu
 // void _mm_storeu_si128 (__m128i* mem_addr, __m128i a)
+#[inline]
+pub unsafe fn mm_storeu_si128(mem_addr: *mut m128i, a: m128i) {
+    sse2_storeu_dq(mem_addr as *mut u8, a.as_i8x16())
+}
 
 // movntpd
 // void _mm_stream_pd (double* mem_addr, __m128d a)
@@ -2692,5 +2754,65 @@ mod tests {
         assert_eq!(unsafe { mm_load_si128(p) }.as_i32x4().as_array(), [1, 2, 3, 4]);
         assert_eq!(unsafe { mm_loadl_epi64(p) }.as_i32x4().as_array(), [1, 2, 0, 0]);
         assert_eq!(unsafe { mm_loadu_si128(p) }.as_i32x4().as_array(), [1, 2, 3, 4]);
+    }
+
+    #[test]
+    fn test_store_pd() {
+        let ps = mm_setr_pd(1.0, 2.0);
+
+        let mut buf: [f64; 2] = [0.0; 2];
+        let p: *mut f64 = unsafe { std::mem::transmute(&mut buf) };
+
+        buf = [0.0; 2];
+        unsafe { mm_store_pd(p, ps) };
+        assert_eq!(buf, [1.0, 2.0]);
+
+        buf = [0.0; 2];
+        unsafe { mm_store_pd1(p, ps) };
+        assert_eq!(buf, [1.0, 1.0]);
+
+        buf = [0.0; 2];
+        unsafe { mm_store_sd(p, ps) };
+        assert_eq!(buf, [1.0, 0.0]);
+
+        buf = [0.0; 2];
+        unsafe { mm_store1_pd(p, ps) };
+        assert_eq!(buf, [1.0, 1.0]);
+
+        buf = [0.0; 2];
+        unsafe { mm_storeh_pd(p, ps) };
+        assert_eq!(buf, [2.0, 0.0]);
+
+        buf = [0.0; 2];
+        unsafe { mm_storel_pd(p, ps) };
+        assert_eq!(buf, [1.0, 0.0]);
+
+        buf = [0.0; 2];
+        unsafe { mm_storer_pd(p, ps) };
+        assert_eq!(buf, [2.0, 1.0]);
+
+        buf = [0.0; 2];
+        unsafe { mm_storeu_pd(p, ps) };
+        assert_eq!(buf, [1.0, 2.0]);
+    }
+
+    #[test]
+    fn test_store_si128() {
+        let ps = mm_setr_epi32(1, 2, 3, 4);
+
+        let mut buf: m128i = mm_setr_epi32(0, 0, 0, 0);
+        let p: *mut m128i = unsafe { std::mem::transmute(&mut buf) };
+
+        buf = mm_setr_epi32(0, 0, 0, 0);
+        unsafe { mm_store_si128(p, ps) };
+        assert_eq!(buf.as_i32x4().as_array(), [1, 2, 3, 4]);
+
+        buf = mm_setr_epi32(0, 0, 0, 0);
+        unsafe { mm_storel_epi64(p, ps) };
+        assert_eq!(buf.as_i32x4().as_array(), [1, 2, 0, 0]);
+
+        buf = mm_setr_epi32(0, 0, 0, 0);
+        unsafe { mm_storeu_si128(p, ps) };
+        assert_eq!(buf.as_i32x4().as_array(), [1, 2, 3, 4]);
     }
 }
