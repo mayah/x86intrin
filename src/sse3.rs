@@ -10,6 +10,11 @@ extern "platform-intrinsic" {
     fn x86_mm_hsub_ps(x: m128, y: m128) -> m128;
 }
 
+extern {
+    #[link_name = "llvm.x86.sse3.ldu.dq"]
+    fn sse3_ldu_dq(a: *mut u8) -> i8x16;
+}
+
 // addsubpd
 // __m128d _mm_addsub_pd (__m128d a, __m128d b)
 #[inline]
@@ -54,8 +59,17 @@ pub fn mm_hsub_ps(a: m128, b: m128) -> m128 {
 
 // lddqu
 // __m128i _mm_lddqu_si128 (__m128i const* mem_addr)
+#[inline]
+pub unsafe fn mm_lddqu_si128(mem_addr: *const m128i) -> m128i {
+    sse3_ldu_dq(mem_addr as *mut u8).as_m128i()
+}
+
 // movddup
 // __m128d _mm_loaddup_pd (double const* mem_addr)
+#[inline]
+pub unsafe fn _mm_loaddup_pd(mem_addr: *const f64) ->  m128d {
+    mm_load1_pd(mem_addr)
+}
 
 // movddup
 // __m128d _mm_movedup_pd (__m128d a)
@@ -116,5 +130,14 @@ mod test {
         let x = mm_setr_ps(1.0, 2.0, 3.0, 4.0);
         assert_eq!(mm_movehdup_ps(x).as_f32x4().as_array(), [2.0, 2.0, 4.0, 4.0]);
         assert_eq!(mm_moveldup_ps(x).as_f32x4().as_array(), [1.0, 1.0, 3.0, 3.0]);
+    }
+
+    #[test]
+    fn test_lddqu() {
+        let x = mm_setr_epi32(1, 2, 3, 4);
+        let p = &x as *const m128i;
+
+        let r = unsafe { mm_lddqu_si128(p) };
+        assert_eq!(r.as_i32x4().as_array(), [1, 2, 3, 4]);
     }
 }
