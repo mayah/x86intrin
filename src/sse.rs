@@ -501,16 +501,56 @@ pub fn mm_getcsr() -> u32 {
 
 // movaps
 // __m128 _mm_load_ps (float const* mem_addr)
+#[inline]
+pub unsafe fn mm_load_ps(mem_addr: *const f32) -> m128 {
+    *(mem_addr as *const m128)
+}
+
 // ...
 // __m128 _mm_load_ps1 (float const* mem_addr)
+#[inline]
+pub unsafe fn mm_load_ps1(mem_addr: *const f32) -> m128 {
+    mm_load1_ps(mem_addr)
+}
+
 // movss
 // __m128 _mm_load_ss (float const* mem_addr)
+#[inline]
+pub unsafe fn mm_load_ss(mem_addr: *const f32) -> m128 {
+    // TODO(mayah): mem_addr might be unaligned?
+    let v = *mem_addr;
+    f32x4(v, 0.0, 0.0, 0.0).as_m128()
+}
+
 // ...
 // __m128 _mm_load1_ps (float const* mem_addr)
+#[inline]
+pub unsafe fn mm_load1_ps(mem_addr: *const f32) -> m128 {
+    // TODO(mayah): mem_addr might be unaligned?
+    let v = *mem_addr;
+    f32x4(v, v, v, v).as_m128()
+}
+
 // ...
 // __m128 _mm_loadr_ps (float const* mem_addr)
+#[inline]
+pub unsafe fn mm_loadr_ps(mem_addr: *const f32) -> m128 {
+    let a = mm_load_ps(mem_addr);
+    simd_shuffle4(a, a, [3, 2, 1, 0])
+}
+
 // movups
 // __m128 _mm_loadu_ps (float const* mem_addr)
+#[inline]
+pub unsafe fn mm_loadu_ps(mem_addr: *const f32) -> m128 {
+    let mut result: m128 = std::mem::uninitialized();
+
+    let src_p = mem_addr as *const u8;
+    let dst_p = &mut result as *mut m128 as *mut u8;
+    std::ptr::copy_nonoverlapping(src_p, dst_p, 16);
+
+    result
+}
 
 // maxps
 // __m128 _mm_max_ps (__m128 a, __m128 b)
@@ -1390,5 +1430,18 @@ mod tests {
 
         unsafe { mm_storeu_ps(p, ps) };
         assert_eq!(buf, [1.0, 2.0, 3.0, 4.0]);
+    }
+
+    #[test]
+    fn test_load() {
+        let buf: [f32; 4] = [1.0, 2.0, 3.0, 4.0];
+        let p = &buf as *const [f32; 4] as *const f32;
+
+        assert_eq!(unsafe { mm_load_ps(p) }.as_f32x4().as_array(), [1.0, 2.0, 3.0, 4.0]);
+        assert_eq!(unsafe { mm_load_ps1(p) }.as_f32x4().as_array(), [1.0, 1.0, 1.0, 1.0]);
+        assert_eq!(unsafe { mm_load_ss(p) }.as_f32x4().as_array(), [1.0, 0.0, 0.0, 0.0]);
+        assert_eq!(unsafe { mm_load1_ps(p) }.as_f32x4().as_array(), [1.0, 1.0, 1.0, 1.0]);
+        assert_eq!(unsafe { mm_loadr_ps(p) }.as_f32x4().as_array(), [4.0, 3.0, 2.0, 1.0]);
+        assert_eq!(unsafe { mm_loadu_ps(p) }.as_f32x4().as_array(), [1.0, 2.0, 3.0, 4.0]);
     }
 }
