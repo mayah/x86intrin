@@ -869,29 +869,100 @@ pub fn mm_lfence() {
     unsafe { sse2_lfence() }
 }
 
-// TODO(mayah): Implement this
 // movapd
 // __m128d _mm_load_pd (double const* mem_addr)
+#[inline]
+pub unsafe fn mm_load_pd(mem_addr: *const f64) -> m128d {
+    *(mem_addr as *const m128d)
+}
+
 // ...
 // __m128d _mm_load_pd1 (double const* mem_addr)
+#[inline]
+pub unsafe fn mm_load_pd1(mem_addr: *const f64) -> m128d {
+    mm_load1_pd(mem_addr)
+}
+
 // movsd
 // __m128d _mm_load_sd (double const* mem_addr)
+#[inline]
+pub unsafe fn mm_load_sd(mem_addr: *const f64) -> m128d {
+    let x = *mem_addr;
+    f64x2(x, 0.0).as_m128d()
+}
+
 // movdqa
 // __m128i _mm_load_si128 (__m128i const* mem_addr)
+#[inline]
+pub unsafe fn mm_load_si128(mem_addr: *const m128i) -> m128i {
+    *mem_addr
+}
+
 // ...
 // __m128d _mm_load1_pd (double const* mem_addr)
+#[inline]
+pub unsafe fn mm_load1_pd(mem_addr: *const f64) -> m128d {
+    let x = *mem_addr;
+    f64x2(x, x).as_m128d()
+}
+
 // movhpd
 // __m128d _mm_loadh_pd (__m128d a, double const* mem_addr)
+#[inline]
+pub unsafe fn mm_loadh_pd(a: m128d, mem_addr: *const f64) -> m128d {
+    let x = *mem_addr;
+    a.as_f64x2().insert(1, x).as_m128d()
+}
+
 // movq
 // __m128i _mm_loadl_epi64 (__m128i const* mem_addr)
+#[inline]
+pub unsafe fn mm_loadl_epi64(mem_addr: *const m128i) -> m128i {
+    let x = *(mem_addr as *const i64);
+    i64x2(x, 0).as_m128i()
+}
+
 // movlpd
 // __m128d _mm_loadl_pd (__m128d a, double const* mem_addr)
+#[inline]
+pub unsafe fn mm_loadl_pd(a: m128d, mem_addr: *const f64) -> m128d {
+    let x = *mem_addr;
+    a.as_f64x2().insert(0, x).as_m128d()
+}
+
 // ...
 // __m128d _mm_loadr_pd (double const* mem_addr)
+#[inline]
+pub unsafe fn mm_loadr_pd(mem_addr: *const f64) -> m128d {
+    let x = *(mem_addr as *const m128d);
+    simd_shuffle2(x, x, [1, 0])
+}
+
 // movupd
 // __m128d _mm_loadu_pd (double const* mem_addr)
+#[inline]
+pub unsafe fn mm_loadu_pd(mem_addr: *const f64) -> m128d {
+    let mut result: m128d = std::mem::uninitialized();
+
+    let src_p = mem_addr as *const u8;
+    let dst_p = &mut result as *mut m128d as *mut u8;
+    std::ptr::copy_nonoverlapping(src_p, dst_p, 16);
+
+    result
+}
+
 // movdqu
 // __m128i _mm_loadu_si128 (__m128i const* mem_addr)
+#[inline]
+pub unsafe fn mm_loadu_si128(mem_addr: *const m128i) -> m128i {
+    let mut result: m128i = std::mem::uninitialized();
+
+    let src_p = mem_addr as *const u8;
+    let dst_p = &mut result as *mut m128i as *mut u8;
+    std::ptr::copy_nonoverlapping(src_p, dst_p, 16);
+
+    result
+}
 
 // pmaddwd
 // __m128i _mm_madd_epi16 (__m128i a, __m128i b)
@@ -2595,5 +2666,31 @@ mod tests {
 
         assert_eq!(mm_sqrt_pd(x).as_f64x2().as_array(), [3.0, 2.0]);
         assert_eq!(mm_sqrt_sd(x, y).as_f64x2().as_array(), [2.0, 4.0]);
+    }
+
+    #[test]
+    fn test_load_pd() {
+        let buf: [f64; 2] = [1.0, 2.0];
+        let p = &buf as *const [f64; 2] as *const f64;
+        let x = mm_setr_pd(3.0, 4.0);
+
+        assert_eq!(unsafe { mm_load_pd(p) }.as_f64x2().as_array(), [1.0, 2.0]);
+        assert_eq!(unsafe { mm_load_pd1(p) }.as_f64x2().as_array(), [1.0, 1.0]);
+        assert_eq!(unsafe { mm_load_sd(p) }.as_f64x2().as_array(), [1.0, 0.0]);
+        assert_eq!(unsafe { mm_load1_pd(p) }.as_f64x2().as_array(), [1.0, 1.0]);
+        assert_eq!(unsafe { mm_loadh_pd(x, p) }.as_f64x2().as_array(), [3.0, 1.0]);
+        assert_eq!(unsafe { mm_loadl_pd(x, p) }.as_f64x2().as_array(), [1.0, 4.0]);
+        assert_eq!(unsafe { mm_loadr_pd(p) }.as_f64x2().as_array(), [2.0, 1.0]);
+        assert_eq!(unsafe { mm_loadu_pd(p) }.as_f64x2().as_array(), [1.0, 2.0]);
+    }
+
+    #[test]
+    fn test_load_si128() {
+        let buf: m128i = mm_setr_epi32(1, 2, 3, 4);
+        let p = &buf as *const m128i;
+
+        assert_eq!(unsafe { mm_load_si128(p) }.as_i32x4().as_array(), [1, 2, 3, 4]);
+        assert_eq!(unsafe { mm_loadl_epi64(p) }.as_i32x4().as_array(), [1, 2, 0, 0]);
+        assert_eq!(unsafe { mm_loadu_si128(p) }.as_i32x4().as_array(), [1, 2, 3, 4]);
     }
 }
