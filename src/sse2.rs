@@ -128,6 +128,9 @@ extern {
     #[link_name = "llvm.x86.sse2.sqrt.sd"]
     fn sse2_sqrt_sd(a: m128d) -> m128d;
 
+    #[link_name = "llvm.x86.sse2.clflush"]
+    fn sse2_clflush(a: *const u8) -> ();
+
     #[link_name = "llvm.x86.sse2.lfence"]
     fn sse2_lfence() -> ();
     #[link_name = "llvm.x86.sse2.mfence"]
@@ -345,9 +348,12 @@ pub fn mm_castsi128_ps(a: m128i) -> m128 {
     a.as_m128()
 }
 
-// TODO(mayah): Implement this
 // clflush
 // void _mm_clflush (void const* p)
+#[inline]
+pub fn mm_clflush(p: *const u8) {
+    unsafe { sse2_clflush(p) }
+}
 
 // pcmpeqw
 // __m128i _mm_cmpeq_epi16 (__m128i a, __m128i b)
