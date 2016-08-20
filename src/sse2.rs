@@ -1628,14 +1628,38 @@ pub fn mm_srli_si128(a: m128i, imm8: i32) -> m128i {
 // void _mm_storeu_pd (double* mem_addr, __m128d a)
 // movdqu
 // void _mm_storeu_si128 (__m128i* mem_addr, __m128i a)
+
 // movntpd
 // void _mm_stream_pd (double* mem_addr, __m128d a)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm_stream_pd(mem_addr: *mut f64, a: m128d) {
+    unimplemented!()
+}
+
 // movntdq
 // void _mm_stream_si128 (__m128i* mem_addr, __m128i a)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm_stream_si128(mem_addr: *mut m128i, a: m128i) {
+    unimplemented!()
+}
+
 // movnti
 // void _mm_stream_si32 (int* mem_addr, int a)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm_stream_si32(mem_addr: *mut i32, a: i32) {
+    unimplemented!()
+}
+
 // movnti
 // void _mm_stream_si64 (__int64* mem_addr, __int64 a)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm_stream_si64(mem_addr: *mut i64, a: i64) {
+    unimplemented!()
+}
 
 // psubw
 // __m128i _mm_sub_epi16 (__m128i a, __m128i b)
