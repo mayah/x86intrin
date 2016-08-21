@@ -1,3 +1,4 @@
+use std;
 use super::*;
 use super::{simd_add, simd_sub, simd_mul, simd_div,
             simd_and, simd_or, simd_xor,
@@ -219,15 +220,14 @@ pub fn mm256_castpd_si256(a: m256d) -> m256i {
 
 // __m256d _mm256_castpd128_pd256 (__m128d a)
 #[inline]
-#[allow(unused_variables)]
 pub fn mm256_castpd128_pd256(a: m128d) -> m256d {
-    // return __builtin_shufflevector(__a, __a, 0, 1, -1, -1);
-
     // TODO(mayah): Why simd_shuffle takes u32? It should be i32?
     // TODO(mayah): Uguu, simd_shuffe4 takes only 0-3 as index?
+    // return __builtin_shufflevector(__a, __a, 0, 1, -1, -1);
     // unsafe { simd_shuffle4(a, a, [0, 1, -1i32 as u32, -1i32 as u32]) }
 
-    unimplemented!()
+    let b = mm_undefined_pd();
+    unsafe { simd_shuffle4(a, b, [0, 1, 2, 3]) }
 }
 
 // __m128d _mm256_castpd256_pd128 (__m256d a)
@@ -250,9 +250,11 @@ pub fn mm256_castps_si256(a: m256) -> m256i {
 
 // __m256 _mm256_castps128_ps256 (__m128 a)
 #[inline]
-#[allow(unused_variables)]
 pub fn mm256_castps128_ps256(a: m128) -> m256 {
-    unimplemented!()
+    // TODO(mayah): Use return __builtin_shufflevector(__a, __a, 0, 1, 2, 3, -1, -1, -1, -1);
+
+    let b = mm_undefined_ps();
+    unsafe { simd_shuffle8(a, b, [0, 1, 2, 3, 4, 5, 6, 7]) }
 }
 
 // __m128 _mm256_castps256_ps128 (__m256 a)
@@ -266,7 +268,11 @@ pub fn mm256_castps256_ps128(a: m256) -> m128 {
 #[inline]
 #[allow(unused_variables)]
 pub fn mm256_castsi128_si256(a: m128i) -> m256i {
-    unimplemented!()
+    // TODO(mayah): Use return __builtin_shufflevector(__a, __a, 0, 1, -1, -1);
+
+    let b = mm_undefined_si128();
+    let c: i64x4 = unsafe { simd_shuffle4(a, b, [0, 1, 2, 3]) };
+    c.as_m256i()
 }
 
 // __m256d _mm256_castsi256_pd (__m256i a)
@@ -535,10 +541,44 @@ pub fn mm256_insert_epi8(a: m256i, i: i8, index: i32) -> m256i {
 
 // vinsertf128
 // __m256d _mm256_insertf128_pd (__m256d a, __m128d b, int imm8)
+#[inline]
+pub fn mm256_insertf128_pd(a: m256d, b: m128d, imm8: i32) -> m256d {
+    unsafe {
+        match imm8 & 1 {
+            0 => simd_shuffle4(a, mm256_castpd128_pd256(b), [4, 5, 2, 3]),
+            1 => simd_shuffle4(a, mm256_castpd128_pd256(b), [0, 1, 4, 5]),
+            _ => unreachable!()
+        }
+    }
+}
+
 // vinsertf128
 // __m256 _mm256_insertf128_ps (__m256 a, __m128 b, int imm8)
+#[inline]
+pub fn mm256_insertf128_ps(a: m256, b: m128, imm8: i32) -> m256 {
+    unsafe {
+        match imm8 & 1 {
+            0 => simd_shuffle8(a, mm256_castps128_ps256(b), [8, 9, 10, 11, 4, 5, 6, 7]),
+            1 => simd_shuffle8(a, mm256_castps128_ps256(b), [0, 1, 2, 3, 8, 9, 10, 11]),
+            _ => unreachable!()
+        }
+    }
+}
+
 // vinsertf128
 // __m256i _mm256_insertf128_si256 (__m256i a, __m128i b, int imm8)
+#[inline]
+pub fn mm256_insertf128_si256(a: m256i, b: m128i, imm8: i32) -> m256i {
+    unsafe {
+        let x: i64x4 = match imm8 & 1 {
+            0 => simd_shuffle4(a.as_i64x4(), mm256_castsi128_si256(b).as_i64x4(), [4, 5, 2, 3]),
+            1 => simd_shuffle4(a.as_i64x4(), mm256_castsi128_si256(b).as_i64x4(), [0, 1, 4, 5]),
+            _ => unreachable!()
+        };
+        x.as_m256i()
+    }
+}
+
 // vlddqu
 // __m256i _mm256_lddqu_si256 (__m256i const * mem_addr)
 // vmovapd
@@ -953,12 +993,43 @@ pub fn mm256_sub_ps(a: m256, b: m256) -> m256 {
 // int _mm256_testz_ps (__m256 a, __m256 b)
 // vptest
 // int _mm256_testz_si256 (__m256i a, __m256i b)
+
 // __m128d _mm_undefined_pd (void)
+#[inline]
+pub fn mm_undefined_pd() -> m128d {
+    unsafe { std::mem::uninitialized() }
+}
+
 // __m256d _mm256_undefined_pd (void)
+#[inline]
+pub fn mm256_undefined_pd() -> m256d {
+    unsafe { std::mem::uninitialized() }
+}
+
 // __m128 _mm_undefined_ps (void)
+#[inline]
+pub fn mm_undefined_ps() -> m128 {
+    unsafe { std::mem::uninitialized() }
+}
+
 // __m256 _mm256_undefined_ps (void)
+#[inline]
+pub fn mm256_undefined_ps() -> m256 {
+    unsafe { std::mem::uninitialized() }
+}
+
 // __m128i _mm_undefined_si128 (void)
+#[inline]
+pub fn mm_undefined_si128() -> m128i {
+    unsafe { std::mem::uninitialized() }
+}
+
 // __m256i _mm256_undefined_si256 (void)
+#[inline]
+pub fn mm256_undefined_si256() -> m256i {
+    unsafe { std::mem::uninitialized() }
+}
+
 // vunpckhpd
 // __m256d _mm256_unpackhi_pd (__m256d a, __m256d b)
 // vunpckhps
@@ -1198,6 +1269,23 @@ mod tests {
     }
 
     #[test]
+    fn test_cast() {
+        let apd256 = mm256_castpd128_pd256(mm_setr_pd(1.0, 2.0));
+        assert_eq!(apd256.as_f64x4().extract(0), 1.0);
+        assert_eq!(apd256.as_f64x4().extract(1), 2.0);
+
+        let aps256 = mm256_castps128_ps256(mm_setr_ps(1.0, 2.0, 3.0, 4.0));
+        assert_eq!(aps256.as_f32x8().extract(0), 1.0);
+        assert_eq!(aps256.as_f32x8().extract(1), 2.0);
+        assert_eq!(aps256.as_f32x8().extract(2), 3.0);
+        assert_eq!(aps256.as_f32x8().extract(3), 4.0);
+
+        let asi256 = mm256_castsi128_si256(i64x2(1, 2).as_m128i());
+        assert_eq!(asi256.as_i64x4().extract(0), 1);
+        assert_eq!(asi256.as_i64x4().extract(1), 2);
+    }
+
+    #[test]
     fn test_extract() {
         let a = mm256_setr_epi8(0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
                                 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
@@ -1293,5 +1381,22 @@ mod tests {
         let a = mm256_setr_epi64x(1, 2, 3, 4);
         assert_eq!(mm256_extractf128_si256(a, 0).as_i64x2().as_array(), [1, 2]);
         assert_eq!(mm256_extractf128_si256(a, 1).as_i64x2().as_array(), [3, 4]);
+    }
+
+    #[test]
+    fn test_mm256_insertf256() {
+        let apd256 = mm256_setr_pd(1.0, 2.0, 3.0, 4.0);
+        let apd128 = mm_setr_pd(5.0, 6.0);
+
+        let aps256 = mm256_setr_ps(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0);
+        let aps128 = mm_setr_ps(9.0, 10.0, 11.0, 12.0);
+
+        let asi256 = mm256_setr_epi64x(1, 2, 3, 4);
+        let asi128 = mm_set_epi64x(6, 5);
+
+        assert_eq!(mm256_insertf128_pd(apd256, apd128, 1).as_f64x4().as_array(), [1.0, 2.0, 5.0, 6.0]);
+        assert_eq!(mm256_insertf128_ps(aps256, aps128, 1).as_f32x8().as_array(),
+                   [1.0, 2.0, 3.0, 4.0, 9.0, 10.0, 11.0, 12.0]);
+        assert_eq!(mm256_insertf128_si256(asi256, asi128, 1).as_i64x4().as_array(), [1, 2, 5, 6]);
     }
 }
