@@ -31,6 +31,10 @@ extern {
 extern "platform-intrinsic" {
     fn x86_mm256_addsub_pd(x: m256d, y: m256d) -> m256d;
     fn x86_mm256_addsub_ps(x: m256, y: m256) -> m256;
+    fn x86_mm256_hadd_pd(x: m256d, y: m256d) -> m256d;
+    fn x86_mm256_hadd_ps(x: m256, y: m256) -> m256;
+    fn x86_mm256_hsub_pd(x: m256d, y: m256d) -> m256d;
+    fn x86_mm256_hsub_ps(x: m256, y: m256) -> m256;
 
     // fn x86_mm256_cmp_pd(a: m256d, b: m256d, c: i8) -> m256d;
     // fn x86_mm256_cmp_ps(a: m256, b: m256, c: i8) -> m256;
@@ -353,6 +357,7 @@ pub fn mm256_cmp_ss(a: m128, b: m128, imm8: i32) -> m128 {
     // unsafe { sse2_cmp_ss(a, b, imm8 as i8) }
 }
 
+// TODO(mayah): Implement these.
 // vcvtdq2pd
 // __m256d _mm256_cvtepi32_pd (__m128i a)
 // vcvtdq2ps
@@ -474,12 +479,32 @@ pub fn mm256_floor_ps(a: m256) -> m256 {
 
 // vhaddpd
 // __m256d _mm256_hadd_pd (__m256d a, __m256d b)
+#[inline]
+pub fn mm256_hadd_pd(a: m256d, b: m256d) -> m256d {
+    unsafe { x86_mm256_hadd_pd(a, b) }
+}
+
 // vhaddps
 // __m256 _mm256_hadd_ps (__m256 a, __m256 b)
+#[inline]
+pub fn mm256_hadd_ps(a: m256, b: m256) -> m256 {
+    unsafe { x86_mm256_hadd_ps(a, b) }
+}
+
 // vhsubpd
 // __m256d _mm256_hsub_pd (__m256d a, __m256d b)
+#[inline]
+pub fn mm256_hsub_pd(a: m256d, b: m256d) -> m256d {
+    unsafe { x86_mm256_hsub_pd(a, b) }
+}
+
 // vhsubps
 // __m256 _mm256_hsub_ps (__m256 a, __m256 b)
+#[inline]
+pub fn mm256_hsub_ps(a: m256, b: m256) -> m256 {
+    unsafe { x86_mm256_hsub_ps(a, b) }
+}
+
 // ...
 // __m256i _mm256_insert_epi16 (__m256i a, __int16 i, const int index)
 // ...
@@ -961,7 +986,7 @@ mod tests {
     #[test]
     fn test_mm256_set_int() {
         assert_eq!(mm256_set_epi8(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
-                                   17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32).as_i8x32().as_array(),
+                                  17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32).as_i8x32().as_array(),
                    [32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17,
                     16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]);
         assert_eq!(mm256_set_epi16(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16).as_i16x16().as_array(),
@@ -1066,6 +1091,12 @@ mod tests {
         assert_eq!(mm256_div_pd(apd, bpd).as_f64x4().as_array(), [0.5, 1.0, 1.5, 2.0]);
 
         assert_eq!(mm256_addsub_pd(apd, bpd).as_f64x4().as_array(), [-1.0, 4.0, 1.0, 6.0]);
+
+        assert_eq!(mm256_hadd_pd(apd, bpd).as_f64x4().as_array(), [3.0, 4.0, 7.0, 4.0]);
+        assert_eq!(mm256_hsub_pd(apd, bpd).as_f64x4().as_array(), [-1.0, 0.0, -1.0, 0.0]);
+
+        assert_eq!(mm256_hadd_ps(aps, bps).as_f32x8().as_array(), [3.0, 7.0, 4.0, 4.0, 11.0, 15.0, 4.0, 4.0]);
+        assert_eq!(mm256_hsub_ps(aps, bps).as_f32x8().as_array(), [-1.0, -1.0, 0.0, 0.0, -1.0, -1.0, 0.0, 0.0]);
     }
 
     #[test]
