@@ -9,6 +9,11 @@ extern {
     #[link_name = "llvm.x86.avx.blendv.ps.256"]
     fn avx_blendv_ps_256(a: m256, b: m256, c: m256) -> m256;
 
+    #[link_name = "llvm.x86.avx.vbroadcastf128.pd.256"]
+    fn avx_vbroadcastf128_pd_256(a: *const u8) -> m256d;
+    #[link_name = "llvm.x86.avx.vbroadcastf128.ps.256"]
+    fn avx_vbroadcastf128_ps_256(a: *const u8) -> m256;
+
     // #[link_name = "llvm.x86.sse2.cmp.ps"]
     // fn sse2_cmp_ps(a: m128, b: m128, c: i8) -> m128;
     // #[link_name = "llvm.x86.sse2.cmp.pd"]
@@ -158,17 +163,43 @@ pub fn mm256_blendv_ps(a: m256, b: m256, mask: m256) -> m256 {
     unsafe { avx_blendv_ps_256(a, b, mask) }
 }
 
-// TODO(mayah): Implement these.
 // vbroadcastf128
 // __m256d _mm256_broadcast_pd (__m128d const * mem_addr)
+#[inline]
+pub unsafe fn mm256_broadcast_pd(mem_addr: *const m128d) -> m256d {
+    avx_vbroadcastf128_pd_256(mem_addr as *const u8)
+}
+
 // vbroadcastf128
 // __m256 _mm256_broadcast_ps (__m128 const * mem_addr)
+#[inline]
+pub unsafe fn mm256_broadcast_ps(mem_addr: *const m128) -> m256 {
+    avx_vbroadcastf128_ps_256(mem_addr as *const u8)
+}
+
 // vbroadcastsd
 // __m256d _mm256_broadcast_sd (double const * mem_addr)
+#[inline]
+pub unsafe fn mm256_broadcast_sd(mem_addr: *const f64) -> m256d {
+    let d = *mem_addr;
+    f64x4(d, d, d, d).as_m256d()
+}
+
 // vbroadcastss
 // __m128 _mm_broadcast_ss (float const * mem_addr)
+#[inline]
+pub unsafe fn mm_broadcast_ss(mem_addr: *const f32) -> m128 {
+    let d = *mem_addr;
+    f32x4(d, d, d, d).as_m128()
+}
+
 // vbroadcastss
 // __m256 _mm256_broadcast_ss (float const * mem_addr)
+#[inline]
+pub unsafe fn mm256_broadcast_ss(mem_addr: *const f32) -> m256 {
+    let d = *mem_addr;
+    f32x8(d, d, d, d, d, d, d, d).as_m256()
+}
 
 // __m256 _mm256_castpd_ps (__m256d a)
 #[inline]
@@ -990,6 +1021,29 @@ mod tests {
 
         assert_eq!(mm256_set_m128d(hi64, lo64).as_f64x4().as_array(), [1.0, 2.0, 3.0, 4.0]);
         assert_eq!(mm256_setr_m128d(lo64, hi64).as_f64x4().as_array(), [1.0, 2.0, 3.0, 4.0]);
+    }
+
+    #[test]
+    fn test_broadcast() {
+        let xpd = mm_setr_pd(1.0, 2.0);
+        let xps = mm_setr_ps(1.0, 2.0, 3.0, 4.0);
+        let xf32: f32 = 1.0;
+        let xf64: f64 = 2.0;
+
+        let r = unsafe { mm256_broadcast_pd(&xpd as *const m128d) };
+        assert_eq!(r.as_f64x4().as_array(), [1.0, 2.0, 1.0, 2.0]);
+
+        let r = unsafe { mm256_broadcast_ps(&xps as *const m128) };
+        assert_eq!(r.as_f32x8().as_array(), [1.0, 2.0, 3.0, 4.0, 1.0, 2.0, 3.0, 4.0]);
+
+        let r = unsafe { mm256_broadcast_sd(&xf64 as *const f64) };
+        assert_eq!(r.as_f64x4().as_array(), [2.0, 2.0, 2.0, 2.0]);
+
+        let r = unsafe { mm_broadcast_ss(&xf32 as *const f32) };
+        assert_eq!(r.as_f32x4().as_array(), [1.0, 1.0, 1.0, 1.0]);
+
+        let r = unsafe { mm256_broadcast_ss(&xf32 as *const f32) };
+        assert_eq!(r.as_f32x8().as_array(), [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]);
     }
 
     #[test]
