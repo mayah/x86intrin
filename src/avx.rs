@@ -21,7 +21,10 @@ extern {
     // fn sse2_cmp_pd(a: m128d, b: m128d, c: i8) -> m128d;
 
     #[link_name = "llvm.x86.avx.dp.ps.256"]
-    pub fn avx_dp_ps_256(a: m256, b: m256, c: u8) -> m256;
+    fn avx_dp_ps_256(a: m256, b: m256, c: u8) -> m256;
+
+    #[link_name = "llvm.x86.avx.ldu.dq.256"]
+    fn avx_ldu_dq_256(a: *mut u8) -> i8x32;
 
     #[link_name = "llvm.x86.avx.vzeroall"]
     fn avx_vzeroall();
@@ -581,6 +584,11 @@ pub fn mm256_insertf128_si256(a: m256i, b: m128i, imm8: i32) -> m256i {
 
 // vlddqu
 // __m256i _mm256_lddqu_si256 (__m256i const * mem_addr)
+#[inline]
+pub unsafe fn mm256_lddqu_si256(mem_addr: *const m256i) -> m256i {
+    avx_ldu_dq_256(mem_addr as *mut u8).as_m256i()
+}
+
 // vmovapd
 // __m256d _mm256_load_pd (double const * mem_addr)
 // vmovaps
@@ -1398,5 +1406,14 @@ mod tests {
         assert_eq!(mm256_insertf128_ps(aps256, aps128, 1).as_f32x8().as_array(),
                    [1.0, 2.0, 3.0, 4.0, 9.0, 10.0, 11.0, 12.0]);
         assert_eq!(mm256_insertf128_si256(asi256, asi128, 1).as_i64x4().as_array(), [1, 2, 5, 6]);
+    }
+
+    #[test]
+    fn test_lddqu() {
+        let x = mm256_setr_epi32(1, 2, 3, 4, 5, 6, 7, 8);
+        let p = &x as *const m256i;
+
+        let r = unsafe { mm256_lddqu_si256(p) };
+        assert_eq!(r.as_i32x8().as_array(), [1, 2, 3, 4, 5, 6, 7, 8]);
     }
 }
