@@ -8,7 +8,7 @@ to what intel uses (removing prefix underscore; e.g. `__m128i -> m128i`,
 I actually need various integer SIMD arithmetics, so such functions will
 be implmeneted with priority.
 
-## Current Status
+# Current Status
 
 Currently most of SSE, SSE2, SSE3, SSSE3, SSE4.1, and SSE4.2 are implemented.
 Some of the functions cannot be implemented since rust is not exposing necessary
@@ -17,3 +17,13 @@ functions.
 AVX and AVX2 implementation are ongoing.
 
 After all done, I'd like to contribute to rust libraries to support missing functions.
+
+# Note
+
+To build with `cargo`, you need to set `target-cpu` or `target-feature` in `RUSTFLAGS`.
+
+For example:
+```
+$ RUSTFLAGS="-C target-cpu=native" cargo build
+$ RUSTFLAGS="-C target-feature=+sse3" cargo build
+```
