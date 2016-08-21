@@ -591,22 +591,103 @@ pub unsafe fn mm256_lddqu_si256(mem_addr: *const m256i) -> m256i {
 
 // vmovapd
 // __m256d _mm256_load_pd (double const * mem_addr)
+#[inline]
+pub unsafe fn mm256_load_pd(mem_addr: *const f64) -> m256d {
+    *(mem_addr as *const m256d)
+}
+
 // vmovaps
 // __m256 _mm256_load_ps (float const * mem_addr)
+#[inline]
+pub unsafe fn mm256_load_ps(mem_addr: *const f32) -> m256 {
+    *(mem_addr as *const m256)
+}
+
 // vmovdqa
 // __m256i _mm256_load_si256 (__m256i const * mem_addr)
+#[inline]
+pub unsafe fn mm256_load_si256(mem_addr: *const m256i) -> m256i {
+    *mem_addr
+}
+
 // vmovupd
 // __m256d _mm256_loadu_pd (double const * mem_addr)
+#[inline]
+pub unsafe fn mm256_loadu_pd(mem_addr: *const f64) -> m256d {
+    let mut result: m256d = std::mem::uninitialized();
+
+    let src_p = mem_addr as *const u8;
+    let dst_p = &mut result as *mut m256d as *mut u8;
+    std::ptr::copy_nonoverlapping(src_p, dst_p, 32);
+
+    result
+}
+
 // vmovups
 // __m256 _mm256_loadu_ps (float const * mem_addr)
+#[inline]
+pub unsafe fn mm256_loadu_ps(mem_addr: *const f32) -> m256 {
+    let mut result: m256 = std::mem::uninitialized();
+
+    let src_p = mem_addr as *const u8;
+    let dst_p = &mut result as *mut m256 as *mut u8;
+    std::ptr::copy_nonoverlapping(src_p, dst_p, 32);
+
+    result
+}
+
 // vmovdqu
 // __m256i _mm256_loadu_si256 (__m256i const * mem_addr)
+#[inline]
+pub unsafe fn mm256_loadu_si256(mem_addr: *const m256i) -> m256i {
+    let mut result: m256i = std::mem::uninitialized();
+
+    let src_p = mem_addr as *const u8;
+    let dst_p = &mut result as *mut m256i as *mut u8;
+    std::ptr::copy_nonoverlapping(src_p, dst_p, 32);
+
+    result
+}
+
 // ...
 // __m256 _mm256_loadu2_m128 (float const* hiaddr, float const* loaddr)
+#[inline]
+pub unsafe fn mm256_loadu2_m128(hiaddr: *const f32, loaddr: *const f32) -> m256 {
+    // __m256 __v256 = _mm256_castps128_ps256(((struct __loadu_ps*)__addr_lo)->__v);
+    // return _mm256_insertf128_ps(__v256, ((struct __loadu_ps*)__addr_hi)->__v, 1);
+
+    // TODO(mayah): correct?
+    let lo = mm_loadu_ps(loaddr);
+    let hi = mm_loadu_ps(hiaddr);
+    mm256_insertf128_ps(mm256_castps128_ps256(lo), hi, 1)
+}
+
 // ...
 // __m256d _mm256_loadu2_m128d (double const* hiaddr, double const* loaddr)
+#[inline]
+pub unsafe fn mm256_loadu2_m128d(hiaddr: *const f64, loaddr: *const f64) -> m256d {
+    // __m256d __v256 = _mm256_castpd128_pd256(((struct __loadu_pd*)__addr_lo)->__v);
+    // return _mm256_insertf128_pd(__v256, ((struct __loadu_pd*)__addr_hi)->__v, 1);
+
+    // TODO(mayah): correct?
+    let lo = mm_loadu_pd(loaddr);
+    let hi = mm_loadu_pd(hiaddr);
+    mm256_insertf128_pd(mm256_castpd128_pd256(lo), hi, 1)
+}
+
 // ...
 // __m256i _mm256_loadu2_m128i (__m128i const* hiaddr, __m128i const* loaddr)
+#[inline]
+pub unsafe fn mm256_loadu2_m128i(hiaddr: *const m128i, loaddr: *const m128i) -> m256i {
+    //__m256i __v256 = _mm256_castsi128_si256(((struct __loadu_si128*)__addr_lo)->__v);
+    // return _mm256_insertf128_si256(__v256, ((struct __loadu_si128*)__addr_hi)->__v, 1);
+
+    // TODO(mayah): correct?
+    let lo = mm_loadu_si128(loaddr);
+    let hi = mm_loadu_si128(hiaddr);
+    mm256_insertf128_si256(mm256_castsi128_si256(lo), hi, 1)
+}
+
 // vmaskmovpd
 // __m128d _mm_maskload_pd (double const * mem_addr, __m128i mask)
 // vmaskmovpd
@@ -623,6 +704,7 @@ pub unsafe fn mm256_lddqu_si256(mem_addr: *const m256i) -> m256i {
 // void _mm_maskstore_ps (float * mem_addr, __m128i mask, __m128 a)
 // vmaskmovps
 // void _mm256_maskstore_ps (float * mem_addr, __m256i mask, __m256 a)
+
 // vmaxpd
 // __m256d _mm256_max_pd (__m256d a, __m256d b)
 // vmaxps
@@ -1415,5 +1497,53 @@ mod tests {
 
         let r = unsafe { mm256_lddqu_si256(p) };
         assert_eq!(r.as_i32x8().as_array(), [1, 2, 3, 4, 5, 6, 7, 8]);
+    }
+
+    #[test]
+    fn test_load() {
+        let xf64: [f64; 4] = [1.0, 2.0, 3.0, 4.0];
+        let xf32: [f32; 8] = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0];
+        let xsi: [i64; 4] = [1, 2, 3, 4];
+
+        let p_pd = &xf64 as *const f64;
+        let p_ps = &xf32 as *const f32;
+        let p_si = &xsi as *const i64 as *const m256i;
+
+        unsafe {
+            assert_eq!(mm256_load_pd(p_pd).as_f64x4().as_array(), [1.0, 2.0, 3.0, 4.0]);
+            assert_eq!(mm256_loadu_pd(p_pd).as_f64x4().as_array(), [1.0, 2.0, 3.0, 4.0]);
+
+            assert_eq!(mm256_load_ps(p_ps).as_f32x8().as_array(), [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]);
+            assert_eq!(mm256_loadu_ps(p_ps).as_f32x8().as_array(), [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]);
+
+            assert_eq!(mm256_load_si256(p_si).as_i64x4().as_array(), [1, 2, 3, 4]);
+            assert_eq!(mm256_loadu_si256(p_si).as_i64x4().as_array(), [1, 2, 3, 4]);
+        }
+    }
+
+    #[test]
+    fn test_loadu2() {
+        let xf64_lo: [f64; 2] = [1.0, 2.0];
+        let xf64_hi: [f64; 2] = [3.0, 4.0];
+        let xf32_lo: [f32; 4] = [1.0, 2.0, 3.0, 4.0];
+        let xf32_hi: [f32; 4] = [5.0, 6.0, 7.0, 8.0];
+        let xsi_lo: [i64; 2] = [1, 2];
+        let xsi_hi: [i64; 2] = [3, 4];
+
+        let p_pd_lo = &xf64_lo as *const f64;
+        let p_pd_hi = &xf64_hi as *const f64;
+        let p_ps_lo = &xf32_lo as *const f32;
+        let p_ps_hi = &xf32_hi as *const f32;
+        let p_si_lo = &xsi_lo as *const i64 as *const m128i;
+        let p_si_hi = &xsi_hi as *const i64 as *const m128i;
+
+        unsafe {
+            assert_eq!(mm256_loadu2_m128d(p_pd_hi, p_pd_lo).as_f64x4().as_array(),
+                       [1.0, 2.0, 3.0, 4.0]);
+            assert_eq!(mm256_loadu2_m128(p_ps_hi, p_ps_lo).as_f32x8().as_array(),
+                       [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]);
+            assert_eq!(mm256_loadu2_m128i(p_si_hi, p_si_lo).as_i64x4().as_array(),
+                       [1, 2, 3, 4]);
+        }
     }
 }
