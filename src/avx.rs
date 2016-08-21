@@ -507,12 +507,32 @@ pub fn mm256_hsub_ps(a: m256, b: m256) -> m256 {
 
 // ...
 // __m256i _mm256_insert_epi16 (__m256i a, __int16 i, const int index)
+#[inline]
+pub fn mm256_insert_epi16(a: m256i, i: i16, index: i32) -> m256i {
+    a.as_i16x16().insert(index as usize, i).as_m256i()
+}
+
 // ...
 // __m256i _mm256_insert_epi32 (__m256i a, __int32 i, const int index)
+#[inline]
+pub fn mm256_insert_epi32(a: m256i, i: i32, index: i32) -> m256i {
+    a.as_i32x8().insert(index as usize, i).as_m256i()
+}
+
 // ...
 // __m256i _mm256_insert_epi64 (__m256i a, __int64 i, const int index)
+#[inline]
+pub fn mm256_insert_epi64(a: m256i, i: i64, index: i32) -> m256i {
+    a.as_i64x4().insert(index as usize, i).as_m256i()
+}
+
 // ...
 // __m256i _mm256_insert_epi8 (__m256i a, __int8 i, const int index)
+#[inline]
+pub fn mm256_insert_epi8(a: m256i, i: i8, index: i32) -> m256i {
+    a.as_i8x32().insert(index as usize, i).as_m256i()
+}
+
 // vinsertf128
 // __m256d _mm256_insertf128_pd (__m256d a, __m128d b, int imm8)
 // vinsertf128
@@ -1187,6 +1207,23 @@ mod tests {
         assert_eq!(mm256_extract_epi16(a, 3), 0x0706);
         assert_eq!(mm256_extract_epi32(a, 3), 0x0F0E0D0C);
         assert_eq!(mm256_extract_epi64(a, 3), 0x1F1E1D1C1B1A1918);
+    }
+
+    #[test]
+    fn test_insert() {
+        let a8 = mm256_setr_epi8(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+                                  17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32);
+        let a16 = mm256_setr_epi16(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
+        let a32 = mm256_setr_epi32(1, 2, 3, 4, 5, 6, 7, 8);
+        let a64 = mm256_setr_epi64x(1, 2, 3, 4);
+
+        assert_eq!(mm256_insert_epi8(a8, 100, 0).as_i8x32().as_array(),
+                   [100, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+                    17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32]);
+        assert_eq!(mm256_insert_epi16(a16, 100, 0).as_i16x16().as_array(),
+                   [100, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
+        assert_eq!(mm256_insert_epi32(a32, 100, 0).as_i32x8().as_array(), [100, 2, 3, 4, 5, 6, 7, 8]);
+        assert_eq!(mm256_insert_epi64(a64, 100, 0).as_i64x4().as_array(), [100, 2, 3, 4]);
     }
 
     #[test]
