@@ -593,6 +593,7 @@ pub unsafe fn mm256_lddqu_si256(mem_addr: *const m256i) -> m256i {
 // __m256d _mm256_load_pd (double const * mem_addr)
 #[inline]
 pub unsafe fn mm256_load_pd(mem_addr: *const f64) -> m256d {
+    // mem_addr should be 32byte aligned
     *(mem_addr as *const m256d)
 }
 
@@ -1501,13 +1502,16 @@ mod tests {
 
     #[test]
     fn test_load() {
-        let xf64: [f64; 4] = [1.0, 2.0, 3.0, 4.0];
-        let xf32: [f32; 8] = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0];
-        let xsi: [i64; 4] = [1, 2, 3, 4];
+        // mm256_load_* must be 32byte aligned.
+        // TODO(mayah): Can we make sure alignment in rust? Using m256, m256d, and m256i
+        // is OK, since they should be 32byte aligned.
+        let xf64 = mm256_setr_pd(1.0, 2.0, 3.0, 4.0);
+        let xf32 = mm256_setr_ps(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0);
+        let xsi = mm256_setr_epi64x(1, 2, 3, 4);
 
-        let p_pd = &xf64 as *const f64;
-        let p_ps = &xf32 as *const f32;
-        let p_si = &xsi as *const i64 as *const m256i;
+        let p_pd = &xf64 as *const m256d as *const f64;
+        let p_ps = &xf32 as *const m256 as *const f32;
+        let p_si = &xsi as *const m256i;
 
         unsafe {
             assert_eq!(mm256_load_pd(p_pd).as_f64x4().as_array(), [1.0, 2.0, 3.0, 4.0]);
