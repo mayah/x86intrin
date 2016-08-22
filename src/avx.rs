@@ -42,6 +42,11 @@ extern "platform-intrinsic" {
 
     // fn x86_mm256_cmp_pd(a: m256d, b: m256d, c: i8) -> m256d;
     // fn x86_mm256_cmp_ps(a: m256, b: m256, c: i8) -> m256;
+
+    fn x86_mm256_max_ps(x: m256, y: m256) -> m256;
+    fn x86_mm256_max_pd(x: m256d, y: m256d) -> m256d;
+    fn x86_mm256_min_ps(x: m256, y: m256) -> m256;
+    fn x86_mm256_min_pd(x: m256d, y: m256d) -> m256d;
 }
 
 pub const CMP_EQ_OQ: i32 = 0x00;
@@ -706,14 +711,45 @@ pub unsafe fn mm256_loadu2_m128i(hiaddr: *const m128i, loaddr: *const m128i) -> 
 // vmaskmovps
 // void _mm256_maskstore_ps (float * mem_addr, __m256i mask, __m256 a)
 
-// vmaxpd
-// __m256d _mm256_max_pd (__m256d a, __m256d b)
+// TODO(mayah): This doc test doesn't work?
+/// vmaxpd
+/// `__m256d _mm256_max_pd(__m256d a, __m256d b);`
+///
+/// # Examples
+///
+/// ```
+/// use x86intrin::*;
+///
+/// let a = mm256_setr_pd(1.0, 2.0, 3.0, 4.0);
+/// let b = mm256_setr_pd(3.0, 2.0, 1.0, 2.0);
+/// assert_eq!(mm256_max_pd(a, b).as_f64x4().as_array(), [3.0, 2.0, 3.0, 4.0]);
+/// ```
+#[inline]
+pub fn mm256_max_pd(a: m256d, b: m256d) -> m256d {
+    unsafe { x86_mm256_max_pd(a, b) }
+}
+
 // vmaxps
 // __m256 _mm256_max_ps (__m256 a, __m256 b)
+#[inline]
+pub fn mm256_max_ps(a: m256, b: m256) -> m256 {
+    unsafe { x86_mm256_max_ps(a, b) }
+}
+
 // vminpd
 // __m256d _mm256_min_pd (__m256d a, __m256d b)
+#[inline]
+pub fn mm256_min_pd(a: m256d, b: m256d) -> m256d {
+    unsafe { x86_mm256_min_pd(a, b) }
+}
+
 // vminps
 // __m256 _mm256_min_ps (__m256 a, __m256 b)
+#[inline]
+pub fn mm256_min_ps(a: m256, b: m256) -> m256 {
+    unsafe { x86_mm256_min_ps(a, b) }
+}
+
 // vmovddup
 // __m256d _mm256_movedup_pd (__m256d a)
 // vmovshdup
@@ -1549,5 +1585,23 @@ mod tests {
             assert_eq!(mm256_loadu2_m128i(p_si_hi, p_si_lo).as_i64x4().as_array(),
                        [1, 2, 3, 4]);
         }
+    }
+
+    #[test]
+    fn test_max_min_pd() {
+        let a = mm256_setr_pd(1.0, 2.0, 3.0, 4.0);
+        let b = mm256_setr_pd(3.0, 2.0, 1.0, 2.0);
+        assert_eq!(mm256_max_pd(a, b).as_f64x4().as_array(), [3.0, 2.0, 3.0, 4.0]);
+        assert_eq!(mm256_min_pd(a, b).as_f64x4().as_array(), [1.0, 2.0, 1.0, 2.0]);
+    }
+
+    #[test]
+    fn test_max_min_ps() {
+        let a = mm256_setr_ps(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0);
+        let b = mm256_setr_ps(3.0, 2.0, 1.0, 2.0, 3.0, 1.0, 8.0, 9.0);
+        assert_eq!(mm256_max_ps(a, b).as_f32x8().as_array(),
+                   [3.0, 2.0, 3.0, 4.0, 5.0, 6.0, 8.0, 9.0]);
+        assert_eq!(mm256_min_ps(a, b).as_f32x8().as_array(),
+                   [1.0, 2.0, 1.0, 2.0, 3.0, 1.0, 7.0, 8.0]);
     }
 }
