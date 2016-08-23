@@ -47,6 +47,10 @@ extern "platform-intrinsic" {
     fn x86_mm256_max_pd(x: m256d, y: m256d) -> m256d;
     fn x86_mm256_min_ps(x: m256, y: m256) -> m256;
     fn x86_mm256_min_pd(x: m256d, y: m256d) -> m256d;
+
+    fn x86_mm256_rsqrt_ps(x: m256) -> m256;
+    fn x86_mm256_sqrt_ps(x: m256) -> m256;
+    fn x86_mm256_sqrt_pd(x: m256d) -> m256d;
 }
 
 pub const CMP_EQ_OQ: i32 = 0x00;
@@ -838,6 +842,10 @@ pub fn mm256_round_ps(a: m256, rounding: i32) -> m256 {
 
 // vrsqrtps
 // __m256 _mm256_rsqrt_ps (__m256 a)
+#[inline]
+pub fn mm256_rsqrt_ps(a: m256) -> m256 {
+    unsafe { x86_mm256_rsqrt_ps(a) }
+}
 
 // ...
 // __m256i _mm256_set_epi16 (short e15, short e14, short e13, short e12, short e11, short e10, short e9, short e8, short e7, short e6, short e5, short e4, short e3, short e2, short e1, short e0)
@@ -1047,10 +1055,21 @@ pub fn mm256_setzero_si256() -> m256i {
 // __m256d _mm256_shuffle_pd (__m256d a, __m256d b, const int imm8)
 // vshufps
 // __m256 _mm256_shuffle_ps (__m256 a, __m256 b, const int imm8)
+
 // vsqrtpd
 // __m256d _mm256_sqrt_pd (__m256d a)
+#[inline]
+pub fn mm256_sqrt_pd(a: m256d) -> m256d {
+    unsafe { x86_mm256_sqrt_pd(a) }
+}
+
 // vsqrtps
 // __m256 _mm256_sqrt_ps (__m256 a)
+#[inline]
+pub fn mm256_sqrt_ps(a: m256) -> m256 {
+    unsafe { x86_mm256_sqrt_ps(a) }
+}
+
 // vmovapd
 // void _mm256_store_pd (double * mem_addr, __m256d a)
 // vmovaps
@@ -1603,5 +1622,22 @@ mod tests {
                    [3.0, 2.0, 3.0, 4.0, 5.0, 6.0, 8.0, 9.0]);
         assert_eq!(mm256_min_ps(a, b).as_f32x8().as_array(),
                    [1.0, 2.0, 1.0, 2.0, 3.0, 1.0, 7.0, 8.0]);
+    }
+
+    #[test]
+    fn test_math() {
+        let aps = mm256_setr_ps(1.0, 4.0, 9.0, 16.0, 25.0, 36.0, 49.0, 64.0);
+        let apd = mm256_setr_pd(1.0, 4.0, 9.0, 16.0);
+
+        let apd_sqrt = mm256_sqrt_pd(apd).as_f64x4().as_array();
+        let aps_sqrt = mm256_sqrt_ps(aps).as_f32x8().as_array();
+        let aps_rsqrt = mm256_rsqrt_ps(aps).as_f32x8().as_array();
+
+        assert!((apd_sqrt[0] - 1.0).abs() < 0.001);
+        assert!((apd_sqrt[1] - 2.0).abs() < 0.001);
+        assert!((aps_sqrt[0] - 1.0).abs() < 0.001);
+        assert!((aps_sqrt[1] - 2.0).abs() < 0.001);
+        assert!((aps_rsqrt[0] - 1.0).abs() < 0.001);
+        assert!((aps_rsqrt[1] - 1.0 / 2.0).abs() < 0.001);
     }
 }
