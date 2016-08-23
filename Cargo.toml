@@ -10,3 +10,6 @@ repository = "https://github.com/mayah/x86intrin"
 description = "x86intrin implementation"
 
 [dependencies]
+
+[features]
+doc = []
