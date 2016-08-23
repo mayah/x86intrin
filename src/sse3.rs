@@ -67,7 +67,7 @@ pub unsafe fn mm_lddqu_si128(mem_addr: *const m128i) -> m128i {
 // movddup
 // __m128d _mm_loaddup_pd (double const* mem_addr)
 #[inline]
-pub unsafe fn _mm_loaddup_pd(mem_addr: *const f64) ->  m128d {
+pub unsafe fn mm_loaddup_pd(mem_addr: *const f64) ->  m128d {
     mm_load1_pd(mem_addr)
 }
 
