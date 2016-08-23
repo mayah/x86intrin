@@ -2420,8 +2420,7 @@ mod tests {
         assert_eq!(mm_cvtsd_si32(d), 11);
         assert_eq!(mm_cvtsd_si64(d), 11);
         assert_eq!(mm_cvtsd_si64x(d), 11);
-        // TODO(mayah): This is causing compile failure if `avx` is enabled.
-        // assert_eq!(mm_cvtsd_ss(s, d).as_f32x4().as_array(), [10.75, 7.0, 8.0, 9.0]);
+        assert_eq!(mm_cvtsd_ss(s, d).as_f32x4().as_array(), [10.75, 7.0, 8.0, 9.0]);
         assert_eq!(mm_cvtsi128_si32(i), 1);
         assert_eq!(mm_cvtsi128_si64(i), 0x200000001);
         assert_eq!(mm_cvtsi128_si64x(i), 0x200000001);
