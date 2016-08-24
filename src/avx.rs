@@ -1273,12 +1273,31 @@ pub fn mm256_undefined_si256() -> m256i {
 // TODO(mayah): Implement these.
 // vunpckhpd
 // __m256d _mm256_unpackhi_pd (__m256d a, __m256d b)
+#[inline]
+pub fn mm256_unpackhi_pd(a: m256d, b: m256d) -> m256d {
+    unsafe { simd_shuffle4(a, b, [1, 5, 3, 7]) }
+}
+
 // vunpckhps
 // __m256 _mm256_unpackhi_ps (__m256 a, __m256 b)
+#[inline]
+pub fn mm256_unpackhi_ps(a: m256, b: m256) -> m256 {
+    unsafe { simd_shuffle8(a, b, [2, 10, 3, 11, 6, 14, 7, 15]) }
+}
+
 // vunpcklpd
 // __m256d _mm256_unpacklo_pd (__m256d a, __m256d b)
+#[inline]
+pub fn mm256_unpacklo_pd(a: m256d, b: m256d) -> m256d {
+    unsafe { simd_shuffle4(a, b, [0, 4, 2, 6]) }
+}
+
 // vunpcklps
 // __m256 _mm256_unpacklo_ps (__m256 a, __m256 b)
+#[inline]
+pub fn mm256_unpacklo_ps(a: m256, b: m256) -> m256 {
+    unsafe { simd_shuffle8(a, b, [0, 8, 1, 9, 4, 12, 5, 13]) }
+}
 
 // vxorpd
 // __m256d _mm256_xor_pd (__m256d a, __m256d b)
@@ -1734,6 +1753,26 @@ mod tests {
         assert!((aps_sqrt[1] - 2.0).abs() < 0.001);
         assert!((aps_rsqrt[0] - 1.0).abs() < 0.001);
         assert!((aps_rsqrt[1] - 1.0 / 2.0).abs() < 0.001);
+    }
+
+    #[test]
+    fn test_unpack_pd() {
+        let a = mm256_setr_pd(1.0, 2.0, 3.0, 4.0);
+        let b = mm256_setr_pd(5.0, 6.0, 7.0, 8.0);
+
+        assert_eq!(mm256_unpacklo_pd(a, b).as_f64x4().as_array(), [1.0, 5.0, 3.0, 7.0]);
+        assert_eq!(mm256_unpackhi_pd(a, b).as_f64x4().as_array(), [2.0, 6.0, 4.0, 8.0]);
+    }
+
+    #[test]
+    fn test_unpack_ps() {
+        let a = mm256_setr_ps(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0);
+        let b = mm256_setr_ps(9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0);
+
+        assert_eq!(mm256_unpacklo_ps(a, b).as_f32x8().as_array(),
+                   [1.0, 9.0, 2.0, 10.0, 5.0, 13.0, 6.0, 14.0]);
+        assert_eq!(mm256_unpackhi_ps(a, b).as_f32x8().as_array(),
+                   [3.0, 11.0, 4.0, 12.0, 7.0, 15.0, 8.0, 16.0]);
     }
 
     #[test]
