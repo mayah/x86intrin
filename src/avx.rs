@@ -51,6 +51,22 @@ extern "platform-intrinsic" {
     fn x86_mm256_rsqrt_ps(x: m256) -> m256;
     fn x86_mm256_sqrt_ps(x: m256) -> m256;
     fn x86_mm256_sqrt_pd(x: m256d) -> m256d;
+
+    fn x86_mm_testc_ps(x: m128, y: m128) -> i32;
+    fn x86_mm256_testc_ps(x: m256, y: m256) -> i32;
+    fn x86_mm_testc_pd(x: m128d, y: m128d) -> i32;
+    fn x86_mm256_testc_pd(x: m256d, y: m256d) -> i32;
+    fn x86_mm256_testc_si256(x: u64x4, y: u64x4) -> i32;
+    fn x86_mm_testnzc_ps(x: m128, y: m128) -> i32;
+    fn x86_mm256_testnzc_ps(x: m256, y: m256) -> i32;
+    fn x86_mm_testnzc_pd(x: m128d, y: m128d) -> i32;
+    fn x86_mm256_testnzc_pd(x: m256d, y: m256d) -> i32;
+    fn x86_mm256_testnzc_si256(x: u64x4, y: u64x4) -> i32;
+    fn x86_mm_testz_ps(x: m128, y: m128) -> i32;
+    fn x86_mm256_testz_ps(x: m256, y: m256) -> i32;
+    fn x86_mm_testz_pd(x: m128d, y: m128d) -> i32;
+    fn x86_mm256_testz_pd(x: m256d, y: m256d) -> i32;
+    fn x86_mm256_testz_si256(x: u64x4, y: u64x4) -> i32;
 }
 
 pub const CMP_EQ_OQ: i32 = 0x00;
@@ -698,6 +714,7 @@ pub unsafe fn mm256_loadu2_m128i(hiaddr: *const m128i, loaddr: *const m128i) -> 
     mm256_insertf128_si256(mm256_castsi128_si256(lo), hi, 1)
 }
 
+// TODO(mayah): Implement these.
 // vmaskmovpd
 // __m128d _mm_maskload_pd (double const * mem_addr, __m128i mask)
 // vmaskmovpd
@@ -754,6 +771,7 @@ pub fn mm256_min_ps(a: m256, b: m256) -> m256 {
     unsafe { x86_mm256_min_ps(a, b) }
 }
 
+// TODO(mayah): Implement these.
 // vmovddup
 // __m256d _mm256_movedup_pd (__m256d a)
 // vmovshdup
@@ -797,6 +815,7 @@ pub fn mm256_or_ps(a: m256, b: m256) -> m256 {
     unsafe { simd_or(ai, bi).as_m256() }
 }
 
+// TODO(mayah): Implement these.
 // vpermilpd
 // __m128d _mm_permute_pd (__m128d a, int imm8)
 // vpermilpd
@@ -1070,6 +1089,7 @@ pub fn mm256_sqrt_ps(a: m256) -> m256 {
     unsafe { x86_mm256_sqrt_ps(a) }
 }
 
+// TODO(mayah): Implement these.
 // vmovapd
 // void _mm256_store_pd (double * mem_addr, __m256d a)
 // vmovaps
@@ -1111,34 +1131,108 @@ pub fn mm256_sub_ps(a: m256, b: m256) -> m256 {
 
 // vtestpd
 // int _mm_testc_pd (__m128d a, __m128d b)
+#[inline]
+pub fn mm_testc_pd(a: m128d, b: m128d) -> i32 {
+    unsafe { x86_mm_testc_pd(a, b) }
+}
+
 // vtestpd
 // int _mm256_testc_pd (__m256d a, __m256d b)
+#[inline]
+pub fn mm256_testc_pd(a: m256d, b: m256d) -> i32 {
+    unsafe { x86_mm256_testc_pd(a, b) }
+}
+
 // vtestps
 // int _mm_testc_ps (__m128 a, __m128 b)
+#[inline]
+pub fn mm_testc_ps(a: m128, b: m128) -> i32 {
+    unsafe { x86_mm_testc_ps(a, b) }
+}
+
 // vtestps
 // int _mm256_testc_ps (__m256 a, __m256 b)
+#[inline]
+pub fn mm256_testc_ps(a: m256, b: m256) -> i32 {
+    unsafe { x86_mm256_testc_ps(a, b) }
+}
+
 // vptest
 // int _mm256_testc_si256 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_testc_si256(a: m256i, b: m256i) -> i32 {
+    unsafe { x86_mm256_testc_si256(a.as_u64x4(), b.as_u64x4()) }
+}
+
 // vtestpd
 // int _mm_testnzc_pd (__m128d a, __m128d b)
+#[inline]
+pub fn mm_testnzc_pd(a: m128d, b: m128d) -> i32 {
+    unsafe { x86_mm_testnzc_pd(a, b) }
+}
+
 // vtestpd
 // int _mm256_testnzc_pd (__m256d a, __m256d b)
+#[inline]
+pub fn mm256_testnzc_pd(a: m256d, b: m256d) -> i32 {
+    unsafe { x86_mm256_testnzc_pd(a, b) }
+}
+
 // vtestps
 // int _mm_testnzc_ps (__m128 a, __m128 b)
+#[inline]
+pub fn mm_testnzc_ps(a: m128, b: m128) -> i32 {
+    unsafe { x86_mm_testnzc_ps(a, b) }
+}
+
 // vtestps
 // int _mm256_testnzc_ps (__m256 a, __m256 b)
+#[inline]
+pub fn mm256_testnzc_ps(a: m256, b: m256) -> i32 {
+    unsafe { x86_mm256_testnzc_ps(a, b) }
+}
+
 // vptest
 // int _mm256_testnzc_si256 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_testnzc_si256(a: m256i, b: m256i) -> i32 {
+    unsafe { x86_mm256_testnzc_si256(a.as_u64x4(), b.as_u64x4()) }
+}
+
 // vtestpd
 // int _mm_testz_pd (__m128d a, __m128d b)
+#[inline]
+pub fn mm_testz_pd(a: m128d, b: m128d) -> i32 {
+    unsafe { x86_mm_testz_pd(a, b) }
+}
+
 // vtestpd
 // int _mm256_testz_pd (__m256d a, __m256d b)
+#[inline]
+pub fn mm256_testz_pd(a: m256d, b: m256d) -> i32 {
+    unsafe { x86_mm256_testz_pd(a, b) }
+}
+
 // vtestps
 // int _mm_testz_ps (__m128 a, __m128 b)
+#[inline]
+pub fn mm_testz_ps(a: m128, b: m128) -> i32 {
+    unsafe { x86_mm_testz_ps(a, b) }
+}
+
 // vtestps
 // int _mm256_testz_ps (__m256 a, __m256 b)
+#[inline]
+pub fn mm256_testz_ps(a: m256, b: m256) -> i32 {
+    unsafe { x86_mm256_testz_ps(a, b) }
+}
+
 // vptest
 // int _mm256_testz_si256 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_testz_si256(a: m256i, b: m256i) -> i32 {
+    unsafe { x86_mm256_testz_si256(a.as_u64x4(), b.as_u64x4()) }
+}
 
 // __m128d _mm_undefined_pd (void)
 #[inline]
@@ -1176,6 +1270,7 @@ pub fn mm256_undefined_si256() -> m256i {
     unsafe { std::mem::uninitialized() }
 }
 
+// TODO(mayah): Implement these.
 // vunpckhpd
 // __m256d _mm256_unpackhi_pd (__m256d a, __m256d b)
 // vunpckhps
@@ -1639,5 +1734,110 @@ mod tests {
         assert!((aps_sqrt[1] - 2.0).abs() < 0.001);
         assert!((aps_rsqrt[0] - 1.0).abs() < 0.001);
         assert!((aps_rsqrt[1] - 1.0 / 2.0).abs() < 0.001);
+    }
+
+    #[test]
+    fn test_testc_si() {
+        let x = mm256_setr_epi32(0x7, 0x7, 0x7, 0x7, 0x7, 0x7, 0x7, 0x7);
+        let y = mm256_setr_epi32(0x3, 0x3, 0x3, 0x3, 0x3, 0x3, 0x3, 0x3);
+        let z = mm256_setr_epi32(0x8, 0x8, 0x8, 0x8, 0x8, 0x8, 0x8, 0x8);
+
+        assert_eq!(mm256_testc_si256(x, y), 1);
+        assert_eq!(mm256_testc_si256(x, z), 0);
+    }
+
+    #[test]
+    fn test_testz_si() {
+        let x = mm256_setr_epi32(0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0);
+        let y = mm256_setr_epi32(0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1);
+        let z = mm256_setr_epi32(0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2);
+
+        assert_eq!(mm256_testz_si256(x, x), 1);
+        assert_eq!(mm256_testz_si256(y, y), 0);
+        assert_eq!(mm256_testz_si256(y, z), 1);
+    }
+
+    #[test]
+    fn test_testnzc_si() {
+        let x = mm256_setr_epi32(0, 0, 0, 0, 0, 0, 0, 0);
+        let y = mm256_setr_epi32(0, 0, 0, 0, 1, 0, 0, 0);
+        let z = mm256_setr_epi32(0, 0, 0, 0, !0, !0, 0, 0);
+
+        assert_eq!(mm256_testnzc_si256(x, z), 0);
+        assert_eq!(mm256_testnzc_si256(y, z), 1);
+    }
+
+    #[test]
+    fn test_testc_p() {
+        let ppd = mm_setr_pd(1.0, 1.0);
+        let pps = mm_setr_ps(1.0, 1.0, 1.0, 1.0);
+        let npd = mm_setr_pd(-1.0, -1.0);
+        let nps = mm_setr_ps(-1.0, -1.0, -1.0, -1.0);
+
+        let ppd256 = mm256_setr_pd(1.0, 1.0, 1.0, 1.0);
+        let pps256 = mm256_setr_ps(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0);
+        let npd256 = mm256_setr_pd(-1.0, -1.0, -1.0, -1.0);
+        let nps256 = mm256_setr_ps(-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0);
+
+        assert_eq!(mm_testc_ps(pps, pps), 1);
+        assert_eq!(mm_testc_ps(nps, nps), 1);
+        assert_eq!(mm_testc_ps(pps, nps), 0);
+        assert_eq!(mm_testc_pd(ppd, ppd), 1);
+        assert_eq!(mm_testc_pd(npd, npd), 1);
+        assert_eq!(mm_testc_pd(ppd, npd), 0);
+        assert_eq!(mm256_testc_ps(pps256, pps256), 1);
+        assert_eq!(mm256_testc_ps(nps256, nps256), 1);
+        assert_eq!(mm256_testc_ps(pps256, nps256), 0);
+        assert_eq!(mm256_testc_pd(ppd256, ppd256), 1);
+        assert_eq!(mm256_testc_pd(npd256, npd256), 1);
+        assert_eq!(mm256_testc_pd(ppd256, npd256), 0);
+    }
+
+    #[test]
+    fn test_testz_p() {
+        let ppd = mm_setr_pd(1.0, 1.0);
+        let pps = mm_setr_ps(1.0, 1.0, 1.0, 1.0);
+        let npd = mm_setr_pd(-1.0, -1.0);
+        let nps = mm_setr_ps(-1.0, -1.0, -1.0, -1.0);
+
+        let ppd256 = mm256_setr_pd(1.0, 1.0, 1.0, 1.0);
+        let pps256 = mm256_setr_ps(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0);
+        let npd256 = mm256_setr_pd(-1.0, -1.0, -1.0, -1.0);
+        let nps256 = mm256_setr_ps(-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0);
+
+        assert_eq!(mm_testz_ps(pps, pps), 1);
+        assert_eq!(mm_testz_ps(nps, nps), 0);
+        assert_eq!(mm_testz_pd(ppd, ppd), 1);
+        assert_eq!(mm_testz_pd(npd, npd), 0);
+        assert_eq!(mm256_testz_ps(pps256, pps256), 1);
+        assert_eq!(mm256_testz_ps(nps256, nps256), 0);
+        assert_eq!(mm256_testz_pd(ppd256, ppd256), 1);
+        assert_eq!(mm256_testz_pd(npd256, npd256), 0);
+    }
+
+    #[test]
+    fn test_testnzc_p() {
+        let ppd = mm_setr_pd(-1.0, 1.0);
+        let pps = mm_setr_ps(-1.0, -1.0, 1.0, 1.0);
+        let npd = mm_setr_pd(1.0, -1.0);
+        let nps = mm_setr_ps(1.0, -1.0, -1.0, -1.0);
+
+        let ppd256 = mm256_setr_pd(-1.0, -1.0, 1.0, 1.0);
+        let pps256 = mm256_setr_ps(-1.0, -1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0);
+        let npd256 = mm256_setr_pd(1.0, -1.0, -1.0, -1.0);
+        let nps256 = mm256_setr_ps(1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0);
+
+        assert_eq!(mm_testnzc_ps(pps, pps), 0);
+        assert_eq!(mm_testnzc_ps(nps, nps), 0);
+        assert_eq!(mm_testnzc_ps(nps, pps), 1);
+        assert_eq!(mm_testnzc_pd(ppd, ppd), 0);
+        assert_eq!(mm_testnzc_pd(npd, npd), 0);
+        assert_eq!(mm_testnzc_pd(npd, ppd), 0);
+        assert_eq!(mm256_testnzc_ps(pps256, pps256), 0);
+        assert_eq!(mm256_testnzc_ps(nps256, nps256), 0);
+        assert_eq!(mm256_testnzc_ps(nps256, pps256), 1);
+        assert_eq!(mm256_testnzc_pd(ppd256, ppd256), 0);
+        assert_eq!(mm256_testnzc_pd(npd256, npd256), 0);
+        assert_eq!(mm256_testnzc_pd(npd256, ppd256), 1);
     }
 }
