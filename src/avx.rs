@@ -26,6 +26,11 @@ extern {
     #[link_name = "llvm.x86.avx.ldu.dq.256"]
     fn avx_ldu_dq_256(a: *mut u8) -> i8x32;
 
+    #[link_name = "llvm.x86.avx.movmsk.pd.256"]
+    fn avx_movmsk_pd_256(a: m256d) -> i32;
+    #[link_name = "llvm.x86.avx.movmsk.ps.256"]
+    fn avx_movmsk_ps_256(a: m256) -> i32;
+
     #[link_name = "llvm.x86.avx.vzeroall"]
     fn avx_vzeroall();
     #[link_name = "llvm.x86.avx.vzeroupper"]
@@ -772,17 +777,40 @@ pub fn mm256_min_ps(a: m256, b: m256) -> m256 {
     unsafe { x86_mm256_min_ps(a, b) }
 }
 
-// TODO(mayah): Implement these.
 // vmovddup
 // __m256d _mm256_movedup_pd (__m256d a)
+#[inline]
+pub fn mm256_movedup_pd(a: m256d) -> m256d {
+    unsafe { simd_shuffle4(a, a, [0, 0, 2, 2]) }
+}
+
 // vmovshdup
 // __m256 _mm256_movehdup_ps (__m256 a)
+#[inline]
+pub fn mm256_movehdup_ps(a: m256) -> m256 {
+    unsafe { simd_shuffle8(a, a, [1, 1, 3, 3, 5, 5, 7, 7]) }
+}
+
 // vmovsldup
 // __m256 _mm256_moveldup_ps (__m256 a)
+#[inline]
+pub fn mm256_moveldup_ps(a: m256) -> m256 {
+    unsafe { simd_shuffle8(a, a, [0, 0, 2, 2, 4, 4, 6, 6]) }
+}
+
 // vmovmskpd
 // int _mm256_movemask_pd (__m256d a)
+#[inline]
+pub fn mm256_movemask_pd(a: m256d) -> i32 {
+    unsafe { avx_movmsk_pd_256(a) }
+}
+
 // vmovmskps
 // int _mm256_movemask_ps (__m256 a)
+#[inline]
+pub fn mm256_movemask_ps(a: m256) -> i32 {
+    unsafe { avx_movmsk_ps_256(a) }
+}
 
 // vmulpd
 // __m256d _mm256_mul_pd (__m256d a, __m256d b)
@@ -1276,7 +1304,6 @@ pub fn mm256_undefined_si256() -> m256i {
     unsafe { std::mem::uninitialized() }
 }
 
-// TODO(mayah): Implement these.
 // vunpckhpd
 // __m256d _mm256_unpackhi_pd (__m256d a, __m256d b)
 #[inline]
@@ -1742,6 +1769,31 @@ mod tests {
                    [3.0, 2.0, 3.0, 4.0, 5.0, 6.0, 8.0, 9.0]);
         assert_eq!(mm256_min_ps(a, b).as_f32x8().as_array(),
                    [1.0, 2.0, 1.0, 2.0, 3.0, 1.0, 7.0, 8.0]);
+    }
+
+    #[test]
+    fn test_movedup_pd() {
+        let a = mm256_setr_pd(1.0, 2.0, 3.0, 4.0);
+        assert_eq!(mm256_movedup_pd(a).as_f64x4().as_array(),
+                   [1.0, 1.0, 3.0, 3.0]);
+    }
+
+    #[test]
+    fn test_movedup_ps() {
+        let a = mm256_setr_ps(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0);
+        assert_eq!(mm256_moveldup_ps(a).as_f32x8().as_array(),
+                   [1.0, 1.0, 3.0, 3.0, 5.0, 5.0, 7.0, 7.0]);
+        assert_eq!(mm256_movehdup_ps(a).as_f32x8().as_array(),
+                   [2.0, 2.0, 4.0, 4.0, 6.0, 6.0, 8.0, 8.0]);
+    }
+
+    #[test]
+    fn test_movemask() {
+        let apd = mm256_setr_pd(1.0, -2.0, 3.0, -4.0);
+        let aps = mm256_setr_ps(1.0, -2.0, 3.0, -4.0, 5.0, -6.0, 7.0, -8.0);
+
+        assert_eq!(mm256_movemask_pd(apd), 0xA);
+        assert_eq!(mm256_movemask_ps(aps), 0xAA);
     }
 
     #[test]
