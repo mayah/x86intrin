@@ -26,6 +26,23 @@ extern {
     #[link_name = "llvm.x86.avx.ldu.dq.256"]
     fn avx_ldu_dq_256(a: *mut u8) -> i8x32;
 
+    #[link_name = "llvm.x86.avx.maskload.pd"]
+    fn avx_maskload_pd(a: *const i8, b: i64x2) -> m128d;
+    #[link_name = "llvm.x86.avx.maskload.ps"]
+    fn avx_maskload_ps(a: *const i8, b: i32x4) -> m128;
+    #[link_name = "llvm.x86.avx.maskload.pd.256"]
+    fn avx_maskload_pd_256(a: *const i8, b: i64x4) -> m256d;
+    #[link_name = "llvm.x86.avx.maskload.ps.256"]
+    fn avx_maskload_ps_256(a: *const i8, b: i32x8) -> m256;
+    #[link_name = "llvm.x86.avx.maskstore.pd"]
+    fn avx_maskstore_pd(a: *mut i8, b: i64x2, c: m128d) -> ();
+    #[link_name = "llvm.x86.avx.maskstore.ps"]
+    fn avx_maskstore_ps(a: *mut i8, b: i32x4, c: m128) -> ();
+    #[link_name = "llvm.x86.avx.maskstore.pd.256"]
+    fn avx_maskstore_pd_256(a: *mut i8, b: i64x4, c: m256d) -> ();
+    #[link_name = "llvm.x86.avx.maskstore.ps.256"]
+    fn avx_maskstore_ps_256(a: *mut i8, b: i32x8, c: m256) -> ();
+
     #[link_name = "llvm.x86.avx.movmsk.pd.256"]
     fn avx_movmsk_pd_256(a: m256d) -> i32;
     #[link_name = "llvm.x86.avx.movmsk.ps.256"]
@@ -47,6 +64,18 @@ extern "platform-intrinsic" {
 
     // fn x86_mm256_cmp_pd(a: m256d, b: m256d, c: i8) -> m256d;
     // fn x86_mm256_cmp_ps(a: m256, b: m256, c: i8) -> m256;
+
+    // TODO(mayah): It looks the type of these functions in rust
+    // and llvm are mismatching? If I use i64x2, LLVM shows an error.
+    // If I use f64x2, rust shows an error.
+    // fn x86_mm_maskload_pd(x: *const f64, y: i64x2) -> m128d;
+    // fn x86_mm_maskload_ps(x: *const f32, y: i32x4) -> m128;
+    // fn x86_mm256_maskload_pd(x: *const f64, y: i64x4) -> m256d;
+    // fn x86_mm256_maskload_ps(x: *const f32, y: i32x8) -> m256;
+    // fn x86_mm_maskstore_pd(x: *mut f64, y: i64x2, z: m128d);
+    // fn x86_mm_maskstore_ps(x: *mut f32, y: i32x4, z: m128);
+    // fn x86_mm256_maskstore_pd(x: *mut f64, y: i64x4, z: m256d);
+    // fn x86_mm256_maskstore_ps(x: *mut f32, y: i32x8, z: m256);
 
     fn x86_mm256_max_ps(x: m256, y: m256) -> m256;
     fn x86_mm256_max_pd(x: m256d, y: m256d) -> m256d;
@@ -720,23 +749,61 @@ pub unsafe fn mm256_loadu2_m128i(hiaddr: *const m128i, loaddr: *const m128i) -> 
     mm256_insertf128_si256(mm256_castsi128_si256(lo), hi, 1)
 }
 
-// TODO(mayah): Implement these.
 // vmaskmovpd
 // __m128d _mm_maskload_pd (double const * mem_addr, __m128i mask)
+#[inline]
+pub unsafe fn mm_maskload_pd(mem_addr: *const f64, mask: m128i) -> m128d {
+     avx_maskload_pd(mem_addr as *const i8, mask.as_i64x2())
+}
+
 // vmaskmovpd
 // __m256d _mm256_maskload_pd (double const * mem_addr, __m256i mask)
+#[inline]
+pub unsafe fn mm256_maskload_pd(mem_addr: *const f64, mask: m256i) -> m256d {
+    avx_maskload_pd_256(mem_addr as *const i8, mask.as_i64x4())
+}
+
 // vmaskmovps
 // __m128 _mm_maskload_ps (float const * mem_addr, __m128i mask)
+#[inline]
+pub unsafe fn mm_maskload_ps(mem_addr: *const f32, mask: m128i) -> m128 {
+    avx_maskload_ps(mem_addr as *const i8, mask.as_i32x4())
+}
+
 // vmaskmovps
 // __m256 _mm256_maskload_ps (float const * mem_addr, __m256i mask)
+#[inline]
+pub unsafe fn mm256_maskload_ps(mem_addr: *const f32, mask: m256i) -> m256 {
+    avx_maskload_ps_256(mem_addr as *const i8, mask.as_i32x8())
+}
+
 // vmaskmovpd
 // void _mm_maskstore_pd (double * mem_addr, __m128i mask, __m128d a)
+#[inline]
+pub unsafe fn mm_maskstore_pd(mem_addr: *mut f64, mask: m128i, a: m128d) {
+    avx_maskstore_pd(mem_addr as *mut i8, mask.as_i64x2(), a)
+}
+
 // vmaskmovpd
 // void _mm256_maskstore_pd (double * mem_addr, __m256i mask, __m256d a)
+#[inline]
+pub unsafe fn mm256_maskstore_pd(mem_addr: *mut f64, mask: m256i, a: m256d) {
+    avx_maskstore_pd_256(mem_addr as *mut i8, mask.as_i64x4(), a)
+}
+
 // vmaskmovps
 // void _mm_maskstore_ps (float * mem_addr, __m128i mask, __m128 a)
+#[inline]
+pub unsafe fn mm_maskstore_ps(mem_addr: *mut f32, mask: m128i, a: m128) {
+    avx_maskstore_ps(mem_addr as *mut i8, mask.as_i32x4(), a)
+}
+
 // vmaskmovps
 // void _mm256_maskstore_ps (float * mem_addr, __m256i mask, __m256 a)
+#[inline]
+pub unsafe fn mm256_maskstore_ps(mem_addr: *mut f32, mask: m256i, a: m256) {
+    avx_maskstore_ps_256(mem_addr as *mut i8, mask.as_i32x8(), a)
+}
 
 // TODO(mayah): This doc test doesn't work?
 /// vmaxpd
@@ -1750,6 +1817,68 @@ mod tests {
                        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]);
             assert_eq!(mm256_loadu2_m128i(p_si_hi, p_si_lo).as_i64x4().as_array(),
                        [1, 2, 3, 4]);
+        }
+    }
+
+    #[test]
+    fn test_maskload() {
+        let a64: [f64; 4] = [1.0, 2.0, 3.0, 4.0];
+        let a32: [f32; 8] = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0];
+        let p64 = &a64 as *const f64;
+        let p32 = &a32 as *const f32;
+
+        let mps128 = mm_setr_epi32(0, !0, 0, !0);
+        let mpd128 = i64x2(0, !0).as_m128i();
+        let mps256 = mm256_setr_epi32(0, !0, 0, !0, 0, !0, 0, !0);
+        let mpd256 = mm256_setr_epi64x(0, !0, 0, !0);
+
+        unsafe {
+            assert_eq!(mm_maskload_pd(p64, mpd128).as_f64x2().as_array(), [0.0, 2.0]);
+            assert_eq!(mm_maskload_ps(p32, mps128).as_f32x4().as_array(), [0.0, 2.0, 0.0, 4.0]);
+            assert_eq!(mm256_maskload_pd(p64, mpd256).as_f64x4().as_array(), [0.0, 2.0, 0.0, 4.0]);
+            assert_eq!(mm256_maskload_ps(p32, mps256).as_f32x8().as_array(), [0.0, 2.0, 0.0, 4.0, 0.0, 6.0, 0.0, 8.0]);
+        }
+    }
+
+    #[test]
+    fn test_maskstore() {
+        let apd128 = mm_setr_pd(1.0, 2.0);
+        let aps128 = mm_setr_ps(1.0, 2.0, 3.0, 4.0);
+        let apd256 = mm256_setr_pd(1.0, 2.0, 3.0, 4.0);
+        let aps256 = mm256_setr_ps(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0);
+
+        let mps128 = mm_setr_epi32(0, !0, 0, !0);
+        let mpd128 = i64x2(0, !0).as_m128i();
+        let mps256 = mm256_setr_epi32(0, !0, 0, !0, 0, !0, 0, !0);
+        let mpd256 = mm256_setr_epi64x(0, !0, 0, !0);
+
+        unsafe {
+            let mut x: [f64; 2] = [0.0; 2];
+            let p = &mut x as *mut [f64] as *mut f64;
+
+            mm_maskstore_pd(p, mpd128, apd128);
+            assert_eq!(x, [0.0, 2.0]);
+        }
+        unsafe {
+            let mut x: [f32; 4] = [0.0; 4];
+            let p = &mut x as *mut [f32] as *mut f32;
+
+            mm_maskstore_ps(p, mps128, aps128);
+            assert_eq!(x, [0.0, 2.0, 0.0, 4.0]);
+        }
+        unsafe {
+            let mut x: [f64; 4] = [0.0; 4];
+            let p = &mut x as *mut [f64] as *mut f64;
+
+            mm256_maskstore_pd(p, mpd256, apd256);
+            assert_eq!(x, [0.0, 2.0, 0.0, 4.0]);
+        }
+        unsafe {
+            let mut x: [f32; 8] = [0.0; 8];
+            let p = &mut x as *mut [f32] as *mut f32;
+
+            mm256_maskstore_ps(p, mps256, aps256);
+            assert_eq!(x, [0.0, 2.0, 0.0, 4.0, 0.0, 6.0, 0.0, 8.0]);
         }
     }
 
