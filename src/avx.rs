@@ -51,6 +51,7 @@ extern "platform-intrinsic" {
     fn x86_mm256_rsqrt_ps(x: m256) -> m256;
     fn x86_mm256_sqrt_ps(x: m256) -> m256;
     fn x86_mm256_sqrt_pd(x: m256d) -> m256d;
+    fn x86_mm256_rcp_ps(x: m256) -> m256;
 
     fn x86_mm_testc_ps(x: m128, y: m128) -> i32;
     fn x86_mm256_testc_ps(x: m256, y: m256) -> i32;
@@ -838,8 +839,13 @@ pub fn mm256_or_ps(a: m256, b: m256) -> m256 {
 // __m128 _mm_permutevar_ps (__m128 a, __m128i b)
 // vpermilps
 // __m256 _mm256_permutevar_ps (__m256 a, __m256i b)
+
 // vrcpps
 // __m256 _mm256_rcp_ps (__m256 a)
+#[inline]
+pub fn mm256_rcp_ps(a: m256) -> m256 {
+    unsafe { x86_mm256_rcp_ps(a) }
+}
 
 // vroundpd
 // __m256d _mm256_round_pd (__m256d a, int rounding)
@@ -1746,6 +1752,7 @@ mod tests {
         let apd_sqrt = mm256_sqrt_pd(apd).as_f64x4().as_array();
         let aps_sqrt = mm256_sqrt_ps(aps).as_f32x8().as_array();
         let aps_rsqrt = mm256_rsqrt_ps(aps).as_f32x8().as_array();
+        let aps_rcp = mm256_rcp_ps(aps).as_f32x8().as_array();
 
         assert!((apd_sqrt[0] - 1.0).abs() < 0.001);
         assert!((apd_sqrt[1] - 2.0).abs() < 0.001);
@@ -1753,6 +1760,8 @@ mod tests {
         assert!((aps_sqrt[1] - 2.0).abs() < 0.001);
         assert!((aps_rsqrt[0] - 1.0).abs() < 0.001);
         assert!((aps_rsqrt[1] - 1.0 / 2.0).abs() < 0.001);
+        assert!((aps_rcp[0] - 1.0).abs() < 0.001);
+        assert!((aps_rcp[1] - 1.0 / 4.0).abs() < 0.001);
     }
 
     #[test]
