@@ -1210,12 +1210,30 @@ pub fn mm256_sqrt_ps(a: m256) -> m256 {
 // void _mm256_storeu2_m128d (double* hiaddr, double* loaddr, __m256d a)
 // ...
 // void _mm256_storeu2_m128i (__m128i* hiaddr, __m128i* loaddr, __m256i a)
+
 // vmovntpd
 // void _mm256_stream_pd (double * mem_addr, __m256d a)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm256_stream_pd(mem_addr: *mut f64, a: m256d) {
+    unimplemented!()
+}
+
 // vmovntps
 // void _mm256_stream_ps (float * mem_addr, __m256 a)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm256_stream_ps(mem_addr: *mut f32, a: m256) {
+    unimplemented!()
+}
+
 // vmovntdq
 // void _mm256_stream_si256 (__m256i * mem_addr, __m256i a)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm256_stream_si256(mem_addr: *mut m256i, a: m256i) {
+    unimplemented!()
+}
 
 // vsubpd
 // __m256d _mm256_sub_pd (__m256d a, __m256d b)
