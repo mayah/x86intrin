@@ -114,6 +114,15 @@ extern "platform-intrinsic" {
     fn x86_mm256_sqrt_pd(x: m256d) -> m256d;
     fn x86_mm256_rcp_ps(x: m256) -> m256;
 
+    fn x86_mm256_cvtepi32_pd(x: i32x4) -> m256d;
+    fn x86_mm256_cvtepi32_ps(x: i32x8) -> m256;
+    fn x86_mm256_cvtpd_epi32(x: m256d) -> i32x4;
+    fn x86_mm256_cvtpd_ps(x: m256d) -> m128;
+    fn x86_mm256_cvtps_epi32(x: m256) -> i32x8;
+    fn x86_mm256_cvtps_pd(x: m128) -> m256d;
+    fn x86_mm256_cvttpd_epi32(x: m256d) -> i32x4;
+    fn x86_mm256_cvttps_epi32(x: m256)-> i32x8;
+
     fn x86_mm_testc_ps(x: m128, y: m128) -> i32;
     fn x86_mm256_testc_ps(x: m256, y: m256) -> i32;
     fn x86_mm_testc_pd(x: m128d, y: m128d) -> i32;
@@ -453,23 +462,61 @@ pub fn mm256_cmp_ss(a: m128, b: m128, imm8: i32) -> m128 {
     // unsafe { sse2_cmp_ss(a, b, imm8 as i8) }
 }
 
-// TODO(mayah): Implement these.
 // vcvtdq2pd
 // __m256d _mm256_cvtepi32_pd (__m128i a)
+#[inline]
+pub fn mm256_cvtepi32_pd(a: m128i) -> m256d {
+    unsafe { x86_mm256_cvtepi32_pd(a.as_i32x4()) }
+}
+
 // vcvtdq2ps
 // __m256 _mm256_cvtepi32_ps (__m256i a)
+#[inline]
+pub fn mm256_cvtepi32_ps(a: m256i) -> m256 {
+    unsafe { x86_mm256_cvtepi32_ps(a.as_i32x8()) }
+}
+
 // vcvtpd2dq
 // __m128i _mm256_cvtpd_epi32 (__m256d a)
+#[inline]
+pub fn mm256_cvtpd_epi32(a: m256d) -> m128i {
+    unsafe { x86_mm256_cvtpd_epi32(a).as_m128i() }
+}
+
 // vcvtpd2ps
 // __m128 _mm256_cvtpd_ps (__m256d a)
+#[inline]
+pub fn mm256_cvtpd_ps(a: m256d) -> m128 {
+    unsafe { x86_mm256_cvtpd_ps(a) }
+}
+
 // vcvtps2dq
 // __m256i _mm256_cvtps_epi32 (__m256 a)
+#[inline]
+pub fn mm256_cvtps_epi32(a: m256) -> m256i {
+    unsafe { x86_mm256_cvtps_epi32(a).as_m256i() }
+}
+
 // vcvtps2pd
 // __m256d _mm256_cvtps_pd (__m128 a)
+#[inline]
+pub fn mm256_cvtps_pd(a: m128) -> m256d {
+    unsafe { x86_mm256_cvtps_pd(a) }
+}
+
 // vcvttpd2dq
 // __m128i _mm256_cvttpd_epi32 (__m256d a)
+#[inline]
+pub fn mm256_cvttpd_epi32(a: m256d) -> m128i {
+    unsafe { x86_mm256_cvttpd_epi32(a).as_m128i() }
+}
+
 // vcvttps2dq
 // __m256i _mm256_cvttps_epi32 (__m256 a)
+#[inline]
+pub fn mm256_cvttps_epi32(a: m256) -> m256i {
+    unsafe { x86_mm256_cvttps_epi32(a).as_m256i() }
+}
 
 // vdivpd
 // __m256d _mm256_div_pd (__m256d a, __m256d b)
@@ -3225,6 +3272,23 @@ mod tests {
                    [1.0, 1.0, 4.0, 3.0, 5.0, 5.0, 8.0, 7.0]);
         assert_eq!(mm256_permutevar_ps(s256, i32x8(1, 2, 3, 0, 1, 2, 3, 0).as_m256i()).as_f32x8().as_array(),
                    [2.0, 3.0, 4.0, 1.0, 6.0, 7.0, 8.0, 5.0]);
+    }
 
+    #[test]
+    fn test_cvt() {
+        let si128 = mm_setr_epi32(1, 2, 3, 4);
+        let si256 = mm256_setr_epi32(1, 2, 3, 4, 5, 6, 7, 8);
+        let pd256 = mm256_setr_pd(1.0, 2.0, 3.0, 4.0);
+        let ps128 = mm_setr_ps(1.0, 2.0, 3.0, 4.0);
+        let ps256 = mm256_setr_ps(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0);
+
+        assert_eq!(mm256_cvtepi32_pd(si128).as_f64x4().as_array(), [1.0, 2.0, 3.0, 4.0]);
+        assert_eq!(mm256_cvtepi32_ps(si256).as_f32x8().as_array(), [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]);
+        assert_eq!(mm256_cvtpd_epi32(pd256).as_i32x4().as_array(), [1, 2, 3, 4]);
+        assert_eq!(mm256_cvtpd_ps(pd256).as_f32x4().as_array(), [1.0, 2.0, 3.0, 4.0]);
+        assert_eq!(mm256_cvtps_epi32(ps256).as_i32x8().as_array(), [1, 2, 3, 4, 5, 6, 7, 8]);
+        assert_eq!(mm256_cvtps_pd(ps128).as_f64x4().as_array(), [1.0, 2.0, 3.0, 4.0]);
+        assert_eq!(mm256_cvttpd_epi32(pd256).as_i32x4().as_array(), [1, 2, 3, 4]);
+        assert_eq!(mm256_cvttps_epi32(ps256).as_i32x8().as_array(), [1, 2, 3, 4, 5, 6, 7, 8]);
     }
 }
