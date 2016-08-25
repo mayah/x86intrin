@@ -727,9 +727,6 @@ pub fn mm_cvtsd_si64x(a: m128d) -> i64 {
 
 // cvtsd2ss
 // __m128 _mm_cvtsd_ss (__m128 a, __m128d b)
-// TODO(mayah): This function causes compile failure
-// in release build and when avx is enabled (on Mac).
-// Not sure rust compiler bug or llvm bug.
 #[inline]
 pub fn mm_cvtsd_ss(a: m128, b: m128d) -> m128 {
     unsafe { sse2_cvtsd2ss(a, b) }
