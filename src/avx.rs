@@ -20,6 +20,13 @@ extern {
     // #[link_name = "llvm.x86.sse2.cmp.pd"]
     // fn sse2_cmp_pd(a: m128d, b: m128d, c: i8) -> m128d;
 
+    #[link_name = "llvm.x86.avx.storeu.pd.256"]
+    fn avx_storeu_pd_256(a: *mut i8, b: m256d);
+    #[link_name = "llvm.x86.avx.storeu.ps.256"]
+    fn avx_storeu_ps_256(a: *mut i8, b: m256);
+    #[link_name = "llvm.x86.avx.storeu.dq.256"]
+    fn avx_storeu_dq_256(a: *mut i8, b: i8x32);
+
     #[link_name = "llvm.x86.avx.dp.ps.256"]
     fn avx_dp_ps_256(a: m256, b: m256, c: u8) -> m256;
 
@@ -2118,25 +2125,95 @@ pub fn mm256_sqrt_ps(a: m256) -> m256 {
     unsafe { x86_mm256_sqrt_ps(a) }
 }
 
-// TODO(mayah): Implement these.
 // vmovapd
 // void _mm256_store_pd (double * mem_addr, __m256d a)
+#[inline]
+pub unsafe fn mm256_store_pd(mem_addr: *mut f64, a: m256d) {
+    *(mem_addr as *mut m256d) = a
+}
+
 // vmovaps
 // void _mm256_store_ps (float * mem_addr, __m256 a)
+#[inline]
+pub unsafe fn mm256_store_ps(mem_addr: *mut f32, a: m256) {
+    *(mem_addr as *mut m256) = a
+}
+
 // vmovdqa
 // void _mm256_store_si256 (__m256i * mem_addr, __m256i a)
+#[inline]
+pub unsafe fn mm256_store_si256(mem_addr: *mut m256i, a: m256i) {
+    *mem_addr = a
+}
+
 // vmovupd
 // void _mm256_storeu_pd (double * mem_addr, __m256d a)
+#[inline]
+pub unsafe fn mm256_storeu_pd(mem_addr: *mut f64, a: m256d) {
+    avx_storeu_pd_256(mem_addr as *mut i8, a)
+}
+
 // vmovups
 // void _mm256_storeu_ps (float * mem_addr, __m256 a)
+#[inline]
+pub unsafe fn mm256_storeu_ps(mem_addr: *mut f32, a: m256) {
+    avx_storeu_ps_256(mem_addr as *mut i8, a)
+}
+
 // vmovdqu
 // void _mm256_storeu_si256 (__m256i * mem_addr, __m256i a)
+#[inline]
+pub unsafe fn mm256_storeu_si256(mem_addr: *mut m256i, a: m256i) {
+    avx_storeu_dq_256(mem_addr as *mut i8, a.as_i8x32())
+}
+
 // ...
 // void _mm256_storeu2_m128 (float* hiaddr, float* loaddr, __m256 a)
+#[inline]
+pub unsafe fn mm256_storeu2_m128(hiaddr: *mut f32, loaddr: *mut f32, a: m256) {
+    // TODO(mayah): Use this
+    // __m128 __v128 = _mm256_castps256_ps128(__a);
+    // __builtin_ia32_storeups(__addr_lo, __v128);
+    // __v128 = _mm256_extractf128_ps(__a, 1);
+    // __builtin_ia32_storeups(__addr_hi, __v128);
+
+    let lo = mm256_extractf128_ps(a, 0);
+    let hi = mm256_extractf128_ps(a, 1);
+    mm_storeu_ps(loaddr, lo);
+    mm_storeu_ps(hiaddr, hi)
+}
+
 // ...
 // void _mm256_storeu2_m128d (double* hiaddr, double* loaddr, __m256d a)
+#[inline]
+pub unsafe fn mm256_storeu2_m128d(hiaddr: *mut f64, loaddr: *mut f64, a: m256d) {
+    // TODO(mayah): Use this
+    // __m128d __v128 = _mm256_castpd256_pd128(__a);
+    // __builtin_ia32_storeupd(__addr_lo, __v128);
+    // __v128 = _mm256_extractf128_pd(__a, 1);
+    // __builtin_ia32_storeupd(__addr_hi, __v128);
+
+    let lo = mm256_extractf128_pd(a, 0);
+    let hi = mm256_extractf128_pd(a, 1);
+    mm_storeu_pd(loaddr, lo);
+    mm_storeu_pd(hiaddr, hi)
+}
+
 // ...
 // void _mm256_storeu2_m128i (__m128i* hiaddr, __m128i* loaddr, __m256i a)
+#[inline]
+pub unsafe fn mm256_storeu2_m128i(hiaddr: *mut m128i, loaddr: *mut m128i, a: m256i) {
+    // TODO(mayah): Use this
+    // __m128i __v128 = _mm256_castsi256_si128(__a);
+    // __builtin_ia32_storedqu((char *)__addr_lo, (__v16qi)__v128);
+    // __v128 = _mm256_extractf128_si256(__a, 1);
+    // __builtin_ia32_storedqu((char *)__addr_hi, (__v16qi)__v128);
+
+    let lo = mm256_extractf128_si256(a, 0);
+    let hi = mm256_extractf128_si256(a, 1);
+    mm_storeu_si128(loaddr, lo);
+    mm_storeu_si128(hiaddr, hi)
+}
 
 // vmovntpd
 // void _mm256_stream_pd (double * mem_addr, __m256d a)
@@ -2764,6 +2841,65 @@ mod tests {
             assert_eq!(mm256_loadu2_m128i(p_si_hi, p_si_lo).as_i64x4().as_array(),
                        [1, 2, 3, 4]);
         }
+    }
+
+    #[test]
+    fn test_store() {
+        let apd = mm256_setr_pd(1.0, 2.0, 3.0, 4.0);
+        let aps = mm256_setr_ps(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0);
+        let asi = mm256_setr_epi64x(1, 2, 3, 4);
+
+        unsafe {
+            let mut x = mm256_undefined_pd();
+            mm256_store_pd(&mut x as *mut m256d as *mut f64, apd);
+            assert_eq!(x.as_f64x4().as_array(), [1.0, 2.0, 3.0, 4.0]);
+        };
+        unsafe {
+            let mut x = mm256_undefined_ps();
+            mm256_store_ps(&mut x as *mut m256 as *mut f32, aps);
+            assert_eq!(x.as_f32x8().as_array(), [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]);
+        };
+        unsafe {
+            let mut x = mm256_undefined_si256();
+            mm256_store_si256(&mut x as *mut m256i, asi);
+            assert_eq!(x.as_i64x4().as_array(), [1, 2, 3, 4]);
+        };
+        unsafe {
+            let mut x = mm256_undefined_pd();
+            mm256_storeu_pd(&mut x as *mut m256d as *mut f64, apd);
+            assert_eq!(x.as_f64x4().as_array(), [1.0, 2.0, 3.0, 4.0]);
+        };
+        unsafe {
+            let mut x = mm256_undefined_ps();
+            mm256_storeu_ps(&mut x as *mut m256 as *mut f32, aps);
+            assert_eq!(x.as_f32x8().as_array(), [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]);
+        };
+        unsafe {
+            let mut x = mm256_undefined_si256();
+            mm256_storeu_si256(&mut x as *mut m256i, asi);
+            assert_eq!(x.as_i64x4().as_array(), [1, 2, 3, 4]);
+        };
+        unsafe {
+            let mut hi = mm_undefined_ps();
+            let mut lo = mm_undefined_ps();
+            mm256_storeu2_m128(&mut hi as *mut m128 as *mut f32, &mut lo as *mut m128 as *mut f32, aps);
+            assert_eq!(hi.as_f32x4().as_array(), [5.0, 6.0, 7.0, 8.0]);
+            assert_eq!(lo.as_f32x4().as_array(), [1.0, 2.0, 3.0, 4.0]);
+        };
+        unsafe {
+            let mut hi = mm_undefined_pd();
+            let mut lo = mm_undefined_pd();
+            mm256_storeu2_m128d(&mut hi as *mut m128d as *mut f64, &mut lo as *mut m128d as *mut f64, apd);
+            assert_eq!(hi.as_f64x2().as_array(), [3.0, 4.0]);
+            assert_eq!(lo.as_f64x2().as_array(), [1.0, 2.0]);
+        };
+        unsafe {
+            let mut hi = mm_undefined_si128();
+            let mut lo = mm_undefined_si128();
+            mm256_storeu2_m128i(&mut hi as *mut m128i, &mut lo as *mut m128i, asi);
+            assert_eq!(hi.as_i64x2().as_array(), [3, 4]);
+            assert_eq!(lo.as_i64x2().as_array(), [1, 2]);
+        };
     }
 
     #[test]
