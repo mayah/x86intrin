@@ -71,7 +71,7 @@ extern "platform-intrinsic" {
     fn x86_mm_min_epu32(x: u32x4, y: u32x4) -> u32x4;
 
     fn x86_mm_minpos_epu16(x: u16x8) -> u16x8;
-    // fn x86_mm_mpsadbw_epu8(x: u8x16, y: u8x16, z: i32) -> u16x8;
+    fn x86_mm_mpsadbw_epu8(x: u8x16, y: u8x16, z: i32) -> u16x8;
     fn x86_mm_mul_epi32(x: i32x4, y: i32x4) -> i64x2;
     fn x86_mm_packus_epi32(x: i32x4, y: i32x4) -> u16x8;
 }
@@ -454,10 +454,8 @@ pub fn mm_minpos_epu16(a: m128i) -> m128i {
 // mpsadbw
 // __m128i _mm_mpsadbw_epu8 (__m128i a, __m128i b, const int imm8)
 #[inline]
-#[allow(unused_variables)]
 pub fn mm_mpsadbw_epu8(a: m128i, b: m128i, imm8: i32) -> m128i {
-    unimplemented!()
-    // unsafe { x86_mm_mpsadbw_epu8(a.as_u8x16(), b.as_u8x16(), imm8).as_m128i() }
+    fn_imm8_arg2!(x86_mm_mpsadbw_epu8, a.as_u8x16(), b.as_u8x16(), imm8).as_m128i()
 }
 
 // pmuldq
@@ -783,9 +781,9 @@ mod tests {
 
     #[test]
     fn test_mpsadbw() {
-        // let a = u8x16(15, 60, 55, 31, 0, 1, 2, 4, 8, 16, 32, 64, 128, 255, 1, 17).as_m128i();
-        // let b = u8x16(2, 4, 8, 64, 255, 0, 1, 16, 32, 64, 128, 255, 75, 31, 42, 11).as_m128i();
-        // assert_eq!(mm_mpsadbw_epu8(a, b, 5).as_u16x8().as_array(), [269, 267, 264, 290, 342, 446, 653, 588]);
+        let a = u8x16(15, 60, 55, 31, 0, 1, 2, 4, 8, 16, 32, 64, 128, 255, 1, 17).as_m128i();
+        let b = u8x16(2, 4, 8, 64, 255, 0, 1, 16, 32, 64, 128, 255, 75, 31, 42, 11).as_m128i();
+        assert_eq!(mm_mpsadbw_epu8(a, b, 5).as_u16x8().as_array(), [269, 267, 264, 290, 342, 446, 653, 588]);
     }
 
     #[test]
