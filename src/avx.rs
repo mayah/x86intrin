@@ -48,6 +48,11 @@ extern {
     #[link_name = "llvm.x86.avx.movmsk.ps.256"]
     fn avx_movmsk_ps_256(a: m256) -> i32;
 
+    #[link_name = "llvm.x86.avx.round.ps.256"]
+    fn avx_round_ps(a: m256, b: i32) -> m256;
+    #[link_name = "llvm.x86.avx.round.pd.256"]
+    fn avx_round_pd(a: m256d, b: i32) -> m256d;
+
     #[link_name = "llvm.x86.avx.vzeroall"]
     fn avx_vzeroall();
     #[link_name = "llvm.x86.avx.vzeroupper"]
@@ -945,19 +950,15 @@ pub fn mm256_rcp_ps(a: m256) -> m256 {
 // vroundpd
 // __m256d _mm256_round_pd (__m256d a, int rounding)
 #[inline]
-#[allow(unused_variables)]
 pub fn mm256_round_pd(a: m256d, rounding: i32) -> m256d {
-    // TODO(mayah): Needs llvm.x86.avx.round.pd.256
-    unimplemented!()
+    fn_imm8_arg1!(avx_round_pd, a, rounding)
 }
 
 // vroundps
 // __m256 _mm256_round_ps (__m256 a, int rounding)
 #[inline]
-#[allow(unused_variables)]
 pub fn mm256_round_ps(a: m256, rounding: i32) -> m256 {
-    // TODO(mayah): Needs llvm.x86.avx.round.ps.256
-    unimplemented!()
+    fn_imm8_arg1!(avx_round_ps, a, rounding)
 }
 
 // vrsqrtps
@@ -1943,6 +1944,18 @@ mod tests {
         assert!((aps_rsqrt[1] - 1.0 / 2.0).abs() < 0.001);
         assert!((aps_rcp[0] - 1.0).abs() < 0.001);
         assert!((aps_rcp[1] - 1.0 / 4.0).abs() < 0.001);
+    }
+
+    #[test]
+    fn test_rounding() {
+        let ps = mm256_setr_ps(1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5);
+        let pd = mm256_setr_pd(1.5, 2.5, 3.5, 4.5);
+
+        assert_eq!(mm256_ceil_pd(pd).as_f64x4().as_array(), [2.0, 3.0, 4.0, 5.0]);
+        assert_eq!(mm256_floor_pd(pd).as_f64x4().as_array(), [1.0, 2.0, 3.0, 4.0]);
+
+        assert_eq!(mm256_ceil_ps(ps).as_f32x8().as_array(), [2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]);
+        assert_eq!(mm256_floor_ps(ps).as_f32x8().as_array(), [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]);
     }
 
     #[test]
