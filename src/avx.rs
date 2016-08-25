@@ -53,6 +53,21 @@ extern {
     #[link_name = "llvm.x86.avx.round.pd.256"]
     fn avx_round_pd(a: m256d, b: i32) -> m256d;
 
+    #[link_name = "llvm.x86.avx.vpermilvar.pd"]
+    fn avx_vpermilvar_pd(a: m128d, b: i64x2) -> m128d;
+    #[link_name = "llvm.x86.avx.vpermilvar.ps"]
+    fn avx_vpermilvar_ps(a: m128, b: i32x4) -> m128;
+    #[link_name = "llvm.x86.avx.vpermilvar.pd.256"]
+    fn avx_vpermilvar_pd_256(a: m256d, b: i64x4) -> m256d;
+    #[link_name = "llvm.x86.avx.vpermilvar.ps.256"]
+    fn avx_vpermilvar_ps_256(a: m256, b: i32x8) -> m256;
+    #[link_name = "llvm.x86.avx.vperm2f128.pd.256"]
+    fn avx_vperm2f128_pd_256(a: m256d, b: m256d, c: u8) -> m256d;
+    #[link_name = "llvm.x86.avx.vperm2f128.ps.256"]
+    fn avx_vperm2f128_ps_256(a: m256, b: m256, c: u8) -> m256;
+    #[link_name = "llvm.x86.avx.vperm2f128.si.256"]
+    fn avx_vperm2f128_si_256(a: i32x8, b: i32x8, c: u8) -> i32x8;
+
     #[link_name = "llvm.x86.avx.vzeroall"]
     fn avx_vzeroall();
     #[link_name = "llvm.x86.avx.vzeroupper"]
@@ -916,29 +931,634 @@ pub fn mm256_or_ps(a: m256, b: m256) -> m256 {
     unsafe { simd_or(ai, bi).as_m256() }
 }
 
-// TODO(mayah): Implement these.
 // vpermilpd
 // __m128d _mm_permute_pd (__m128d a, int imm8)
+#[inline]
+pub fn mm_permute_pd(a: m128d, imm8: i32) -> m128d {
+    let z = mm_setzero_pd();
+    unsafe {
+        match imm8 & 0x3 {
+            0 => simd_shuffle2(a, z, [0, 0]),
+            1 => simd_shuffle2(a, z, [1, 0]),
+            2 => simd_shuffle2(a, z, [0, 1]),
+            3 => simd_shuffle2(a, z, [1, 1]),
+            _ => unreachable!()
+        }
+    }
+}
+
 // vpermilpd
 // __m256d _mm256_permute_pd (__m256d a, int imm8)
+#[inline]
+pub fn mm256_permute_pd(a: m256d, imm8: i32) -> m256d {
+    let z = mm256_setzero_pd();
+    unsafe {
+        match imm8 & 0xF {
+            0x00 => simd_shuffle4(a, z, [0, 0, 2, 2]),
+            0x01 => simd_shuffle4(a, z, [1, 0, 2, 2]),
+            0x02 => simd_shuffle4(a, z, [0, 1, 2, 2]),
+            0x03 => simd_shuffle4(a, z, [1, 1, 2, 2]),
+            0x04 => simd_shuffle4(a, z, [0, 0, 3, 2]),
+            0x05 => simd_shuffle4(a, z, [1, 0, 3, 2]),
+            0x06 => simd_shuffle4(a, z, [0, 1, 3, 2]),
+            0x07 => simd_shuffle4(a, z, [1, 1, 3, 2]),
+            0x08 => simd_shuffle4(a, z, [0, 0, 2, 3]),
+            0x09 => simd_shuffle4(a, z, [1, 0, 2, 3]),
+            0x0A => simd_shuffle4(a, z, [0, 1, 2, 3]),
+            0x0B => simd_shuffle4(a, z, [1, 1, 2, 3]),
+            0x0C => simd_shuffle4(a, z, [0, 0, 3, 3]),
+            0x0D => simd_shuffle4(a, z, [1, 0, 3, 3]),
+            0x0E => simd_shuffle4(a, z, [0, 1, 3, 3]),
+            0x0F => simd_shuffle4(a, z, [1, 1, 3, 3]),
+            _ => unreachable!()
+        }
+    }
+}
+
 // vpermilps
 // __m128 _mm_permute_ps (__m128 a, int imm8)
+#[inline]
+pub fn mm_permute_ps(a: m128, imm8: i32) -> m128 {
+    let z = mm_setzero_ps();
+    unsafe {
+        match imm8 & 0xFF {
+            0x00 => simd_shuffle4(a, z, [0, 0, 0, 0]),
+            0x01 => simd_shuffle4(a, z, [1, 0, 0, 0]),
+            0x02 => simd_shuffle4(a, z, [2, 0, 0, 0]),
+            0x03 => simd_shuffle4(a, z, [3, 0, 0, 0]),
+            0x04 => simd_shuffle4(a, z, [0, 1, 0, 0]),
+            0x05 => simd_shuffle4(a, z, [1, 1, 0, 0]),
+            0x06 => simd_shuffle4(a, z, [2, 1, 0, 0]),
+            0x07 => simd_shuffle4(a, z, [3, 1, 0, 0]),
+            0x08 => simd_shuffle4(a, z, [0, 2, 0, 0]),
+            0x09 => simd_shuffle4(a, z, [1, 2, 0, 0]),
+            0x0A => simd_shuffle4(a, z, [2, 2, 0, 0]),
+            0x0B => simd_shuffle4(a, z, [3, 2, 0, 0]),
+            0x0C => simd_shuffle4(a, z, [0, 3, 0, 0]),
+            0x0D => simd_shuffle4(a, z, [1, 3, 0, 0]),
+            0x0E => simd_shuffle4(a, z, [2, 3, 0, 0]),
+            0x0F => simd_shuffle4(a, z, [3, 3, 0, 0]),
+            0x10 => simd_shuffle4(a, z, [0, 0, 1, 0]),
+            0x11 => simd_shuffle4(a, z, [1, 0, 1, 0]),
+            0x12 => simd_shuffle4(a, z, [2, 0, 1, 0]),
+            0x13 => simd_shuffle4(a, z, [3, 0, 1, 0]),
+            0x14 => simd_shuffle4(a, z, [0, 1, 1, 0]),
+            0x15 => simd_shuffle4(a, z, [1, 1, 1, 0]),
+            0x16 => simd_shuffle4(a, z, [2, 1, 1, 0]),
+            0x17 => simd_shuffle4(a, z, [3, 1, 1, 0]),
+            0x18 => simd_shuffle4(a, z, [0, 2, 1, 0]),
+            0x19 => simd_shuffle4(a, z, [1, 2, 1, 0]),
+            0x1A => simd_shuffle4(a, z, [2, 2, 1, 0]),
+            0x1B => simd_shuffle4(a, z, [3, 2, 1, 0]),
+            0x1C => simd_shuffle4(a, z, [0, 3, 1, 0]),
+            0x1D => simd_shuffle4(a, z, [1, 3, 1, 0]),
+            0x1E => simd_shuffle4(a, z, [2, 3, 1, 0]),
+            0x1F => simd_shuffle4(a, z, [3, 3, 1, 0]),
+            0x20 => simd_shuffle4(a, z, [0, 0, 2, 0]),
+            0x21 => simd_shuffle4(a, z, [1, 0, 2, 0]),
+            0x22 => simd_shuffle4(a, z, [2, 0, 2, 0]),
+            0x23 => simd_shuffle4(a, z, [3, 0, 2, 0]),
+            0x24 => simd_shuffle4(a, z, [0, 1, 2, 0]),
+            0x25 => simd_shuffle4(a, z, [1, 1, 2, 0]),
+            0x26 => simd_shuffle4(a, z, [2, 1, 2, 0]),
+            0x27 => simd_shuffle4(a, z, [3, 1, 2, 0]),
+            0x28 => simd_shuffle4(a, z, [0, 2, 2, 0]),
+            0x29 => simd_shuffle4(a, z, [1, 2, 2, 0]),
+            0x2A => simd_shuffle4(a, z, [2, 2, 2, 0]),
+            0x2B => simd_shuffle4(a, z, [3, 2, 2, 0]),
+            0x2C => simd_shuffle4(a, z, [0, 3, 2, 0]),
+            0x2D => simd_shuffle4(a, z, [1, 3, 2, 0]),
+            0x2E => simd_shuffle4(a, z, [2, 3, 2, 0]),
+            0x2F => simd_shuffle4(a, z, [3, 3, 2, 0]),
+            0x30 => simd_shuffle4(a, z, [0, 0, 3, 0]),
+            0x31 => simd_shuffle4(a, z, [1, 0, 3, 0]),
+            0x32 => simd_shuffle4(a, z, [2, 0, 3, 0]),
+            0x33 => simd_shuffle4(a, z, [3, 0, 3, 0]),
+            0x34 => simd_shuffle4(a, z, [0, 1, 3, 0]),
+            0x35 => simd_shuffle4(a, z, [1, 1, 3, 0]),
+            0x36 => simd_shuffle4(a, z, [2, 1, 3, 0]),
+            0x37 => simd_shuffle4(a, z, [3, 1, 3, 0]),
+            0x38 => simd_shuffle4(a, z, [0, 2, 3, 0]),
+            0x39 => simd_shuffle4(a, z, [1, 2, 3, 0]),
+            0x3A => simd_shuffle4(a, z, [2, 2, 3, 0]),
+            0x3B => simd_shuffle4(a, z, [3, 2, 3, 0]),
+            0x3C => simd_shuffle4(a, z, [0, 3, 3, 0]),
+            0x3D => simd_shuffle4(a, z, [1, 3, 3, 0]),
+            0x3E => simd_shuffle4(a, z, [2, 3, 3, 0]),
+            0x3F => simd_shuffle4(a, z, [3, 3, 3, 0]),
+            0x40 => simd_shuffle4(a, z, [0, 0, 0, 1]),
+            0x41 => simd_shuffle4(a, z, [1, 0, 0, 1]),
+            0x42 => simd_shuffle4(a, z, [2, 0, 0, 1]),
+            0x43 => simd_shuffle4(a, z, [3, 0, 0, 1]),
+            0x44 => simd_shuffle4(a, z, [0, 1, 0, 1]),
+            0x45 => simd_shuffle4(a, z, [1, 1, 0, 1]),
+            0x46 => simd_shuffle4(a, z, [2, 1, 0, 1]),
+            0x47 => simd_shuffle4(a, z, [3, 1, 0, 1]),
+            0x48 => simd_shuffle4(a, z, [0, 2, 0, 1]),
+            0x49 => simd_shuffle4(a, z, [1, 2, 0, 1]),
+            0x4A => simd_shuffle4(a, z, [2, 2, 0, 1]),
+            0x4B => simd_shuffle4(a, z, [3, 2, 0, 1]),
+            0x4C => simd_shuffle4(a, z, [0, 3, 0, 1]),
+            0x4D => simd_shuffle4(a, z, [1, 3, 0, 1]),
+            0x4E => simd_shuffle4(a, z, [2, 3, 0, 1]),
+            0x4F => simd_shuffle4(a, z, [3, 3, 0, 1]),
+            0x50 => simd_shuffle4(a, z, [0, 0, 1, 1]),
+            0x51 => simd_shuffle4(a, z, [1, 0, 1, 1]),
+            0x52 => simd_shuffle4(a, z, [2, 0, 1, 1]),
+            0x53 => simd_shuffle4(a, z, [3, 0, 1, 1]),
+            0x54 => simd_shuffle4(a, z, [0, 1, 1, 1]),
+            0x55 => simd_shuffle4(a, z, [1, 1, 1, 1]),
+            0x56 => simd_shuffle4(a, z, [2, 1, 1, 1]),
+            0x57 => simd_shuffle4(a, z, [3, 1, 1, 1]),
+            0x58 => simd_shuffle4(a, z, [0, 2, 1, 1]),
+            0x59 => simd_shuffle4(a, z, [1, 2, 1, 1]),
+            0x5A => simd_shuffle4(a, z, [2, 2, 1, 1]),
+            0x5B => simd_shuffle4(a, z, [3, 2, 1, 1]),
+            0x5C => simd_shuffle4(a, z, [0, 3, 1, 1]),
+            0x5D => simd_shuffle4(a, z, [1, 3, 1, 1]),
+            0x5E => simd_shuffle4(a, z, [2, 3, 1, 1]),
+            0x5F => simd_shuffle4(a, z, [3, 3, 1, 1]),
+            0x60 => simd_shuffle4(a, z, [0, 0, 2, 1]),
+            0x61 => simd_shuffle4(a, z, [1, 0, 2, 1]),
+            0x62 => simd_shuffle4(a, z, [2, 0, 2, 1]),
+            0x63 => simd_shuffle4(a, z, [3, 0, 2, 1]),
+            0x64 => simd_shuffle4(a, z, [0, 1, 2, 1]),
+            0x65 => simd_shuffle4(a, z, [1, 1, 2, 1]),
+            0x66 => simd_shuffle4(a, z, [2, 1, 2, 1]),
+            0x67 => simd_shuffle4(a, z, [3, 1, 2, 1]),
+            0x68 => simd_shuffle4(a, z, [0, 2, 2, 1]),
+            0x69 => simd_shuffle4(a, z, [1, 2, 2, 1]),
+            0x6A => simd_shuffle4(a, z, [2, 2, 2, 1]),
+            0x6B => simd_shuffle4(a, z, [3, 2, 2, 1]),
+            0x6C => simd_shuffle4(a, z, [0, 3, 2, 1]),
+            0x6D => simd_shuffle4(a, z, [1, 3, 2, 1]),
+            0x6E => simd_shuffle4(a, z, [2, 3, 2, 1]),
+            0x6F => simd_shuffle4(a, z, [3, 3, 2, 1]),
+            0x70 => simd_shuffle4(a, z, [0, 0, 3, 1]),
+            0x71 => simd_shuffle4(a, z, [1, 0, 3, 1]),
+            0x72 => simd_shuffle4(a, z, [2, 0, 3, 1]),
+            0x73 => simd_shuffle4(a, z, [3, 0, 3, 1]),
+            0x74 => simd_shuffle4(a, z, [0, 1, 3, 1]),
+            0x75 => simd_shuffle4(a, z, [1, 1, 3, 1]),
+            0x76 => simd_shuffle4(a, z, [2, 1, 3, 1]),
+            0x77 => simd_shuffle4(a, z, [3, 1, 3, 1]),
+            0x78 => simd_shuffle4(a, z, [0, 2, 3, 1]),
+            0x79 => simd_shuffle4(a, z, [1, 2, 3, 1]),
+            0x7A => simd_shuffle4(a, z, [2, 2, 3, 1]),
+            0x7B => simd_shuffle4(a, z, [3, 2, 3, 1]),
+            0x7C => simd_shuffle4(a, z, [0, 3, 3, 1]),
+            0x7D => simd_shuffle4(a, z, [1, 3, 3, 1]),
+            0x7E => simd_shuffle4(a, z, [2, 3, 3, 1]),
+            0x7F => simd_shuffle4(a, z, [3, 3, 3, 1]),
+            0x80 => simd_shuffle4(a, z, [0, 0, 0, 2]),
+            0x81 => simd_shuffle4(a, z, [1, 0, 0, 2]),
+            0x82 => simd_shuffle4(a, z, [2, 0, 0, 2]),
+            0x83 => simd_shuffle4(a, z, [3, 0, 0, 2]),
+            0x84 => simd_shuffle4(a, z, [0, 1, 0, 2]),
+            0x85 => simd_shuffle4(a, z, [1, 1, 0, 2]),
+            0x86 => simd_shuffle4(a, z, [2, 1, 0, 2]),
+            0x87 => simd_shuffle4(a, z, [3, 1, 0, 2]),
+            0x88 => simd_shuffle4(a, z, [0, 2, 0, 2]),
+            0x89 => simd_shuffle4(a, z, [1, 2, 0, 2]),
+            0x8A => simd_shuffle4(a, z, [2, 2, 0, 2]),
+            0x8B => simd_shuffle4(a, z, [3, 2, 0, 2]),
+            0x8C => simd_shuffle4(a, z, [0, 3, 0, 2]),
+            0x8D => simd_shuffle4(a, z, [1, 3, 0, 2]),
+            0x8E => simd_shuffle4(a, z, [2, 3, 0, 2]),
+            0x8F => simd_shuffle4(a, z, [3, 3, 0, 2]),
+            0x90 => simd_shuffle4(a, z, [0, 0, 1, 2]),
+            0x91 => simd_shuffle4(a, z, [1, 0, 1, 2]),
+            0x92 => simd_shuffle4(a, z, [2, 0, 1, 2]),
+            0x93 => simd_shuffle4(a, z, [3, 0, 1, 2]),
+            0x94 => simd_shuffle4(a, z, [0, 1, 1, 2]),
+            0x95 => simd_shuffle4(a, z, [1, 1, 1, 2]),
+            0x96 => simd_shuffle4(a, z, [2, 1, 1, 2]),
+            0x97 => simd_shuffle4(a, z, [3, 1, 1, 2]),
+            0x98 => simd_shuffle4(a, z, [0, 2, 1, 2]),
+            0x99 => simd_shuffle4(a, z, [1, 2, 1, 2]),
+            0x9A => simd_shuffle4(a, z, [2, 2, 1, 2]),
+            0x9B => simd_shuffle4(a, z, [3, 2, 1, 2]),
+            0x9C => simd_shuffle4(a, z, [0, 3, 1, 2]),
+            0x9D => simd_shuffle4(a, z, [1, 3, 1, 2]),
+            0x9E => simd_shuffle4(a, z, [2, 3, 1, 2]),
+            0x9F => simd_shuffle4(a, z, [3, 3, 1, 2]),
+            0xA0 => simd_shuffle4(a, z, [0, 0, 2, 2]),
+            0xA1 => simd_shuffle4(a, z, [1, 0, 2, 2]),
+            0xA2 => simd_shuffle4(a, z, [2, 0, 2, 2]),
+            0xA3 => simd_shuffle4(a, z, [3, 0, 2, 2]),
+            0xA4 => simd_shuffle4(a, z, [0, 1, 2, 2]),
+            0xA5 => simd_shuffle4(a, z, [1, 1, 2, 2]),
+            0xA6 => simd_shuffle4(a, z, [2, 1, 2, 2]),
+            0xA7 => simd_shuffle4(a, z, [3, 1, 2, 2]),
+            0xA8 => simd_shuffle4(a, z, [0, 2, 2, 2]),
+            0xA9 => simd_shuffle4(a, z, [1, 2, 2, 2]),
+            0xAA => simd_shuffle4(a, z, [2, 2, 2, 2]),
+            0xAB => simd_shuffle4(a, z, [3, 2, 2, 2]),
+            0xAC => simd_shuffle4(a, z, [0, 3, 2, 2]),
+            0xAD => simd_shuffle4(a, z, [1, 3, 2, 2]),
+            0xAE => simd_shuffle4(a, z, [2, 3, 2, 2]),
+            0xAF => simd_shuffle4(a, z, [3, 3, 2, 2]),
+            0xB0 => simd_shuffle4(a, z, [0, 0, 3, 2]),
+            0xB1 => simd_shuffle4(a, z, [1, 0, 3, 2]),
+            0xB2 => simd_shuffle4(a, z, [2, 0, 3, 2]),
+            0xB3 => simd_shuffle4(a, z, [3, 0, 3, 2]),
+            0xB4 => simd_shuffle4(a, z, [0, 1, 3, 2]),
+            0xB5 => simd_shuffle4(a, z, [1, 1, 3, 2]),
+            0xB6 => simd_shuffle4(a, z, [2, 1, 3, 2]),
+            0xB7 => simd_shuffle4(a, z, [3, 1, 3, 2]),
+            0xB8 => simd_shuffle4(a, z, [0, 2, 3, 2]),
+            0xB9 => simd_shuffle4(a, z, [1, 2, 3, 2]),
+            0xBA => simd_shuffle4(a, z, [2, 2, 3, 2]),
+            0xBB => simd_shuffle4(a, z, [3, 2, 3, 2]),
+            0xBC => simd_shuffle4(a, z, [0, 3, 3, 2]),
+            0xBD => simd_shuffle4(a, z, [1, 3, 3, 2]),
+            0xBE => simd_shuffle4(a, z, [2, 3, 3, 2]),
+            0xBF => simd_shuffle4(a, z, [3, 3, 3, 2]),
+            0xC0 => simd_shuffle4(a, z, [0, 0, 0, 3]),
+            0xC1 => simd_shuffle4(a, z, [1, 0, 0, 3]),
+            0xC2 => simd_shuffle4(a, z, [2, 0, 0, 3]),
+            0xC3 => simd_shuffle4(a, z, [3, 0, 0, 3]),
+            0xC4 => simd_shuffle4(a, z, [0, 1, 0, 3]),
+            0xC5 => simd_shuffle4(a, z, [1, 1, 0, 3]),
+            0xC6 => simd_shuffle4(a, z, [2, 1, 0, 3]),
+            0xC7 => simd_shuffle4(a, z, [3, 1, 0, 3]),
+            0xC8 => simd_shuffle4(a, z, [0, 2, 0, 3]),
+            0xC9 => simd_shuffle4(a, z, [1, 2, 0, 3]),
+            0xCA => simd_shuffle4(a, z, [2, 2, 0, 3]),
+            0xCB => simd_shuffle4(a, z, [3, 2, 0, 3]),
+            0xCC => simd_shuffle4(a, z, [0, 3, 0, 3]),
+            0xCD => simd_shuffle4(a, z, [1, 3, 0, 3]),
+            0xCE => simd_shuffle4(a, z, [2, 3, 0, 3]),
+            0xCF => simd_shuffle4(a, z, [3, 3, 0, 3]),
+            0xD0 => simd_shuffle4(a, z, [0, 0, 1, 3]),
+            0xD1 => simd_shuffle4(a, z, [1, 0, 1, 3]),
+            0xD2 => simd_shuffle4(a, z, [2, 0, 1, 3]),
+            0xD3 => simd_shuffle4(a, z, [3, 0, 1, 3]),
+            0xD4 => simd_shuffle4(a, z, [0, 1, 1, 3]),
+            0xD5 => simd_shuffle4(a, z, [1, 1, 1, 3]),
+            0xD6 => simd_shuffle4(a, z, [2, 1, 1, 3]),
+            0xD7 => simd_shuffle4(a, z, [3, 1, 1, 3]),
+            0xD8 => simd_shuffle4(a, z, [0, 2, 1, 3]),
+            0xD9 => simd_shuffle4(a, z, [1, 2, 1, 3]),
+            0xDA => simd_shuffle4(a, z, [2, 2, 1, 3]),
+            0xDB => simd_shuffle4(a, z, [3, 2, 1, 3]),
+            0xDC => simd_shuffle4(a, z, [0, 3, 1, 3]),
+            0xDD => simd_shuffle4(a, z, [1, 3, 1, 3]),
+            0xDE => simd_shuffle4(a, z, [2, 3, 1, 3]),
+            0xDF => simd_shuffle4(a, z, [3, 3, 1, 3]),
+            0xE0 => simd_shuffle4(a, z, [0, 0, 2, 3]),
+            0xE1 => simd_shuffle4(a, z, [1, 0, 2, 3]),
+            0xE2 => simd_shuffle4(a, z, [2, 0, 2, 3]),
+            0xE3 => simd_shuffle4(a, z, [3, 0, 2, 3]),
+            0xE4 => simd_shuffle4(a, z, [0, 1, 2, 3]),
+            0xE5 => simd_shuffle4(a, z, [1, 1, 2, 3]),
+            0xE6 => simd_shuffle4(a, z, [2, 1, 2, 3]),
+            0xE7 => simd_shuffle4(a, z, [3, 1, 2, 3]),
+            0xE8 => simd_shuffle4(a, z, [0, 2, 2, 3]),
+            0xE9 => simd_shuffle4(a, z, [1, 2, 2, 3]),
+            0xEA => simd_shuffle4(a, z, [2, 2, 2, 3]),
+            0xEB => simd_shuffle4(a, z, [3, 2, 2, 3]),
+            0xEC => simd_shuffle4(a, z, [0, 3, 2, 3]),
+            0xED => simd_shuffle4(a, z, [1, 3, 2, 3]),
+            0xEE => simd_shuffle4(a, z, [2, 3, 2, 3]),
+            0xEF => simd_shuffle4(a, z, [3, 3, 2, 3]),
+            0xF0 => simd_shuffle4(a, z, [0, 0, 3, 3]),
+            0xF1 => simd_shuffle4(a, z, [1, 0, 3, 3]),
+            0xF2 => simd_shuffle4(a, z, [2, 0, 3, 3]),
+            0xF3 => simd_shuffle4(a, z, [3, 0, 3, 3]),
+            0xF4 => simd_shuffle4(a, z, [0, 1, 3, 3]),
+            0xF5 => simd_shuffle4(a, z, [1, 1, 3, 3]),
+            0xF6 => simd_shuffle4(a, z, [2, 1, 3, 3]),
+            0xF7 => simd_shuffle4(a, z, [3, 1, 3, 3]),
+            0xF8 => simd_shuffle4(a, z, [0, 2, 3, 3]),
+            0xF9 => simd_shuffle4(a, z, [1, 2, 3, 3]),
+            0xFA => simd_shuffle4(a, z, [2, 2, 3, 3]),
+            0xFB => simd_shuffle4(a, z, [3, 2, 3, 3]),
+            0xFC => simd_shuffle4(a, z, [0, 3, 3, 3]),
+            0xFD => simd_shuffle4(a, z, [1, 3, 3, 3]),
+            0xFE => simd_shuffle4(a, z, [2, 3, 3, 3]),
+            0xFF => simd_shuffle4(a, z, [3, 3, 3, 3]),
+            _ => unreachable!()
+        }
+    }
+}
+
 // vpermilps
 // __m256 _mm256_permute_ps (__m256 a, int imm8)
+#[inline]
+pub fn mm256_permute_ps(a: m256, imm8: i32) -> m256 {
+    let z = mm256_setzero_ps();
+    unsafe {
+        match imm8 & 0xFF {
+            0x00 => simd_shuffle8(a, z, [0, 0, 0, 0, 4, 4, 4, 4]),
+            0x01 => simd_shuffle8(a, z, [1, 0, 0, 0, 5, 4, 4, 4]),
+            0x02 => simd_shuffle8(a, z, [2, 0, 0, 0, 6, 4, 4, 4]),
+            0x03 => simd_shuffle8(a, z, [3, 0, 0, 0, 7, 4, 4, 4]),
+            0x04 => simd_shuffle8(a, z, [0, 1, 0, 0, 4, 5, 4, 4]),
+            0x05 => simd_shuffle8(a, z, [1, 1, 0, 0, 5, 5, 4, 4]),
+            0x06 => simd_shuffle8(a, z, [2, 1, 0, 0, 6, 5, 4, 4]),
+            0x07 => simd_shuffle8(a, z, [3, 1, 0, 0, 7, 5, 4, 4]),
+            0x08 => simd_shuffle8(a, z, [0, 2, 0, 0, 4, 6, 4, 4]),
+            0x09 => simd_shuffle8(a, z, [1, 2, 0, 0, 5, 6, 4, 4]),
+            0x0A => simd_shuffle8(a, z, [2, 2, 0, 0, 6, 6, 4, 4]),
+            0x0B => simd_shuffle8(a, z, [3, 2, 0, 0, 7, 6, 4, 4]),
+            0x0C => simd_shuffle8(a, z, [0, 3, 0, 0, 4, 7, 4, 4]),
+            0x0D => simd_shuffle8(a, z, [1, 3, 0, 0, 5, 7, 4, 4]),
+            0x0E => simd_shuffle8(a, z, [2, 3, 0, 0, 6, 7, 4, 4]),
+            0x0F => simd_shuffle8(a, z, [3, 3, 0, 0, 7, 7, 4, 4]),
+            0x10 => simd_shuffle8(a, z, [0, 0, 1, 0, 4, 4, 5, 4]),
+            0x11 => simd_shuffle8(a, z, [1, 0, 1, 0, 5, 4, 5, 4]),
+            0x12 => simd_shuffle8(a, z, [2, 0, 1, 0, 6, 4, 5, 4]),
+            0x13 => simd_shuffle8(a, z, [3, 0, 1, 0, 7, 4, 5, 4]),
+            0x14 => simd_shuffle8(a, z, [0, 1, 1, 0, 4, 5, 5, 4]),
+            0x15 => simd_shuffle8(a, z, [1, 1, 1, 0, 5, 5, 5, 4]),
+            0x16 => simd_shuffle8(a, z, [2, 1, 1, 0, 6, 5, 5, 4]),
+            0x17 => simd_shuffle8(a, z, [3, 1, 1, 0, 7, 5, 5, 4]),
+            0x18 => simd_shuffle8(a, z, [0, 2, 1, 0, 4, 6, 5, 4]),
+            0x19 => simd_shuffle8(a, z, [1, 2, 1, 0, 5, 6, 5, 4]),
+            0x1A => simd_shuffle8(a, z, [2, 2, 1, 0, 6, 6, 5, 4]),
+            0x1B => simd_shuffle8(a, z, [3, 2, 1, 0, 7, 6, 5, 4]),
+            0x1C => simd_shuffle8(a, z, [0, 3, 1, 0, 4, 7, 5, 4]),
+            0x1D => simd_shuffle8(a, z, [1, 3, 1, 0, 5, 7, 5, 4]),
+            0x1E => simd_shuffle8(a, z, [2, 3, 1, 0, 6, 7, 5, 4]),
+            0x1F => simd_shuffle8(a, z, [3, 3, 1, 0, 7, 7, 5, 4]),
+            0x20 => simd_shuffle8(a, z, [0, 0, 2, 0, 4, 4, 6, 4]),
+            0x21 => simd_shuffle8(a, z, [1, 0, 2, 0, 5, 4, 6, 4]),
+            0x22 => simd_shuffle8(a, z, [2, 0, 2, 0, 6, 4, 6, 4]),
+            0x23 => simd_shuffle8(a, z, [3, 0, 2, 0, 7, 4, 6, 4]),
+            0x24 => simd_shuffle8(a, z, [0, 1, 2, 0, 4, 5, 6, 4]),
+            0x25 => simd_shuffle8(a, z, [1, 1, 2, 0, 5, 5, 6, 4]),
+            0x26 => simd_shuffle8(a, z, [2, 1, 2, 0, 6, 5, 6, 4]),
+            0x27 => simd_shuffle8(a, z, [3, 1, 2, 0, 7, 5, 6, 4]),
+            0x28 => simd_shuffle8(a, z, [0, 2, 2, 0, 4, 6, 6, 4]),
+            0x29 => simd_shuffle8(a, z, [1, 2, 2, 0, 5, 6, 6, 4]),
+            0x2A => simd_shuffle8(a, z, [2, 2, 2, 0, 6, 6, 6, 4]),
+            0x2B => simd_shuffle8(a, z, [3, 2, 2, 0, 7, 6, 6, 4]),
+            0x2C => simd_shuffle8(a, z, [0, 3, 2, 0, 4, 7, 6, 4]),
+            0x2D => simd_shuffle8(a, z, [1, 3, 2, 0, 5, 7, 6, 4]),
+            0x2E => simd_shuffle8(a, z, [2, 3, 2, 0, 6, 7, 6, 4]),
+            0x2F => simd_shuffle8(a, z, [3, 3, 2, 0, 7, 7, 6, 4]),
+            0x30 => simd_shuffle8(a, z, [0, 0, 3, 0, 4, 4, 7, 4]),
+            0x31 => simd_shuffle8(a, z, [1, 0, 3, 0, 5, 4, 7, 4]),
+            0x32 => simd_shuffle8(a, z, [2, 0, 3, 0, 6, 4, 7, 4]),
+            0x33 => simd_shuffle8(a, z, [3, 0, 3, 0, 7, 4, 7, 4]),
+            0x34 => simd_shuffle8(a, z, [0, 1, 3, 0, 4, 5, 7, 4]),
+            0x35 => simd_shuffle8(a, z, [1, 1, 3, 0, 5, 5, 7, 4]),
+            0x36 => simd_shuffle8(a, z, [2, 1, 3, 0, 6, 5, 7, 4]),
+            0x37 => simd_shuffle8(a, z, [3, 1, 3, 0, 7, 5, 7, 4]),
+            0x38 => simd_shuffle8(a, z, [0, 2, 3, 0, 4, 6, 7, 4]),
+            0x39 => simd_shuffle8(a, z, [1, 2, 3, 0, 5, 6, 7, 4]),
+            0x3A => simd_shuffle8(a, z, [2, 2, 3, 0, 6, 6, 7, 4]),
+            0x3B => simd_shuffle8(a, z, [3, 2, 3, 0, 7, 6, 7, 4]),
+            0x3C => simd_shuffle8(a, z, [0, 3, 3, 0, 4, 7, 7, 4]),
+            0x3D => simd_shuffle8(a, z, [1, 3, 3, 0, 5, 7, 7, 4]),
+            0x3E => simd_shuffle8(a, z, [2, 3, 3, 0, 6, 7, 7, 4]),
+            0x3F => simd_shuffle8(a, z, [3, 3, 3, 0, 7, 7, 7, 4]),
+            0x40 => simd_shuffle8(a, z, [0, 0, 0, 1, 4, 4, 4, 5]),
+            0x41 => simd_shuffle8(a, z, [1, 0, 0, 1, 5, 4, 4, 5]),
+            0x42 => simd_shuffle8(a, z, [2, 0, 0, 1, 6, 4, 4, 5]),
+            0x43 => simd_shuffle8(a, z, [3, 0, 0, 1, 7, 4, 4, 5]),
+            0x44 => simd_shuffle8(a, z, [0, 1, 0, 1, 4, 5, 4, 5]),
+            0x45 => simd_shuffle8(a, z, [1, 1, 0, 1, 5, 5, 4, 5]),
+            0x46 => simd_shuffle8(a, z, [2, 1, 0, 1, 6, 5, 4, 5]),
+            0x47 => simd_shuffle8(a, z, [3, 1, 0, 1, 7, 5, 4, 5]),
+            0x48 => simd_shuffle8(a, z, [0, 2, 0, 1, 4, 6, 4, 5]),
+            0x49 => simd_shuffle8(a, z, [1, 2, 0, 1, 5, 6, 4, 5]),
+            0x4A => simd_shuffle8(a, z, [2, 2, 0, 1, 6, 6, 4, 5]),
+            0x4B => simd_shuffle8(a, z, [3, 2, 0, 1, 7, 6, 4, 5]),
+            0x4C => simd_shuffle8(a, z, [0, 3, 0, 1, 4, 7, 4, 5]),
+            0x4D => simd_shuffle8(a, z, [1, 3, 0, 1, 5, 7, 4, 5]),
+            0x4E => simd_shuffle8(a, z, [2, 3, 0, 1, 6, 7, 4, 5]),
+            0x4F => simd_shuffle8(a, z, [3, 3, 0, 1, 7, 7, 4, 5]),
+            0x50 => simd_shuffle8(a, z, [0, 0, 1, 1, 4, 4, 5, 5]),
+            0x51 => simd_shuffle8(a, z, [1, 0, 1, 1, 5, 4, 5, 5]),
+            0x52 => simd_shuffle8(a, z, [2, 0, 1, 1, 6, 4, 5, 5]),
+            0x53 => simd_shuffle8(a, z, [3, 0, 1, 1, 7, 4, 5, 5]),
+            0x54 => simd_shuffle8(a, z, [0, 1, 1, 1, 4, 5, 5, 5]),
+            0x55 => simd_shuffle8(a, z, [1, 1, 1, 1, 5, 5, 5, 5]),
+            0x56 => simd_shuffle8(a, z, [2, 1, 1, 1, 6, 5, 5, 5]),
+            0x57 => simd_shuffle8(a, z, [3, 1, 1, 1, 7, 5, 5, 5]),
+            0x58 => simd_shuffle8(a, z, [0, 2, 1, 1, 4, 6, 5, 5]),
+            0x59 => simd_shuffle8(a, z, [1, 2, 1, 1, 5, 6, 5, 5]),
+            0x5A => simd_shuffle8(a, z, [2, 2, 1, 1, 6, 6, 5, 5]),
+            0x5B => simd_shuffle8(a, z, [3, 2, 1, 1, 7, 6, 5, 5]),
+            0x5C => simd_shuffle8(a, z, [0, 3, 1, 1, 4, 7, 5, 5]),
+            0x5D => simd_shuffle8(a, z, [1, 3, 1, 1, 5, 7, 5, 5]),
+            0x5E => simd_shuffle8(a, z, [2, 3, 1, 1, 6, 7, 5, 5]),
+            0x5F => simd_shuffle8(a, z, [3, 3, 1, 1, 7, 7, 5, 5]),
+            0x60 => simd_shuffle8(a, z, [0, 0, 2, 1, 4, 4, 6, 5]),
+            0x61 => simd_shuffle8(a, z, [1, 0, 2, 1, 5, 4, 6, 5]),
+            0x62 => simd_shuffle8(a, z, [2, 0, 2, 1, 6, 4, 6, 5]),
+            0x63 => simd_shuffle8(a, z, [3, 0, 2, 1, 7, 4, 6, 5]),
+            0x64 => simd_shuffle8(a, z, [0, 1, 2, 1, 4, 5, 6, 5]),
+            0x65 => simd_shuffle8(a, z, [1, 1, 2, 1, 5, 5, 6, 5]),
+            0x66 => simd_shuffle8(a, z, [2, 1, 2, 1, 6, 5, 6, 5]),
+            0x67 => simd_shuffle8(a, z, [3, 1, 2, 1, 7, 5, 6, 5]),
+            0x68 => simd_shuffle8(a, z, [0, 2, 2, 1, 4, 6, 6, 5]),
+            0x69 => simd_shuffle8(a, z, [1, 2, 2, 1, 5, 6, 6, 5]),
+            0x6A => simd_shuffle8(a, z, [2, 2, 2, 1, 6, 6, 6, 5]),
+            0x6B => simd_shuffle8(a, z, [3, 2, 2, 1, 7, 6, 6, 5]),
+            0x6C => simd_shuffle8(a, z, [0, 3, 2, 1, 4, 7, 6, 5]),
+            0x6D => simd_shuffle8(a, z, [1, 3, 2, 1, 5, 7, 6, 5]),
+            0x6E => simd_shuffle8(a, z, [2, 3, 2, 1, 6, 7, 6, 5]),
+            0x6F => simd_shuffle8(a, z, [3, 3, 2, 1, 7, 7, 6, 5]),
+            0x70 => simd_shuffle8(a, z, [0, 0, 3, 1, 4, 4, 7, 5]),
+            0x71 => simd_shuffle8(a, z, [1, 0, 3, 1, 5, 4, 7, 5]),
+            0x72 => simd_shuffle8(a, z, [2, 0, 3, 1, 6, 4, 7, 5]),
+            0x73 => simd_shuffle8(a, z, [3, 0, 3, 1, 7, 4, 7, 5]),
+            0x74 => simd_shuffle8(a, z, [0, 1, 3, 1, 4, 5, 7, 5]),
+            0x75 => simd_shuffle8(a, z, [1, 1, 3, 1, 5, 5, 7, 5]),
+            0x76 => simd_shuffle8(a, z, [2, 1, 3, 1, 6, 5, 7, 5]),
+            0x77 => simd_shuffle8(a, z, [3, 1, 3, 1, 7, 5, 7, 5]),
+            0x78 => simd_shuffle8(a, z, [0, 2, 3, 1, 4, 6, 7, 5]),
+            0x79 => simd_shuffle8(a, z, [1, 2, 3, 1, 5, 6, 7, 5]),
+            0x7A => simd_shuffle8(a, z, [2, 2, 3, 1, 6, 6, 7, 5]),
+            0x7B => simd_shuffle8(a, z, [3, 2, 3, 1, 7, 6, 7, 5]),
+            0x7C => simd_shuffle8(a, z, [0, 3, 3, 1, 4, 7, 7, 5]),
+            0x7D => simd_shuffle8(a, z, [1, 3, 3, 1, 5, 7, 7, 5]),
+            0x7E => simd_shuffle8(a, z, [2, 3, 3, 1, 6, 7, 7, 5]),
+            0x7F => simd_shuffle8(a, z, [3, 3, 3, 1, 7, 7, 7, 5]),
+            0x80 => simd_shuffle8(a, z, [0, 0, 0, 2, 4, 4, 4, 6]),
+            0x81 => simd_shuffle8(a, z, [1, 0, 0, 2, 5, 4, 4, 6]),
+            0x82 => simd_shuffle8(a, z, [2, 0, 0, 2, 6, 4, 4, 6]),
+            0x83 => simd_shuffle8(a, z, [3, 0, 0, 2, 7, 4, 4, 6]),
+            0x84 => simd_shuffle8(a, z, [0, 1, 0, 2, 4, 5, 4, 6]),
+            0x85 => simd_shuffle8(a, z, [1, 1, 0, 2, 5, 5, 4, 6]),
+            0x86 => simd_shuffle8(a, z, [2, 1, 0, 2, 6, 5, 4, 6]),
+            0x87 => simd_shuffle8(a, z, [3, 1, 0, 2, 7, 5, 4, 6]),
+            0x88 => simd_shuffle8(a, z, [0, 2, 0, 2, 4, 6, 4, 6]),
+            0x89 => simd_shuffle8(a, z, [1, 2, 0, 2, 5, 6, 4, 6]),
+            0x8A => simd_shuffle8(a, z, [2, 2, 0, 2, 6, 6, 4, 6]),
+            0x8B => simd_shuffle8(a, z, [3, 2, 0, 2, 7, 6, 4, 6]),
+            0x8C => simd_shuffle8(a, z, [0, 3, 0, 2, 4, 7, 4, 6]),
+            0x8D => simd_shuffle8(a, z, [1, 3, 0, 2, 5, 7, 4, 6]),
+            0x8E => simd_shuffle8(a, z, [2, 3, 0, 2, 6, 7, 4, 6]),
+            0x8F => simd_shuffle8(a, z, [3, 3, 0, 2, 7, 7, 4, 6]),
+            0x90 => simd_shuffle8(a, z, [0, 0, 1, 2, 4, 4, 5, 6]),
+            0x91 => simd_shuffle8(a, z, [1, 0, 1, 2, 5, 4, 5, 6]),
+            0x92 => simd_shuffle8(a, z, [2, 0, 1, 2, 6, 4, 5, 6]),
+            0x93 => simd_shuffle8(a, z, [3, 0, 1, 2, 7, 4, 5, 6]),
+            0x94 => simd_shuffle8(a, z, [0, 1, 1, 2, 4, 5, 5, 6]),
+            0x95 => simd_shuffle8(a, z, [1, 1, 1, 2, 5, 5, 5, 6]),
+            0x96 => simd_shuffle8(a, z, [2, 1, 1, 2, 6, 5, 5, 6]),
+            0x97 => simd_shuffle8(a, z, [3, 1, 1, 2, 7, 5, 5, 6]),
+            0x98 => simd_shuffle8(a, z, [0, 2, 1, 2, 4, 6, 5, 6]),
+            0x99 => simd_shuffle8(a, z, [1, 2, 1, 2, 5, 6, 5, 6]),
+            0x9A => simd_shuffle8(a, z, [2, 2, 1, 2, 6, 6, 5, 6]),
+            0x9B => simd_shuffle8(a, z, [3, 2, 1, 2, 7, 6, 5, 6]),
+            0x9C => simd_shuffle8(a, z, [0, 3, 1, 2, 4, 7, 5, 6]),
+            0x9D => simd_shuffle8(a, z, [1, 3, 1, 2, 5, 7, 5, 6]),
+            0x9E => simd_shuffle8(a, z, [2, 3, 1, 2, 6, 7, 5, 6]),
+            0x9F => simd_shuffle8(a, z, [3, 3, 1, 2, 7, 7, 5, 6]),
+            0xA0 => simd_shuffle8(a, z, [0, 0, 2, 2, 4, 4, 6, 6]),
+            0xA1 => simd_shuffle8(a, z, [1, 0, 2, 2, 5, 4, 6, 6]),
+            0xA2 => simd_shuffle8(a, z, [2, 0, 2, 2, 6, 4, 6, 6]),
+            0xA3 => simd_shuffle8(a, z, [3, 0, 2, 2, 7, 4, 6, 6]),
+            0xA4 => simd_shuffle8(a, z, [0, 1, 2, 2, 4, 5, 6, 6]),
+            0xA5 => simd_shuffle8(a, z, [1, 1, 2, 2, 5, 5, 6, 6]),
+            0xA6 => simd_shuffle8(a, z, [2, 1, 2, 2, 6, 5, 6, 6]),
+            0xA7 => simd_shuffle8(a, z, [3, 1, 2, 2, 7, 5, 6, 6]),
+            0xA8 => simd_shuffle8(a, z, [0, 2, 2, 2, 4, 6, 6, 6]),
+            0xA9 => simd_shuffle8(a, z, [1, 2, 2, 2, 5, 6, 6, 6]),
+            0xAA => simd_shuffle8(a, z, [2, 2, 2, 2, 6, 6, 6, 6]),
+            0xAB => simd_shuffle8(a, z, [3, 2, 2, 2, 7, 6, 6, 6]),
+            0xAC => simd_shuffle8(a, z, [0, 3, 2, 2, 4, 7, 6, 6]),
+            0xAD => simd_shuffle8(a, z, [1, 3, 2, 2, 5, 7, 6, 6]),
+            0xAE => simd_shuffle8(a, z, [2, 3, 2, 2, 6, 7, 6, 6]),
+            0xAF => simd_shuffle8(a, z, [3, 3, 2, 2, 7, 7, 6, 6]),
+            0xB0 => simd_shuffle8(a, z, [0, 0, 3, 2, 4, 4, 7, 6]),
+            0xB1 => simd_shuffle8(a, z, [1, 0, 3, 2, 5, 4, 7, 6]),
+            0xB2 => simd_shuffle8(a, z, [2, 0, 3, 2, 6, 4, 7, 6]),
+            0xB3 => simd_shuffle8(a, z, [3, 0, 3, 2, 7, 4, 7, 6]),
+            0xB4 => simd_shuffle8(a, z, [0, 1, 3, 2, 4, 5, 7, 6]),
+            0xB5 => simd_shuffle8(a, z, [1, 1, 3, 2, 5, 5, 7, 6]),
+            0xB6 => simd_shuffle8(a, z, [2, 1, 3, 2, 6, 5, 7, 6]),
+            0xB7 => simd_shuffle8(a, z, [3, 1, 3, 2, 7, 5, 7, 6]),
+            0xB8 => simd_shuffle8(a, z, [0, 2, 3, 2, 4, 6, 7, 6]),
+            0xB9 => simd_shuffle8(a, z, [1, 2, 3, 2, 5, 6, 7, 6]),
+            0xBA => simd_shuffle8(a, z, [2, 2, 3, 2, 6, 6, 7, 6]),
+            0xBB => simd_shuffle8(a, z, [3, 2, 3, 2, 7, 6, 7, 6]),
+            0xBC => simd_shuffle8(a, z, [0, 3, 3, 2, 4, 7, 7, 6]),
+            0xBD => simd_shuffle8(a, z, [1, 3, 3, 2, 5, 7, 7, 6]),
+            0xBE => simd_shuffle8(a, z, [2, 3, 3, 2, 6, 7, 7, 6]),
+            0xBF => simd_shuffle8(a, z, [3, 3, 3, 2, 7, 7, 7, 6]),
+            0xC0 => simd_shuffle8(a, z, [0, 0, 0, 3, 4, 4, 4, 7]),
+            0xC1 => simd_shuffle8(a, z, [1, 0, 0, 3, 5, 4, 4, 7]),
+            0xC2 => simd_shuffle8(a, z, [2, 0, 0, 3, 6, 4, 4, 7]),
+            0xC3 => simd_shuffle8(a, z, [3, 0, 0, 3, 7, 4, 4, 7]),
+            0xC4 => simd_shuffle8(a, z, [0, 1, 0, 3, 4, 5, 4, 7]),
+            0xC5 => simd_shuffle8(a, z, [1, 1, 0, 3, 5, 5, 4, 7]),
+            0xC6 => simd_shuffle8(a, z, [2, 1, 0, 3, 6, 5, 4, 7]),
+            0xC7 => simd_shuffle8(a, z, [3, 1, 0, 3, 7, 5, 4, 7]),
+            0xC8 => simd_shuffle8(a, z, [0, 2, 0, 3, 4, 6, 4, 7]),
+            0xC9 => simd_shuffle8(a, z, [1, 2, 0, 3, 5, 6, 4, 7]),
+            0xCA => simd_shuffle8(a, z, [2, 2, 0, 3, 6, 6, 4, 7]),
+            0xCB => simd_shuffle8(a, z, [3, 2, 0, 3, 7, 6, 4, 7]),
+            0xCC => simd_shuffle8(a, z, [0, 3, 0, 3, 4, 7, 4, 7]),
+            0xCD => simd_shuffle8(a, z, [1, 3, 0, 3, 5, 7, 4, 7]),
+            0xCE => simd_shuffle8(a, z, [2, 3, 0, 3, 6, 7, 4, 7]),
+            0xCF => simd_shuffle8(a, z, [3, 3, 0, 3, 7, 7, 4, 7]),
+            0xD0 => simd_shuffle8(a, z, [0, 0, 1, 3, 4, 4, 5, 7]),
+            0xD1 => simd_shuffle8(a, z, [1, 0, 1, 3, 5, 4, 5, 7]),
+            0xD2 => simd_shuffle8(a, z, [2, 0, 1, 3, 6, 4, 5, 7]),
+            0xD3 => simd_shuffle8(a, z, [3, 0, 1, 3, 7, 4, 5, 7]),
+            0xD4 => simd_shuffle8(a, z, [0, 1, 1, 3, 4, 5, 5, 7]),
+            0xD5 => simd_shuffle8(a, z, [1, 1, 1, 3, 5, 5, 5, 7]),
+            0xD6 => simd_shuffle8(a, z, [2, 1, 1, 3, 6, 5, 5, 7]),
+            0xD7 => simd_shuffle8(a, z, [3, 1, 1, 3, 7, 5, 5, 7]),
+            0xD8 => simd_shuffle8(a, z, [0, 2, 1, 3, 4, 6, 5, 7]),
+            0xD9 => simd_shuffle8(a, z, [1, 2, 1, 3, 5, 6, 5, 7]),
+            0xDA => simd_shuffle8(a, z, [2, 2, 1, 3, 6, 6, 5, 7]),
+            0xDB => simd_shuffle8(a, z, [3, 2, 1, 3, 7, 6, 5, 7]),
+            0xDC => simd_shuffle8(a, z, [0, 3, 1, 3, 4, 7, 5, 7]),
+            0xDD => simd_shuffle8(a, z, [1, 3, 1, 3, 5, 7, 5, 7]),
+            0xDE => simd_shuffle8(a, z, [2, 3, 1, 3, 6, 7, 5, 7]),
+            0xDF => simd_shuffle8(a, z, [3, 3, 1, 3, 7, 7, 5, 7]),
+            0xE0 => simd_shuffle8(a, z, [0, 0, 2, 3, 4, 4, 6, 7]),
+            0xE1 => simd_shuffle8(a, z, [1, 0, 2, 3, 5, 4, 6, 7]),
+            0xE2 => simd_shuffle8(a, z, [2, 0, 2, 3, 6, 4, 6, 7]),
+            0xE3 => simd_shuffle8(a, z, [3, 0, 2, 3, 7, 4, 6, 7]),
+            0xE4 => simd_shuffle8(a, z, [0, 1, 2, 3, 4, 5, 6, 7]),
+            0xE5 => simd_shuffle8(a, z, [1, 1, 2, 3, 5, 5, 6, 7]),
+            0xE6 => simd_shuffle8(a, z, [2, 1, 2, 3, 6, 5, 6, 7]),
+            0xE7 => simd_shuffle8(a, z, [3, 1, 2, 3, 7, 5, 6, 7]),
+            0xE8 => simd_shuffle8(a, z, [0, 2, 2, 3, 4, 6, 6, 7]),
+            0xE9 => simd_shuffle8(a, z, [1, 2, 2, 3, 5, 6, 6, 7]),
+            0xEA => simd_shuffle8(a, z, [2, 2, 2, 3, 6, 6, 6, 7]),
+            0xEB => simd_shuffle8(a, z, [3, 2, 2, 3, 7, 6, 6, 7]),
+            0xEC => simd_shuffle8(a, z, [0, 3, 2, 3, 4, 7, 6, 7]),
+            0xED => simd_shuffle8(a, z, [1, 3, 2, 3, 5, 7, 6, 7]),
+            0xEE => simd_shuffle8(a, z, [2, 3, 2, 3, 6, 7, 6, 7]),
+            0xEF => simd_shuffle8(a, z, [3, 3, 2, 3, 7, 7, 6, 7]),
+            0xF0 => simd_shuffle8(a, z, [0, 0, 3, 3, 4, 4, 7, 7]),
+            0xF1 => simd_shuffle8(a, z, [1, 0, 3, 3, 5, 4, 7, 7]),
+            0xF2 => simd_shuffle8(a, z, [2, 0, 3, 3, 6, 4, 7, 7]),
+            0xF3 => simd_shuffle8(a, z, [3, 0, 3, 3, 7, 4, 7, 7]),
+            0xF4 => simd_shuffle8(a, z, [0, 1, 3, 3, 4, 5, 7, 7]),
+            0xF5 => simd_shuffle8(a, z, [1, 1, 3, 3, 5, 5, 7, 7]),
+            0xF6 => simd_shuffle8(a, z, [2, 1, 3, 3, 6, 5, 7, 7]),
+            0xF7 => simd_shuffle8(a, z, [3, 1, 3, 3, 7, 5, 7, 7]),
+            0xF8 => simd_shuffle8(a, z, [0, 2, 3, 3, 4, 6, 7, 7]),
+            0xF9 => simd_shuffle8(a, z, [1, 2, 3, 3, 5, 6, 7, 7]),
+            0xFA => simd_shuffle8(a, z, [2, 2, 3, 3, 6, 6, 7, 7]),
+            0xFB => simd_shuffle8(a, z, [3, 2, 3, 3, 7, 6, 7, 7]),
+            0xFC => simd_shuffle8(a, z, [0, 3, 3, 3, 4, 7, 7, 7]),
+            0xFD => simd_shuffle8(a, z, [1, 3, 3, 3, 5, 7, 7, 7]),
+            0xFE => simd_shuffle8(a, z, [2, 3, 3, 3, 6, 7, 7, 7]),
+            0xFF => simd_shuffle8(a, z, [3, 3, 3, 3, 7, 7, 7, 7]),
+            _ => unreachable!()
+        }
+    }
+}
+
 // vperm2f128
 // __m256d _mm256_permute2f128_pd (__m256d a, __m256d b, int imm8)
+#[inline]
+pub fn mm256_permute2f128_pd(a: m256d, b: m256d, imm8: i32) -> m256d {
+    fn_imm8_arg2!(avx_vperm2f128_pd_256, a, b, imm8)
+}
+
 // vperm2f128
 // __m256 _mm256_permute2f128_ps (__m256 a, __m256 b, int imm8)
+#[inline]
+pub fn mm256_permute2f128_ps(a: m256, b: m256, imm8: i32) -> m256 {
+    fn_imm8_arg2!(avx_vperm2f128_ps_256, a, b, imm8)
+}
+
 // vperm2f128
 // __m256i _mm256_permute2f128_si256 (__m256i a, __m256i b, int imm8)
+#[inline]
+pub fn mm256_permute2f128_si256(a: m256i, b: m256i, imm8: i32) -> m256i {
+    fn_imm8_arg2!(avx_vperm2f128_si_256, a.as_i32x8(), b.as_i32x8(), imm8).as_m256i()
+}
+
 // vpermilpd
 // __m128d _mm_permutevar_pd (__m128d a, __m128i b)
+#[inline]
+pub fn mm_permutevar_pd(a: m128d, b: m128i) -> m128d {
+    unsafe { avx_vpermilvar_pd(a, b.as_i64x2()) }
+}
+
 // vpermilpd
 // __m256d _mm256_permutevar_pd (__m256d a, __m256i b)
+#[inline]
+pub fn mm256_permutevar_pd(a: m256d, b: m256i) -> m256d {
+    unsafe { avx_vpermilvar_pd_256(a, b.as_i64x4()) }
+}
+
 // vpermilps
 // __m128 _mm_permutevar_ps (__m128 a, __m128i b)
+#[inline]
+pub fn mm_permutevar_ps(a: m128, b: m128i) -> m128 {
+    unsafe { avx_vpermilvar_ps(a, b.as_i32x4()) }
+}
+
 // vpermilps
 // __m256 _mm256_permutevar_ps (__m256 a, __m256i b)
+#[inline]
+pub fn mm256_permutevar_ps(a: m256, b: m256i) -> m256 {
+    unsafe { avx_vpermilvar_ps_256(a, b.as_i32x8()) }
+}
 
 // vrcpps
 // __m256 _mm256_rcp_ps (__m256 a)
@@ -2417,5 +3037,58 @@ mod tests {
                    [4.0, 1.0, 2.0, 3.0, 8.0, 5.0, 6.0, 7.0]);
         assert_eq!(mm256_shuffle_pd(d, d, (0 << 0 | 1 << 1 | 1 << 2 | 0 << 3)).as_f64x4().as_array(),
                    [1.0, 2.0, 4.0, 3.0]);
+    }
+
+    #[test]
+    fn test_permute() {
+        let s128 = mm_setr_ps(1.0, 2.0, 3.0, 4.0);
+        let d128 = mm_setr_pd(1.0, 2.0);
+        let s256 = mm256_setr_ps(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0);
+        let d256 = mm256_setr_pd(1.0, 2.0, 3.0, 4.0);
+        let si256 = mm256_setr_epi64x(1, 2, 3, 4);
+
+        assert_eq!(mm_permute_pd(d128, 0 << 0 | 0 << 1).as_f64x2().as_array(), [1.0, 1.0]);
+        assert_eq!(mm_permute_pd(d128, 1 << 0 | 0 << 1).as_f64x2().as_array(), [2.0, 1.0]);
+
+        assert_eq!(mm256_permute_pd(d256, 0 << 0 | 0 << 1 | 1 << 2 | 1 << 3).as_f64x4().as_array(),
+                   [1.0, 1.0, 4.0, 4.0]);
+        assert_eq!(mm256_permute_pd(d256, 1 << 0 | 0 << 1 | 1 << 2 | 0 << 3).as_f64x4().as_array(),
+                   [2.0, 1.0, 4.0, 3.0]);
+
+        assert_eq!(mm_permute_ps(s128, 0 << 0 | 0 << 2 | 3 << 4 | 2 << 6).as_f32x4().as_array(),
+                   [1.0, 1.0, 4.0, 3.0]);
+        assert_eq!(mm_permute_ps(s128, 1 << 0 | 2 << 2 | 3 << 4 | 0 << 6).as_f32x4().as_array(),
+                   [2.0, 3.0, 4.0, 1.0]);
+        assert_eq!(mm256_permute_ps(s256, 0 << 0 | 0 << 2 | 3 << 4 | 2 << 6).as_f32x8().as_array(),
+                   [1.0, 1.0, 4.0, 3.0, 5.0, 5.0, 8.0, 7.0]);
+        assert_eq!(mm256_permute_ps(s256, 1 << 0 | 2 << 2 | 3 << 4 | 0 << 6).as_f32x8().as_array(),
+                   [2.0, 3.0, 4.0, 1.0, 6.0, 7.0, 8.0, 5.0]);
+
+        assert_eq!(mm256_permute2f128_pd(d256, d256, 0x8 | 0 << 4).as_f64x4().as_array(),
+                   [0.0, 0.0, 1.0, 2.0]);
+        assert_eq!(mm256_permute2f128_ps(s256, s256, 0x8 | 0 << 4).as_f32x8().as_array(),
+                   [0.0, 0.0, 0.0, 0.0, 1.0, 2.0, 3.0, 4.0]);
+        assert_eq!(mm256_permute2f128_si256(si256, si256, 0x8 | 0 << 4).as_i64x4().as_array(),
+            [0, 0, 1, 2]);
+
+        assert_eq!(mm_permutevar_pd(d128, i64x2(0, 0).as_m128i()).as_f64x2().as_array(),
+                   [1.0, 1.0]);
+        assert_eq!(mm_permutevar_pd(d128, i64x2(2, 0).as_m128i()).as_f64x2().as_array(),
+                   [2.0, 1.0]);
+
+        assert_eq!(mm256_permutevar_pd(d256, i64x4(0, 0, 2, 2).as_m256i()).as_f64x4().as_array(),
+                   [1.0, 1.0, 4.0, 4.0]);
+        assert_eq!(mm256_permutevar_pd(d256, i64x4(2, 0, 2, 0).as_m256i()).as_f64x4().as_array(),
+                   [2.0, 1.0, 4.0, 3.0]);
+
+        assert_eq!(mm_permutevar_ps(s128, i32x4(0, 0, 3, 2).as_m128i()).as_f32x4().as_array(),
+                   [1.0, 1.0, 4.0, 3.0]);
+        assert_eq!(mm_permutevar_ps(s128, i32x4(1, 2, 3, 0).as_m128i()).as_f32x4().as_array(),
+                   [2.0, 3.0, 4.0, 1.0]);
+        assert_eq!(mm256_permutevar_ps(s256, i32x8(0, 0, 3, 2, 0, 0, 3, 2).as_m256i()).as_f32x8().as_array(),
+                   [1.0, 1.0, 4.0, 3.0, 5.0, 5.0, 8.0, 7.0]);
+        assert_eq!(mm256_permutevar_ps(s256, i32x8(1, 2, 3, 0, 1, 2, 3, 0).as_m256i()).as_f32x8().as_array(),
+                   [2.0, 3.0, 4.0, 1.0, 6.0, 7.0, 8.0, 5.0]);
+
     }
 }
