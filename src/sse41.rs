@@ -23,6 +23,31 @@ extern {
     #[link_name = "llvm.x86.sse41.insertps"]
     fn sse41_insertps(a: m128, b: m128, c: u8) -> m128;
 
+    #[link_name = "llvm.x86.sse41.pmovsxbd"]
+    pub fn sse41_pmovsxbd(a: i8x16) -> i32x4;
+    #[link_name = "llvm.x86.sse41.pmovsxbq"]
+    pub fn sse41_pmovsxbq(a: i8x16) -> i64x2;
+    #[link_name = "llvm.x86.sse41.pmovsxbw"]
+    pub fn sse41_pmovsxbw(a: i8x16) -> i16x8;
+    #[link_name = "llvm.x86.sse41.pmovsxdq"]
+    pub fn sse41_pmovsxdq(a: i32x4) -> i64x2;
+    #[link_name = "llvm.x86.sse41.pmovsxwd"]
+    pub fn sse41_pmovsxwd(a: i16x8) -> i32x4;
+    #[link_name = "llvm.x86.sse41.pmovsxwq"]
+    pub fn sse41_pmovsxwq(a: i16x8) -> i64x2;
+    #[link_name = "llvm.x86.sse41.pmovzxbd"]
+    pub fn sse41_pmovzxbd(a: i8x16) -> i32x4;
+    #[link_name = "llvm.x86.sse41.pmovzxbq"]
+    pub fn sse41_pmovzxbq(a: i8x16) -> i64x2;
+    #[link_name = "llvm.x86.sse41.pmovzxbw"]
+    pub fn sse41_pmovzxbw(a: i8x16) -> i16x8;
+    #[link_name = "llvm.x86.sse41.pmovzxdq"]
+    pub fn sse41_pmovzxdq(a: i32x4) -> i64x2;
+    #[link_name = "llvm.x86.sse41.pmovzxwd"]
+    pub fn sse41_pmovzxwd(a: i16x8) -> i32x4;
+    #[link_name = "llvm.x86.sse41.pmovzxwq"]
+    pub fn sse41_pmovzxwq(a: i16x8) -> i64x2;
+
     #[link_name = "llvm.x86.sse41.ptestc"]
     fn sse41_ptestc(a: i64x2, b: i64x2) -> i32;
     #[link_name = "llvm.x86.sse41.ptestnzc"]
@@ -168,115 +193,99 @@ pub fn mm_cmpeq_epi64(a: m128i, b: m128i) -> m128i {
     x.as_m128i()
 }
 
-// TODO(mayah): Hard to implement these?
 // pmovsxwd
 // __m128i _mm_cvtepi16_epi32 (__m128i a)
 #[inline]
-#[allow(unused_variables)]
 pub fn mm_cvtepi16_epi32(a: m128i) -> m128i {
-//    let x: i32x4 = unsafe { simd_shuffle4(a.as_i16x8(), a.as_i16x8(), [0, 1, 2, 3]) };
-//    let y: i32x4 = unsafe { simd_cast(x) };
-//    y.as_m128i()
-    unimplemented!()
+    // return (__m128i)__builtin_convertvector(__builtin_shufflevector((__v8hi)__V, (__v8hi)__V, 0, 1, 2, 3), __v4si);
+    unsafe { sse41_pmovsxwd(a.as_i16x8()).as_m128i() }
 }
 
 // pmovsxwq
 // __m128i _mm_cvtepi16_epi64 (__m128i a)
 #[inline]
-#[allow(unused_variables)]
 pub fn mm_cvtepi16_epi64(a: m128i) -> m128i {
-    unimplemented!()
     // return (__m128i)__builtin_convertvector(__builtin_shufflevector((__v8hi)__V, (__v8hi)__V, 0, 1), __v2di);
+    unsafe { sse41_pmovsxwq(a.as_i16x8()).as_m128i() }
 }
 
 // pmovsxdq
 // __m128i _mm_cvtepi32_epi64 (__m128i a)
 #[inline]
-#[allow(unused_variables)]
 pub fn mm_cvtepi32_epi64(a: m128i) -> m128i {
-    unimplemented!()
     // return (__m128i)__builtin_convertvector(__builtin_shufflevector((__v4si)__V, (__v4si)__V, 0, 1), __v2di);
+    unsafe { sse41_pmovsxdq(a.as_i32x4()).as_m128i() }
 }
 
 // pmovsxbw
 // __m128i _mm_cvtepi8_epi16 (__m128i a)
 #[inline]
-#[allow(unused_variables)]
 pub fn mm_cvtepi8_epi16(a: m128i) -> m128i {
-    unimplemented!()
-   // return (__m128i)__builtin_convertvector(__builtin_shufflevector((__v16qs)__V, (__v16qs)__V, 0, 1, 2, 3, 4, 5, 6, 7), __v8hi);
+    // return (__m128i)__builtin_convertvector(__builtin_shufflevector((__v16qs)__V, (__v16qs)__V, 0, 1, 2, 3, 4, 5, 6, 7), __v8hi);
+    unsafe { sse41_pmovsxbw(a.as_i8x16()).as_m128i() }
 }
 
 // pmovsxbd
 // __m128i _mm_cvtepi8_epi32 (__m128i a)
 #[inline]
-#[allow(unused_variables)]
 pub fn mm_cvtepi8_epi32(a: m128i) -> m128i {
-    unimplemented!()
     // return (__m128i)__builtin_convertvector(__builtin_shufflevector((__v16qs)__V, (__v16qs)__V, 0, 1, 2, 3), __v4si);
+    unsafe { sse41_pmovsxbd(a.as_i8x16()).as_m128i() }
 }
 
 // pmovsxbq
 // __m128i _mm_cvtepi8_epi64 (__m128i a)
 #[inline]
-#[allow(unused_variables)]
 pub fn mm_cvtepi8_epi64(a: m128i) -> m128i {
-    unimplemented!()
     // return (__m128i)__builtin_convertvector(__builtin_shufflevector((__v16qs)__V, (__v16qs)__V, 0, 1), __v2di);
+    unsafe { sse41_pmovsxbq(a.as_i8x16()).as_m128i() }
 }
 
 // pmovzxwd
 // __m128i _mm_cvtepu16_epi32 (__m128i a)
 #[inline]
-#[allow(unused_variables)]
 pub fn mm_cvtepu16_epi32(a: m128i) -> m128i {
-    unimplemented!()
     // return (__m128i)__builtin_convertvector(__builtin_shufflevector((__v8hu)__V, (__v8hu)__V, 0, 1, 2, 3), __v4si);
+    unsafe { sse41_pmovzxwd(a.as_i16x8()).as_m128i() }
 }
 
 // pmovzxwq
 // __m128i _mm_cvtepu16_epi64 (__m128i a)
 #[inline]
-#[allow(unused_variables)]
 pub fn mm_cvtepu16_epi64(a: m128i) -> m128i {
-    unimplemented!()
     // return (__m128i)__builtin_convertvector(__builtin_shufflevector((__v8hu)__V, (__v8hu)__V, 0, 1), __v2di);
+    unsafe { sse41_pmovzxwq(a.as_i16x8()).as_m128i() }
 }
 
 // pmovzxdq
 // __m128i _mm_cvtepu32_epi64 (__m128i a)
 #[inline]
-#[allow(unused_variables)]
 pub fn mm_cvtepu32_epi64(a: m128i) -> m128i {
-    unimplemented!()
     // return (__m128i)__builtin_convertvector(__builtin_shufflevector((__v4su)__V, (__v4su)__V, 0, 1), __v2di);
+    unsafe { sse41_pmovzxdq(a.as_i32x4()).as_m128i() }
 }
 
 // pmovzxbw
 // __m128i _mm_cvtepu8_epi16 (__m128i a)
 #[inline]
-#[allow(unused_variables)]
 pub fn mm_cvtepu8_epi16(a: m128i) -> m128i {
-    unimplemented!()
     // return (__m128i)__builtin_convertvector(__builtin_shufflevector((__v16qu)__V, (__v16qu)__V, 0, 1, 2, 3, 4, 5, 6, 7), __v8hi);
+    unsafe { sse41_pmovzxbw(a.as_i8x16()).as_m128i() }
 }
 
 // pmovzxbd
 // __m128i _mm_cvtepu8_epi32 (__m128i a)
 #[inline]
-#[allow(unused_variables)]
 pub fn mm_cvtepu8_epi32(a: m128i) -> m128i {
-    unimplemented!()
     // return (__m128i)__builtin_convertvector(__builtin_shufflevector((__v16qu)__V, (__v16qu)__V, 0, 1, 2, 3), __v4si);
+    unsafe { sse41_pmovzxbd(a.as_i8x16()).as_m128i() }
 }
 
 // pmovzxbq
 // __m128i _mm_cvtepu8_epi64 (__m128i a)
 #[inline]
-#[allow(unused_variables)]
 pub fn mm_cvtepu8_epi64(a: m128i) -> m128i {
-    unimplemented!()
-    // return (__m128i)__builtin_convertvector(__builtin_shufflevector((__v16qu)__V, (__v16qu)__V, 0, 1), __v2di);
+    unsafe { sse41_pmovzxbq(a.as_i8x16()).as_m128i() }
 }
 
 // dppd
@@ -376,7 +385,6 @@ pub fn mm_insert_epi8(a: m128i, i: i32, imm8: i32) -> m128i {
 // __m128 _mm_insert_ps (__m128 a, __m128 b, const int imm8)
 #[inline]
 pub fn mm_insert_ps(a: m128, b: m128, imm8: i32) -> m128 {
-    // TODO(mayah): the third argument of sse41_insertps should be immediate.
     fn_imm8_arg2!(sse41_insertps, a, b, imm8)
 }
 
@@ -689,25 +697,23 @@ mod tests {
 
     #[test]
     fn test_convert() {
-        // TODO(mayah): Currently hard to implement these intrinsics.
+        let x8 = mm_setr_epi8(1, -2, 3, -4, 5, -6, 7, -8, 9, -10, 11, -12, 13, -14, 15, -16);
+        let x16 = mm_setr_epi16(1, -2, 3, -4, 5, -6, 7, -8);
+        let x32 = mm_setr_epi32(1, -2, 3, -4);
 
-        // let x8 = mm_setr_epi8(1, -2, 3, -4, 5, -6, 7, -8, 9, -10, 11, -12, 13, -14, 15, -16);
-        // let x16 = mm_setr_epi16(1, -2, 3, -4, 5, -6, 7, -8);
-        // let x32 = mm_setr_epi32(1, -2, 3, -4);
+        assert_eq!(mm_cvtepi16_epi32(x16).as_i32x4().as_array(), [1, -2, 3, -4]);
+        assert_eq!(mm_cvtepi16_epi64(x16).as_i64x2().as_array(), [1, -2]);
+        assert_eq!(mm_cvtepi32_epi64(x32).as_i64x2().as_array(), [1, -2]);
+        assert_eq!(mm_cvtepi8_epi16(x8).as_i16x8().as_array(), [1, -2, 3, -4, 5, -6, 7, -8]);
+        assert_eq!(mm_cvtepi8_epi32(x8).as_i32x4().as_array(), [1, -2, 3, -4]);
+        assert_eq!(mm_cvtepi8_epi64(x8).as_i64x2().as_array(), [1, -2]);
 
-        // assert_eq!(mm_cvtepi16_epi32(x16).as_i32x4().as_array(), [1, -2, 3, -4]);
-        // assert_eq!(mm_cvtepi16_epi64(x16).as_i64x2().as_array(), [1, -2]);
-        // assert_eq!(mm_cvtepi32_epi64(x32).as_i64x2().as_array(), [1, -2]);
-        // assert_eq!(mm_cvtepi8_epi16(x8).as_i16x8().as_array(), [1, -2, 3, -4, 5, -6, 7, -8]);
-        // assert_eq!(mm_cvtepi8_epi32(x8).as_i32x4().as_array(), [1, -2, 3, -4]);
-        // assert_eq!(mm_cvtepi8_epi64(x8).as_i64x2().as_array(), [1, -2]);
-
-        // assert_eq!(mm_cvtepu16_epi32(x16).as_i32x4().as_array(), [1, -2 & 0xFFFF, 3, -4 & 0xFFFF]);
-        // assert_eq!(mm_cvtepu16_epi64(x16).as_i64x2().as_array(), [1, -2 & 0xFFFF]);
-        // assert_eq!(mm_cvtepu32_epi64(x32).as_i64x2().as_array(), [1, -2 & 0xFFFFFFFF]);
-        // assert_eq!(mm_cvtepu8_epi16(x8).as_i16x8().as_array(), [1, -2 & 0xFF, 3, -4 & 0xFF, 5, -6 & 0xFF, 7, -8 & 0xFF]);
-        // assert_eq!(mm_cvtepu8_epi32(x8).as_i32x4().as_array(), [1, -2 & 0xFF, 3, -4 & 0xFF]);
-        // assert_eq!(mm_cvtepu8_epi64(x8).as_i64x2().as_array(), [1, -2 & 0xFF]);
+        assert_eq!(mm_cvtepu16_epi32(x16).as_i32x4().as_array(), [1, -2 & 0xFFFF, 3, -4 & 0xFFFF]);
+        assert_eq!(mm_cvtepu16_epi64(x16).as_i64x2().as_array(), [1, -2 & 0xFFFF]);
+        assert_eq!(mm_cvtepu32_epi64(x32).as_i64x2().as_array(), [1, -2 & 0xFFFFFFFF]);
+        assert_eq!(mm_cvtepu8_epi16(x8).as_i16x8().as_array(), [1, -2 & 0xFF, 3, -4 & 0xFF, 5, -6 & 0xFF, 7, -8 & 0xFF]);
+        assert_eq!(mm_cvtepu8_epi32(x8).as_i32x4().as_array(), [1, -2 & 0xFF, 3, -4 & 0xFF]);
+        assert_eq!(mm_cvtepu8_epi64(x8).as_i64x2().as_array(), [1, -2 & 0xFF]);
     }
 
     #[test]
