@@ -11,15 +11,14 @@ extern {
     #[link_name = "llvm.x86.sse41.blendvps"]
     fn sse41_blendvps(a: m128, b: m128, c: m128) -> m128;
 
-    // TODO(mayah): These functions are not published yet?
-    // #[link_name = "llvm.x86.sse41.round.ss"]
-    // fn sse41_round_ss(a: m128, b: m128, c: i32) -> m128;
-    // #[link_name = "llvm.x86.sse41.round.ps"]
-    // fn sse41_round_ps(a: m128, b: i32) -> m128;
-    // #[link_name = "llvm.x86.sse41.round.sd"]
-    // fn sse41_round_sd(a: m128d, b: m128d, c: i32) -> m128d;
-    // #[link_name = "llvm.x86.sse41.round.pd"]
-    // fn sse41_round_pd(a: m128d, b: i32) -> m128d;
+    #[link_name = "llvm.x86.sse41.round.ss"]
+    fn sse41_round_ss(a: m128, b: m128, c: i32) -> m128;
+    #[link_name = "llvm.x86.sse41.round.ps"]
+    fn sse41_round_ps(a: m128, b: i32) -> m128;
+    #[link_name = "llvm.x86.sse41.round.sd"]
+    fn sse41_round_sd(a: m128d, b: m128d, c: i32) -> m128d;
+    #[link_name = "llvm.x86.sse41.round.pd"]
+    fn sse41_round_pd(a: m128d, b: i32) -> m128d;
 
     #[link_name = "llvm.x86.sse41.insertps"]
     fn sse41_insertps(a: m128, b: m128, c: u8) -> m128;
@@ -476,46 +475,40 @@ pub fn mm_packus_epi32(a: m128i, b: m128i) -> m128i {
 
 // roundpd
 // __m128d _mm_round_pd (__m128d a, int rounding)
-// TODO(mayah): Implement this in librustc_platform_intrinsics.
 #[inline]
-#[allow(unused_variables)]
 pub fn mm_round_pd(a: m128d, rounding: i32) -> m128d {
-    // unsafe { sse41_round_pd(a, rounding) }
-    unimplemented!()
+    fn_imm8_arg1!(sse41_round_pd, a, rounding)
 }
 
 // roundps
 // __m128 _mm_round_ps (__m128 a, int rounding)
-// TODO(mayah): Implement this in librustc_platform_intrinsics.
 #[inline]
-#[allow(unused_variables)]
 pub fn mm_round_ps(a: m128, rounding: i32) -> m128 {
-    // unsafe { sse41_round_ps(a, rounding) }
-    unimplemented!()
+    fn_imm8_arg1!(sse41_round_ps, a, rounding)
 }
 
 // roundsd
 // __m128d _mm_round_sd (__m128d a, __m128d b, int rounding)
-// TODO(mayah): Implement this in librustc_platform_intrinsics.
 #[inline]
-#[allow(unused_variables)]
 pub fn mm_round_sd(a: m128d, b: m128d, rounding: i32) -> m128d {
-    // unsafe { sse41_round_sd(a, b, rounding) }
-    unimplemented!()
+    fn_imm8_arg2!(sse41_round_sd, a, b, rounding)
 }
 
 // roundss
 // __m128 _mm_round_ss (__m128 a, __m128 b, int rounding)
-// TODO(mayah): Implement this in librustc_platform_intrinsics.
 #[inline]
-#[allow(unused_variables)]
 pub fn mm_round_ss(a: m128, b: m128, rounding: i32) -> m128 {
-    // unsafe { sse41_round_ss(a, b, rounding) }
-    unimplemented!()
+    fn_imm8_arg2!(sse41_round_ss, a, b, rounding)
 }
 
 // movntdqa
 // __m128i _mm_stream_load_si128 (__m128i* mem_addr)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm_stream_load_si128(mem_addr: *const m128i) -> m128i {
+    // TODO(mayah): Make this
+    unimplemented!()
+}
 
 // ...
 // int _mm_test_all_ones (__m128i a)
@@ -669,24 +662,22 @@ mod tests {
 
     #[test]
     fn test_ceil_floor_round() {
-        // TODO(mayah): Since mm_round_* are not published, these won't work.
+        let ps = mm_setr_ps(1.5, 2.5, 3.5, 4.5);
+        let pd = mm_setr_pd(1.5, 2.5);
+        let ps1 = mm_set1_ps(6.0);
+        let pd1 = mm_set1_pd(6.0);
 
-        // let ps = mm_setr_ps(1.5, 2.5, 3.5, 4.5);
-        // let pd = mm_setr_pd(1.5, 2.5);
-        // let ps1 = mm_set1_ps(6.0);
-        // let pd1 = mm_set1_pd(6.0);
+        assert_eq!(mm_ceil_pd(pd).as_f64x2().as_array(), [2.0, 3.0]);
+        assert_eq!(mm_floor_pd(pd).as_f64x2().as_array(), [1.0, 2.0]);
 
-        // assert_eq!(mm_ceil_pd(pd).as_f64x2().as_array(), [2.0, 3.0]);
-        // assert_eq!(mm_floor_pd(pd).as_f64x2().as_array(), [1.0, 2.0]);
+        assert_eq!(mm_ceil_ps(ps).as_f32x4().as_array(), [2.0, 3.0, 4.0, 5.0]);
+        assert_eq!(mm_floor_ps(ps).as_f32x4().as_array(), [1.0, 2.0, 3.0, 4.0]);
 
-        // assert_eq!(mm_ceil_ps(ps).as_f32x4().as_array(), [2.0, 3.0, 4.0, 5.0]);
-        // assert_eq!(mm_floor_ps(ps).as_f32x4().as_array(), [1.0, 2.0, 3.0, 4.0]);
+        assert_eq!(mm_ceil_sd(pd1, pd).as_f64x2().as_array(), [2.0, 6.0]);
+        assert_eq!(mm_floor_sd(pd1, pd).as_f64x2().as_array(), [1.0, 6.0]);
 
-        // assert_eq!(mm_ceil_sd(pd1, pd).as_f64x2().as_array(), [2.0, 6.0]);
-        // assert_eq!(mm_floor_sd(pd1, pd).as_f64x2().as_array(), [1.0, 6.0]);
-
-        // assert_eq!(mm_ceil_ss(ps1, ps).as_f32x4().as_array(), [2.0, 6.0, 6.0, 6.0]);
-        // assert_eq!(mm_floor_ss(ps1, ps).as_f32x4().as_array(), [1.0, 6.0, 6.0, 6.0]);
+        assert_eq!(mm_ceil_ss(ps1, ps).as_f32x4().as_array(), [2.0, 6.0, 6.0, 6.0]);
+        assert_eq!(mm_floor_ss(ps1, ps).as_f32x4().as_array(), [1.0, 6.0, 6.0, 6.0]);
     }
 
     #[test]
