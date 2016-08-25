@@ -57,7 +57,6 @@ extern {
 }
 
 extern "platform-intrinsic" {
-    // TODO(mayah): This is not implemented in rust yet?
     fn x86_mm_dp_pd(x: m128d, y: m128d, z: i32) -> m128d;
     fn x86_mm_dp_ps(x: m128, y: m128, z: i32) -> m128;
 

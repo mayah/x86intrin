@@ -42,40 +42,24 @@ extern {
     fn sse42_crc32_64_64(a: u64, b: u64) -> u64;
 }
 
-// #define _SIDD_UBYTE_OPS                 0x00
-// #define _SIDD_UWORD_OPS                 0x01
-// #define _SIDD_SBYTE_OPS                 0x02
-// #define _SIDD_SWORD_OPS                 0x03
 pub const SIDD_UBYTE_OPS: i32 = 0x00;
 pub const SIDD_UWORD_OPS: i32 = 0x01;
 pub const SIDD_SBYTE_OPS: i32 = 0x02;
 pub const SIDD_SWORD_OPS: i32 = 0x03;
 
-// #define _SIDD_CMP_EQUAL_ANY             0x00
-// #define _SIDD_CMP_RANGES                0x04
-// #define _SIDD_CMP_EQUAL_EACH            0x08
-// #define _SIDD_CMP_EQUAL_ORDERED         0x0c
 pub const SIDD_CMP_EQUAL_ANY: i32 = 0x00;
 pub const SIDD_CMP_RANGES: i32 = 0x04;
 pub const SIDD_CMP_EQUAL_EACH: i32 = 0x08;
 pub const SIDD_CMP_EQUAL_ORDERED: i32 = 0x0c;
 
-//#define _SIDD_POSITIVE_POLARITY         0x00
-//#define _SIDD_NEGATIVE_POLARITY         0x10
-//#define _SIDD_MASKED_POSITIVE_POLARITY  0x20
-//#define _SIDD_MASKED_NEGATIVE_POLARITY  0x30
 pub const SIDD_POSITIVE_POLARITY: i32 = 0x00;
 pub const SIDD_NEGATIVE_POLARITY: i32 = 0x10;
 pub const SIDD_MASKED_POSITIVE_POLARITY: i32 = 0x20;
 pub const SIDD_MASKED_NEGATIVE_POLARITY: i32 = 0x30;
 
-// #define _SIDD_LEAST_SIGNIFICANT         0x00
-// #define _SIDD_MOST_SIGNIFICANT          0x40
 pub const SIDD_LEAST_SIGNIFICANT: i32 = 0x00;
 pub const SIDD_MOST_SIGNIFICANT: i32 = 0x40;
 
-// #define _SIDD_BIT_MASK                  0x00
-// #define _SIDD_UNIT_MASK                 0x40
 pub const SIDD_BIT_MASK: i8 = 0x00;
 pub const SIDD_UNIT_MASK: i8 = 0x40;
 
