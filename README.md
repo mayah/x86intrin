@@ -10,11 +10,11 @@ be implmeneted with priority.
 
 # Current Status
 
-Currently most of SSE, SSE2, SSE3, SSSE3, SSE4.1, and SSE4.2 are implemented.
+Currently most of SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2, and AVX are implemented.
 Some of the functions cannot be implemented since rust is not exposing necessary
 functions.
 
-AVX and AVX2 implementation are ongoing.
+AVX2 implementation is ongoing.
 
 After all done, I'd like to contribute to rust libraries to support missing functions.
 
