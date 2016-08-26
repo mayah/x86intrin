@@ -358,9 +358,8 @@ pub fn mm256_castps128_ps256(a: m128) -> m256 {
 
 // __m128 _mm256_castps256_ps128 (__m256 a)
 #[inline]
-#[allow(unused_variables)]
 pub fn mm256_castps256_ps128(a: m256) -> m128 {
-    unimplemented!()
+    unsafe { simd_shuffle4(a, a, [0, 1, 2, 3]) }
 }
 
 // __m256i _mm256_castsi128_si256 (__m128i a)
@@ -388,9 +387,10 @@ pub fn mm256_castsi256_ps(a: m256i) -> m256 {
 
 // __m128i _mm256_castsi256_si128 (__m256i a)
 #[inline]
-#[allow(unused_variables)]
 pub fn mm256_castsi256_si128(a: m256i) -> m128i {
-    unimplemented!()
+    let ai = a.as_i64x4();
+    let x: i64x2 = unsafe { simd_shuffle2(ai, ai, [0, 1]) };
+    x.as_m128i()
 }
 
 // vroundpd
@@ -2218,15 +2218,9 @@ pub unsafe fn mm256_storeu_si256(mem_addr: *mut m256i, a: m256i) {
 // void _mm256_storeu2_m128 (float* hiaddr, float* loaddr, __m256 a)
 #[inline]
 pub unsafe fn mm256_storeu2_m128(hiaddr: *mut f32, loaddr: *mut f32, a: m256) {
-    // TODO(mayah): Use this
-    // __m128 __v128 = _mm256_castps256_ps128(__a);
-    // __builtin_ia32_storeups(__addr_lo, __v128);
-    // __v128 = _mm256_extractf128_ps(__a, 1);
-    // __builtin_ia32_storeups(__addr_hi, __v128);
-
-    let lo = mm256_extractf128_ps(a, 0);
-    let hi = mm256_extractf128_ps(a, 1);
+    let lo = mm256_castps256_ps128(a);
     mm_storeu_ps(loaddr, lo);
+    let hi = mm256_extractf128_ps(a, 1);
     mm_storeu_ps(hiaddr, hi)
 }
 
@@ -2234,15 +2228,9 @@ pub unsafe fn mm256_storeu2_m128(hiaddr: *mut f32, loaddr: *mut f32, a: m256) {
 // void _mm256_storeu2_m128d (double* hiaddr, double* loaddr, __m256d a)
 #[inline]
 pub unsafe fn mm256_storeu2_m128d(hiaddr: *mut f64, loaddr: *mut f64, a: m256d) {
-    // TODO(mayah): Use this
-    // __m128d __v128 = _mm256_castpd256_pd128(__a);
-    // __builtin_ia32_storeupd(__addr_lo, __v128);
-    // __v128 = _mm256_extractf128_pd(__a, 1);
-    // __builtin_ia32_storeupd(__addr_hi, __v128);
-
-    let lo = mm256_extractf128_pd(a, 0);
-    let hi = mm256_extractf128_pd(a, 1);
+    let lo = mm256_castpd256_pd128(a);
     mm_storeu_pd(loaddr, lo);
+    let hi = mm256_extractf128_pd(a, 1);
     mm_storeu_pd(hiaddr, hi)
 }
 
@@ -2250,15 +2238,9 @@ pub unsafe fn mm256_storeu2_m128d(hiaddr: *mut f64, loaddr: *mut f64, a: m256d) 
 // void _mm256_storeu2_m128i (__m128i* hiaddr, __m128i* loaddr, __m256i a)
 #[inline]
 pub unsafe fn mm256_storeu2_m128i(hiaddr: *mut m128i, loaddr: *mut m128i, a: m256i) {
-    // TODO(mayah): Use this
-    // __m128i __v128 = _mm256_castsi256_si128(__a);
-    // __builtin_ia32_storedqu((char *)__addr_lo, (__v16qi)__v128);
-    // __v128 = _mm256_extractf128_si256(__a, 1);
-    // __builtin_ia32_storedqu((char *)__addr_hi, (__v16qi)__v128);
-
-    let lo = mm256_extractf128_si256(a, 0);
-    let hi = mm256_extractf128_si256(a, 1);
+    let lo = mm256_castsi256_si128(a);
     mm_storeu_si128(loaddr, lo);
+    let hi = mm256_extractf128_si256(a, 1);
     mm_storeu_si128(hiaddr, hi)
 }
 
