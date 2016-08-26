@@ -768,10 +768,6 @@ pub unsafe fn mm256_loadu_si256(mem_addr: *const m256i) -> m256i {
 // __m256 _mm256_loadu2_m128 (float const* hiaddr, float const* loaddr)
 #[inline]
 pub unsafe fn mm256_loadu2_m128(hiaddr: *const f32, loaddr: *const f32) -> m256 {
-    // TODO(mayah): Use this.
-    // __m256 __v256 = _mm256_castps128_ps256(((struct __loadu_ps*)__addr_lo)->__v);
-    // return _mm256_insertf128_ps(__v256, ((struct __loadu_ps*)__addr_hi)->__v, 1);
-
     let lo = mm_loadu_ps(loaddr);
     let hi = mm_loadu_ps(hiaddr);
     mm256_insertf128_ps(mm256_castps128_ps256(lo), hi, 1)
@@ -781,10 +777,6 @@ pub unsafe fn mm256_loadu2_m128(hiaddr: *const f32, loaddr: *const f32) -> m256 
 // __m256d _mm256_loadu2_m128d (double const* hiaddr, double const* loaddr)
 #[inline]
 pub unsafe fn mm256_loadu2_m128d(hiaddr: *const f64, loaddr: *const f64) -> m256d {
-    // TODO(mayah): Use this.
-    // __m256d __v256 = _mm256_castpd128_pd256(((struct __loadu_pd*)__addr_lo)->__v);
-    // return _mm256_insertf128_pd(__v256, ((struct __loadu_pd*)__addr_hi)->__v, 1);
-
     let lo = mm_loadu_pd(loaddr);
     let hi = mm_loadu_pd(hiaddr);
     mm256_insertf128_pd(mm256_castpd128_pd256(lo), hi, 1)
@@ -794,10 +786,6 @@ pub unsafe fn mm256_loadu2_m128d(hiaddr: *const f64, loaddr: *const f64) -> m256
 // __m256i _mm256_loadu2_m128i (__m128i const* hiaddr, __m128i const* loaddr)
 #[inline]
 pub unsafe fn mm256_loadu2_m128i(hiaddr: *const m128i, loaddr: *const m128i) -> m256i {
-    // TODO(mayah): Use this.
-    //__m256i __v256 = _mm256_castsi128_si256(((struct __loadu_si128*)__addr_lo)->__v);
-    // return _mm256_insertf128_si256(__v256, ((struct __loadu_si128*)__addr_hi)->__v, 1);
-
     let lo = mm_loadu_si128(loaddr);
     let hi = mm_loadu_si128(hiaddr);
     mm256_insertf128_si256(mm256_castsi128_si256(lo), hi, 1)
@@ -2614,12 +2602,10 @@ mod tests {
 
     #[test]
     fn test_mm256_castpd128_pd256() {
-        // TODO(mayah): mm256_castpd128_pd256 is not implemented yet.
-
-        // let xpd = mm_setr_pd(1.0, 2.0);
-        // let x256 = mm256_castpd128_pd256(xpd).as_f64x4().as_array();
-        // assert_eq!(x256[0], 1.0);
-        // assert_eq!(x256[1], 2.0);
+        let xpd = mm_setr_pd(1.0, 2.0);
+        let x256 = mm256_castpd128_pd256(xpd).as_f64x4().as_array();
+        assert_eq!(x256[0], 1.0);
+        assert_eq!(x256[1], 2.0);
     }
 
     #[test]
