@@ -92,18 +92,6 @@ extern "platform-intrinsic" {
     // fn x86_mm256_cmp_pd(a: m256d, b: m256d, c: i8) -> m256d;
     // fn x86_mm256_cmp_ps(a: m256, b: m256, c: i8) -> m256;
 
-    // TODO(mayah): It looks the type of these functions in rust
-    // and llvm are mismatching? If I use i64x2, LLVM shows an error.
-    // If I use f64x2, rust shows an error.
-    // fn x86_mm_maskload_pd(x: *const f64, y: i64x2) -> m128d;
-    // fn x86_mm_maskload_ps(x: *const f32, y: i32x4) -> m128;
-    // fn x86_mm256_maskload_pd(x: *const f64, y: i64x4) -> m256d;
-    // fn x86_mm256_maskload_ps(x: *const f32, y: i32x8) -> m256;
-    // fn x86_mm_maskstore_pd(x: *mut f64, y: i64x2, z: m128d);
-    // fn x86_mm_maskstore_ps(x: *mut f32, y: i32x4, z: m128);
-    // fn x86_mm256_maskstore_pd(x: *mut f64, y: i64x4, z: m256d);
-    // fn x86_mm256_maskstore_ps(x: *mut f32, y: i32x8, z: m256);
-
     fn x86_mm256_max_ps(x: m256, y: m256) -> m256;
     fn x86_mm256_max_pd(x: m256d, y: m256d) -> m256d;
     fn x86_mm256_min_ps(x: m256, y: m256) -> m256;
