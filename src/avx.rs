@@ -15,10 +15,18 @@ extern {
     #[link_name = "llvm.x86.avx.vbroadcastf128.ps.256"]
     fn avx_vbroadcastf128_ps_256(a: *const u8) -> m256;
 
-    // #[link_name = "llvm.x86.sse2.cmp.ps"]
-    // fn sse2_cmp_ps(a: m128, b: m128, c: i8) -> m128;
-    // #[link_name = "llvm.x86.sse2.cmp.pd"]
-    // fn sse2_cmp_pd(a: m128d, b: m128d, c: i8) -> m128d;
+    #[link_name = "llvm.x86.sse.cmp.ps"]
+    fn sse_cmp_ps(a: m128, b: m128, c: u8) -> m128;
+    #[link_name = "llvm.x86.sse.cmp.ss"]
+    fn sse_cmp_ss(a: m128, b: m128, c: u8) -> m128;
+    #[link_name = "llvm.x86.sse2.cmp.pd"]
+    fn sse2_cmp_pd(a: m128d, b: m128d, c: u8) -> m128d;
+    #[link_name = "llvm.x86.sse2.cmp.sd"]
+    fn sse2_cmp_sd(a: m128d, b: m128d, c: u8) -> m128d;
+    #[link_name = "llvm.x86.avx.cmp.pd.256"]
+    fn avx_cmp_pd_256(a: m256d, b: m256d, c: u8) -> m256d;
+    #[link_name = "llvm.x86.avx.cmp.ps.256"]
+    fn avx_cmp_ps_256(a: m256, b: m256, c: u8) -> m256;
 
     #[link_name = "llvm.x86.avx.storeu.pd.256"]
     fn avx_storeu_pd_256(a: *mut i8, b: m256d);
@@ -88,9 +96,6 @@ extern "platform-intrinsic" {
     fn x86_mm256_hadd_ps(x: m256, y: m256) -> m256;
     fn x86_mm256_hsub_pd(x: m256d, y: m256d) -> m256d;
     fn x86_mm256_hsub_ps(x: m256, y: m256) -> m256;
-
-    // fn x86_mm256_cmp_pd(a: m256d, b: m256d, c: i8) -> m256d;
-    // fn x86_mm256_cmp_ps(a: m256, b: m256, c: i8) -> m256;
 
     fn x86_mm256_max_ps(x: m256, y: m256) -> m256;
     fn x86_mm256_max_pd(x: m256d, y: m256d) -> m256d;
@@ -398,56 +403,43 @@ pub fn mm256_ceil_ps(a: m256) -> m256 {
 // vcmppd
 // __m128d _mm_cmp_pd (__m128d a, __m128d b, const int imm8)
 #[inline]
-#[allow(unused_variables)]
 pub fn mm_cmp_pd(a: m128d, b: m128d, imm8: i32) -> m128d {
-    unimplemented!()
-    // unsafe { sse2_cmp_pd(a, b, imm8 as i8) }
+    fn_imm6_arg2!(sse2_cmp_pd, a, b, imm8)
 }
 
 // vcmppd
 // __m256d _mm256_cmp_pd (__m256d a, __m256d b, const int imm8)
 #[inline]
-#[allow(unused_variables)]
 pub fn mm256_cmp_pd(a: m256d, b: m256d, imm8: i32) -> m256d {
-    unimplemented!()
-    // fn_imm8_arg2!(x86_mm256_cmp_pd, a, b, imm8)
-    // unsafe { x86_mm256_cmp_pd(a, b, imm8 as i8) }
+    fn_imm6_arg2!(avx_cmp_pd_256, a, b, imm8)
 }
 
 // vcmpps
 // __m128 _mm_cmp_ps (__m128 a, __m128 b, const int imm8)
 #[inline]
-#[allow(unused_variables)]
 pub fn mm_cmp_ps(a: m128, b: m128, imm8: i32) -> m128 {
-    unimplemented!()
-    // unsafe { sse2_cmp_ps(a, b, imm8 as i8) }
+    fn_imm6_arg2!(sse_cmp_ps, a, b, imm8)
 }
 
 // vcmpps
 // __m256 _mm256_cmp_ps (__m256 a, __m256 b, const int imm8)
 #[inline]
-#[allow(unused_variables)]
 pub fn mm256_cmp_ps(a: m256, b: m256, imm8: i32) -> m256 {
-    unimplemented!()
-    // unsafe { x86_mm256_cmp_ps(a, b, imm8 as i8) }
+    fn_imm6_arg2!(avx_cmp_ps_256, a, b, imm8)
 }
 
 // vcmpsd
 // __m128d _mm_cmp_sd (__m128d a, __m128d b, const int imm8)
 #[inline]
-#[allow(unused_variables)]
 pub fn mm256_cmp_sd(a: m128d, b: m128d, imm8: i32) -> m128d {
-    unimplemented!()
-    // unsafe { sse2_cmp_sd(a, b, imm8 as i8) }
+    fn_imm6_arg2!(sse2_cmp_sd, a, b, imm8)
 }
 
 // vcmpss
 // __m128 _mm_cmp_ss (__m128 a, __m128 b, const int imm8)
 #[inline]
-#[allow(unused_variables)]
 pub fn mm256_cmp_ss(a: m128, b: m128, imm8: i32) -> m128 {
-    unimplemented!()
-    // unsafe { sse2_cmp_ss(a, b, imm8 as i8) }
+    fn_imm6_arg2!(sse_cmp_ss, a, b, imm8)
 }
 
 // vcvtdq2pd

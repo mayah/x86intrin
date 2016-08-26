@@ -556,6 +556,48 @@ macro_rules! fn_imm8_arg1 {
     }
 }
 
+macro_rules! fn_imm6_arg2 {
+    ($fn_name: expr, $a: expr, $b: expr, $imm8: expr) => {
+        unsafe {
+            match $imm8 & 0x1F {
+                0x00 => $fn_name($a, $b, 0x00),
+                0x01 => $fn_name($a, $b, 0x01),
+                0x02 => $fn_name($a, $b, 0x02),
+                0x03 => $fn_name($a, $b, 0x03),
+                0x04 => $fn_name($a, $b, 0x04),
+                0x05 => $fn_name($a, $b, 0x05),
+                0x06 => $fn_name($a, $b, 0x06),
+                0x07 => $fn_name($a, $b, 0x07),
+                0x08 => $fn_name($a, $b, 0x08),
+                0x09 => $fn_name($a, $b, 0x09),
+                0x0A => $fn_name($a, $b, 0x0A),
+                0x0B => $fn_name($a, $b, 0x0B),
+                0x0C => $fn_name($a, $b, 0x0C),
+                0x0D => $fn_name($a, $b, 0x0D),
+                0x0E => $fn_name($a, $b, 0x0E),
+                0x0F => $fn_name($a, $b, 0x0F),
+                0x10 => $fn_name($a, $b, 0x10),
+                0x11 => $fn_name($a, $b, 0x11),
+                0x12 => $fn_name($a, $b, 0x12),
+                0x13 => $fn_name($a, $b, 0x13),
+                0x14 => $fn_name($a, $b, 0x14),
+                0x15 => $fn_name($a, $b, 0x15),
+                0x16 => $fn_name($a, $b, 0x16),
+                0x17 => $fn_name($a, $b, 0x17),
+                0x18 => $fn_name($a, $b, 0x18),
+                0x19 => $fn_name($a, $b, 0x19),
+                0x1A => $fn_name($a, $b, 0x1A),
+                0x1B => $fn_name($a, $b, 0x1B),
+                0x1C => $fn_name($a, $b, 0x1C),
+                0x1D => $fn_name($a, $b, 0x1D),
+                0x1E => $fn_name($a, $b, 0x1E),
+                0x1F => $fn_name($a, $b, 0x1F),
+                _ => unreachable!()
+            }
+        }
+    }
+}
+
 macro_rules! fn_imm8_arg2 {
     ($fn_name: expr, $a: expr, $b: expr, $imm8: expr) => {
         unsafe {
