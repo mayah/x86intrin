@@ -884,9 +884,19 @@ pub fn mm_sub_ss(a: m128, b: m128) -> m128 {
     a.as_f32x4().insert(0, (a.as_f32x4().extract(0) - b.as_f32x4().extract(0))).as_m128()
 }
 
-// TODO(mayah): Implement this
 // ...
 // _MM_TRANSPOSE4_PS (__m128 row0, __m128 row1, __m128 row2, __m128 row3)
+#[inline]
+pub fn mm_transpose4_ps(row0: &mut m128, row1: &mut m128, row2: &mut m128, row3: &mut m128) {
+    let tmp0 = mm_unpacklo_ps(*row0, *row1);
+    let tmp2 = mm_unpacklo_ps(*row2, *row3);
+    let tmp1 = mm_unpackhi_ps(*row0, *row1);
+    let tmp3 = mm_unpackhi_ps(*row2, *row3);
+    *row0 = mm_movelh_ps(tmp0, tmp2);
+    *row1 = mm_movehl_ps(tmp2, tmp0);
+    *row2 = mm_movelh_ps(tmp1, tmp3);
+    *row3 = mm_movehl_ps(tmp3, tmp1);
+}
 
 // ucomiss
 // int _mm_ucomieq_ss (__m128 a, __m128 b)
@@ -1443,5 +1453,19 @@ mod tests {
         assert_eq!(unsafe { mm_load1_ps(p) }.as_f32x4().as_array(), [1.0, 1.0, 1.0, 1.0]);
         assert_eq!(unsafe { mm_loadr_ps(p) }.as_f32x4().as_array(), [4.0, 3.0, 2.0, 1.0]);
         assert_eq!(unsafe { mm_loadu_ps(p) }.as_f32x4().as_array(), [1.0, 2.0, 3.0, 4.0]);
+    }
+
+    #[test]
+    fn test_transpose4() {
+        let mut row0 = mm_setr_ps( 1.0,  2.0,  3.0,  4.0);
+        let mut row1 = mm_setr_ps( 5.0,  6.0,  7.0,  8.0);
+        let mut row2 = mm_setr_ps( 9.0, 10.0, 11.0, 12.0);
+        let mut row3 = mm_setr_ps(13.0, 14.0, 15.0, 16.0);
+        mm_transpose4_ps(&mut row0, &mut row1, &mut row2, &mut row3);
+
+        assert_eq!(row0.as_f32x4().as_array(), [1.0, 5.0,  9.0, 13.0]);
+        assert_eq!(row1.as_f32x4().as_array(), [2.0, 6.0, 10.0, 14.0]);
+        assert_eq!(row2.as_f32x4().as_array(), [3.0, 7.0, 11.0, 15.0]);
+        assert_eq!(row3.as_f32x4().as_array(), [4.0, 8.0, 12.0, 16.0]);
     }
 }
