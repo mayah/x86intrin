@@ -1,5 +1,6 @@
 use super::*;
-use super::{simd_and, simd_or, simd_xor};
+use super::{simd_add,
+            simd_and, simd_or, simd_xor};
 
 extern "platform-intrinsic" {
     fn x86_mm256_abs_epi8(x: i8x32) -> i8x32;
@@ -30,12 +31,32 @@ pub fn mm256_abs_epi8(a: m256i) -> m256i {
 
 // vpaddw
 // __m256i _mm256_add_epi16 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_add_epi16(a: m256i, b: m256i) -> m256i {
+    unsafe { simd_add(a.as_i16x16(), b.as_i16x16()).as_m256i() }
+}
+
 // vpaddd
 // __m256i _mm256_add_epi32 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_add_epi32(a: m256i, b: m256i) -> m256i {
+    unsafe { simd_add(a.as_i32x8(), b.as_i32x8()).as_m256i() }
+}
+
 // vpaddq
 // __m256i _mm256_add_epi64 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_add_epi64(a: m256i, b: m256i) -> m256i {
+    unsafe { simd_add(a.as_i64x4(), b.as_i64x4()).as_m256i() }
+}
+
 // vpaddb
 // __m256i _mm256_add_epi8 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_add_epi8(a: m256i, b: m256i) -> m256i {
+    unsafe { simd_add(a.as_i8x32(), b.as_i8x32()).as_m256i() }
+}
+
 // vpaddsw
 // __m256i _mm256_adds_epi16 (__m256i a, __m256i b)
 // vpaddsb
@@ -440,6 +461,25 @@ mod tests {
                    [1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8]);
         assert_eq!(mm256_abs_epi32(a32).as_i32x8().as_array(),
                    [1, 2, 3, 4, 1, 2, 3, 4]);
+    }
+
+    #[test]
+    fn test_mm256_arith() {
+        let a8 = mm256_setr_epi8(1, 2, 3, 4, 5, 6, 7, 8, -1, -2, -3, -4, -5, -6, -7, -8,
+                                 1, 2, 3, 4, 5, 6, 7, 8, -1, -2, -3, -4, -5, -6, -7, -8);
+        let a16 = mm256_setr_epi16(1, 2, 3, 4, 5, 6, 7, 8, -1, -2, -3, -4, -5, -6, -7, -8);
+        let a32 = mm256_setr_epi32(1, 2, 3, 4, -1, -2, -3, -4);
+        let a64 = mm256_setr_epi64x(1, 2, -1, -2);
+
+        assert_eq!(mm256_add_epi8(a8, a8).as_i8x32().as_array(),
+                   [2, 4, 6, 8, 10, 12, 14, 16, -2, -4, -6, -8, -10, -12, -14, -16,
+                    2, 4, 6, 8, 10, 12, 14, 16, -2, -4, -6, -8, -10, -12, -14, -16]);
+        assert_eq!(mm256_add_epi16(a16, a16).as_i16x16().as_array(),
+                   [2, 4, 6, 8, 10, 12, 14, 16, -2, -4, -6, -8, -10, -12, -14, -16]);
+        assert_eq!(mm256_add_epi32(a32, a32).as_i32x8().as_array(),
+                   [2, 4, 6, 8, -2, -4, -6, -8]);
+        assert_eq!(mm256_add_epi64(a64, a64).as_i64x4().as_array(),
+                   [2, 4, -2, -4]);
     }
 
     #[test]
