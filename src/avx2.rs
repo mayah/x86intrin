@@ -1,12 +1,33 @@
 use super::*;
 use super::{simd_and, simd_or, simd_xor};
 
+extern "platform-intrinsic" {
+    fn x86_mm256_abs_epi8(x: i8x32) -> i8x32;
+    fn x86_mm256_abs_epi16(x: i16x16) -> i16x16;
+    fn x86_mm256_abs_epi32(x: i32x8) -> i32x8;
+}
+
 // vpabsw
 // __m256i _mm256_abs_epi16 (__m256i a)
+#[inline]
+pub fn mm256_abs_epi16(a: m256i) -> m256i {
+    unsafe { x86_mm256_abs_epi16(a.as_i16x16()).as_m256i() }
+}
+
 // vpabsd
 // __m256i _mm256_abs_epi32 (__m256i a)
+#[inline]
+pub fn mm256_abs_epi32(a: m256i) -> m256i {
+    unsafe { x86_mm256_abs_epi32(a.as_i32x8()).as_m256i() }
+}
+
 // vpabsb
 // __m256i _mm256_abs_epi8 (__m256i a)
+#[inline]
+pub fn mm256_abs_epi8(a: m256i) -> m256i {
+    unsafe { x86_mm256_abs_epi8(a.as_i8x32()).as_m256i() }
+}
+
 // vpaddw
 // __m256i _mm256_add_epi16 (__m256i a, __m256i b)
 // vpaddd
@@ -404,6 +425,22 @@ pub fn mm256_xor_si256(a: m256i, b: m256i) -> m256i {
 #[cfg(test)]
 mod tests {
     use super::super::*;
+
+    #[test]
+    fn test_mm256_abs() {
+        let a8 = mm256_setr_epi8(1, 2, 3, 4, 5, 6, 7, 8, -1, -2, -3, -4, -5, -6, -7, -8,
+                                 1, 2, 3, 4, 5, 6, 7, 8, -1, -2, -3, -4, -5, -6, -7, -8);
+        let a16 = mm256_setr_epi16(1, 2, 3, 4, 5, 6, 7, 8, -1, -2, -3, -4, -5, -6, -7, -8);
+        let a32 = mm256_setr_epi32(1, 2, 3, 4, -1, -2, -3, -4);
+
+        assert_eq!(mm256_abs_epi8(a8).as_i8x32().as_array(),
+                   [1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8,
+                    1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8]);
+        assert_eq!(mm256_abs_epi16(a16).as_i16x16().as_array(),
+                   [1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8]);
+        assert_eq!(mm256_abs_epi32(a32).as_i32x8().as_array(),
+                   [1, 2, 3, 4, 1, 2, 3, 4]);
+    }
 
     #[test]
     fn test_mm256_logic() {
