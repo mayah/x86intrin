@@ -1,6 +1,8 @@
 # x86intrin
 x86 intrinsics for rust
 
+[![Crates.io Status](http://meritbadge.herokuapp.com/x86intrin)](https://crates.io/crates/x86intrin)
+
 This crate will implement C-like x86 intrinsics with the similar names
 to what intel uses (removing prefix underscore; e.g. `__m128i -> m128i`,
 `_mm_set_epi32 -> mm_set_epi32`).
