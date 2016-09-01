@@ -11,6 +11,9 @@ extern "platform-intrinsic" {
     fn x86_mm256_adds_epu8(x: u8x32, y: u8x32) -> u8x32;
     fn x86_mm256_adds_epi16(x: i16x16, y: i16x16) -> i16x16;
     fn x86_mm256_adds_epu16(x: u16x16, y: u16x16) -> u16x16;
+
+    fn x86_mm256_avg_epu8(x: u8x32, y: u8x32) -> u8x32;
+    fn x86_mm256_avg_epu16(x: u16x16, y: u16x16) -> u16x16;
 }
 
 // vpabsw
@@ -113,8 +116,18 @@ pub fn mm256_andnot_si256(a: m256i, b: m256i) -> m256i {
 
 // vpavgw
 // __m256i _mm256_avg_epu16 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_avg_epu16(a: m256i, b: m256i) -> m256i {
+    unsafe { x86_mm256_avg_epu16(a.as_u16x16(), b.as_u16x16()).as_m256i() }
+}
+
 // vpavgb
 // __m256i _mm256_avg_epu8 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_avg_epu8(a: m256i, b: m256i) -> m256i {
+    unsafe { x86_mm256_avg_epu8(a.as_u8x32(), b.as_u8x32()).as_m256i() }
+}
+
 // vpblendw
 // __m256i _mm256_blend_epi16 (__m256i a, __m256i b, const int imm8)
 // vpblendd
@@ -533,6 +546,22 @@ mod tests {
 
         assert_eq!(mm256_adds_epu16(a16, b16).as_u16x16().as_array(),
                    [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFE]);
+    }
+
+    #[test]
+    fn test_mm256_avg() {
+        let a8 = mm256_setr_epi8(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+                                 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
+        let b8 = mm256_setr_epi8(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
+        let a16 = mm256_setr_epi16(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
+        let b16 = mm256_setr_epi16(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
+
+        assert_eq!(mm256_avg_epu8(a8, b8).as_i8x32().as_array(),
+                   [1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9,
+                    1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9]);
+        assert_eq!(mm256_avg_epu16(a16, b16).as_i16x16().as_array(),
+                   [1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9]);
     }
 
     #[test]
