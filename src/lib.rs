@@ -34,6 +34,11 @@ extern "platform-intrinsic" {
     fn simd_shuffle16<T, U>(x: T, y: T, idx: [u32; 16]) -> U;
 }
 
+#[cfg(any(feature = "doc", target_feature = "avx2"))]
+extern "platform-intrinsic" {
+    fn simd_shuffle32<T, U>(x: T, y: T, idx: [u32; 32]) -> U;
+}
+
 #[inline]
 unsafe fn bitcast<T, U>(x: T) -> U {
     debug_assert!(std::mem::size_of::<T>() == std::mem::size_of::<U>());

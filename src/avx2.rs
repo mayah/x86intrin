@@ -1,6 +1,7 @@
 use super::*;
 use super::{simd_add,
-            simd_and, simd_or, simd_xor};
+            simd_and, simd_or, simd_xor,
+            simd_shuffle4, simd_shuffle8, simd_shuffle16, simd_shuffle32};
 
 extern "platform-intrinsic" {
     fn x86_mm256_abs_epi8(x: i8x32) -> i8x32;
@@ -463,22 +464,92 @@ pub fn mm256_or_si256(a: m256i, b: m256i) -> m256i {
 // __m256i _mm256_subs_epu16 (__m256i a, __m256i b)
 // vpsubusb
 // __m256i _mm256_subs_epu8 (__m256i a, __m256i b)
+
 // vpunpckhwd
 // __m256i _mm256_unpackhi_epi16 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_unpackhi_epi16(a: m256i, b: m256i) -> m256i {
+    let x: i16x16 = unsafe {
+        simd_shuffle16(a.as_i16x16(), b.as_i16x16(),
+                       [4, 20, 5, 21, 6, 22, 7, 23, 12, 28, 13, 29, 14, 30, 15, 31])
+    };
+    x.as_m256i()
+}
+
 // vpunpckhdq
 // __m256i _mm256_unpackhi_epi32 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_unpackhi_epi32(a: m256i, b: m256i) -> m256i {
+    let x: i32x8 = unsafe {
+        simd_shuffle8(a.as_i32x8(), b.as_i32x8(), [2, 10, 3, 11, 6, 14, 7, 15])
+    };
+    x.as_m256i()
+}
+
 // vpunpckhqdq
 // __m256i _mm256_unpackhi_epi64 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_unpackhi_epi64(a: m256i, b: m256i) -> m256i {
+    let x: i64x4 = unsafe {
+        simd_shuffle4(a.as_i64x4(), b.as_i64x4(), [1, 5, 3, 7])
+    };
+    x.as_m256i()
+}
+
 // vpunpckhbw
 // __m256i _mm256_unpackhi_epi8 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_unpackhi_epi8(a: m256i, b: m256i) -> m256i {
+    let x: i8x32 = unsafe {
+        simd_shuffle32(a.as_i8x32(), b.as_i8x32(),
+                       [8, 40, 9, 41, 10, 42, 11, 43, 12, 44, 13, 45, 14, 46, 15, 47,
+                        24, 56, 25, 57, 26, 58, 27, 59, 28, 60, 29, 61, 30, 62, 31, 63])
+    };
+    x.as_m256i()
+}
+
 // vpunpcklwd
 // __m256i _mm256_unpacklo_epi16 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_unpacklo_epi16(a: m256i, b: m256i) -> m256i {
+    let x: i16x16 = unsafe {
+        simd_shuffle16(a.as_i16x16(), b.as_i16x16(),
+                       [0, 16, 1, 17, 2, 18, 3, 19, 8, 24, 9, 25, 10, 26, 11, 27])
+    };
+    x.as_m256i()
+}
+
 // vpunpckldq
 // __m256i _mm256_unpacklo_epi32 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_unpacklo_epi32(a: m256i, b: m256i) -> m256i {
+    let x: i32x8 = unsafe {
+        simd_shuffle8(a.as_i32x8(), b.as_i32x8(), [0, 8, 1, 9, 4, 12, 5, 13])
+    };
+    x.as_m256i()
+}
+
 // vpunpcklqdq
 // __m256i _mm256_unpacklo_epi64 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_unpacklo_epi64(a: m256i, b: m256i) -> m256i {
+    let x: i64x4 = unsafe {
+        simd_shuffle4(a.as_i64x4(), b.as_i64x4(), [0, 4, 2, 6])
+    };
+    x.as_m256i()
+}
+
 // vpunpcklbw
 // __m256i _mm256_unpacklo_epi8 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_unpacklo_epi8(a: m256i, b: m256i) -> m256i {
+    let x: i8x32 = unsafe {
+        simd_shuffle32(a.as_i8x32(), b.as_i8x32(),
+                       [0, 32, 1, 33, 2, 34, 3, 35, 4, 36, 5, 37, 6, 38, 7, 39,
+                        16, 48, 17, 49, 18, 50, 19, 51, 20, 52, 21, 53, 22, 54, 23, 55])
+    };
+    x.as_m256i()
+}
 
 // vpxor
 // __m256i _mm256_xor_si256 (__m256i a, __m256i b)
@@ -489,6 +560,33 @@ pub fn mm256_xor_si256(a: m256i, b: m256i) -> m256i {
 #[cfg(test)]
 mod tests {
     use super::super::*;
+
+    fn seq8() -> m256i {
+        mm256_setr_epi8(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+                        17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32)
+    }
+    fn mseq8() -> m256i {
+        mm256_setr_epi8(-1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -13, -14, -15, -16,
+                        -17, -18, -19, -20, -21, -22, -23, -24, -25, -26, -27, -28, -29, -30, -31, -32)
+    }
+    fn seq16() -> m256i {
+        mm256_setr_epi16(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)
+    }
+    fn mseq16() -> m256i {
+        mm256_setr_epi16(-1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -13, -14, -15, -16)
+    }
+    fn seq32() -> m256i {
+        mm256_setr_epi32(1, 2, 3, 4, 5, 6, 7, 8)
+    }
+    fn mseq32() -> m256i {
+        mm256_setr_epi32(-1, -2, -3, -4, -5, -6, -7, -8)
+    }
+    fn seq64() -> m256i {
+        mm256_setr_epi64x(1, 2, 3, 4)
+    }
+    fn mseq64() -> m256i {
+        mm256_setr_epi64x(-1, -2, -3, -4)
+    }
 
     #[test]
     fn test_mm256_abs() {
@@ -577,5 +675,30 @@ mod tests {
                    [1 | 2, 2 | 3, 3 | 4, 4 | 5, 5 | 6, 6 | 7, 7 | 8, 8 | 9]);
         assert_eq!(mm256_xor_si256(a, b).as_i32x8().as_array(),
                    [1 ^ 2, 2 ^ 3, 3 ^ 4, 4 ^ 5, 5 ^ 6, 6 ^ 7, 7 ^ 8, 8 ^ 9]);
+    }
+
+    #[test]
+    fn test_unpack() {
+        assert_eq!(mm256_unpacklo_epi8(seq8(), mseq8()).as_i8x32().as_array(),
+                   [1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6, -6, 7, -7, 8, -8,
+                    17, -17, 18, -18, 19, -19, 20, -20, 21, -21, 22, -22, 23, -23, 24, -24]);
+        assert_eq!(mm256_unpackhi_epi8(seq8(), mseq8()).as_i8x32().as_array(),
+                   [9, -9, 10, -10, 11, -11, 12, -12, 13, -13, 14, -14, 15, -15, 16, -16,
+                    25, -25, 26, -26, 27, -27, 28, -28, 29, -29, 30, -30, 31, -31, 32, -32]);
+
+        assert_eq!(mm256_unpacklo_epi16(seq16(), mseq16()).as_i16x16().as_array(),
+                   [1, -1, 2, -2, 3, -3, 4, -4, 9, -9, 10, -10, 11, -11, 12, -12]);
+        assert_eq!(mm256_unpackhi_epi16(seq16(), mseq16()).as_i16x16().as_array(),
+                   [5, -5, 6, -6, 7, -7, 8, -8, 13, -13, 14, -14, 15, -15, 16, -16]);
+
+        assert_eq!(mm256_unpacklo_epi32(seq32(), mseq32()).as_i32x8().as_array(),
+                   [1, -1, 2, -2, 5, -5, 6, -6]);
+        assert_eq!(mm256_unpackhi_epi32(seq32(), mseq32()).as_i32x8().as_array(),
+                   [3, -3, 4, -4, 7, -7, 8, -8]);
+
+        assert_eq!(mm256_unpacklo_epi64(seq64(), mseq64()).as_i64x4().as_array(),
+                   [1, -1, 3, -3]);
+        assert_eq!(mm256_unpackhi_epi64(seq64(), mseq64()).as_i64x4().as_array(),
+                   [2, -2, 4, -4]);
     }
 }
