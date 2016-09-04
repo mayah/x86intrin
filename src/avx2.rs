@@ -131,10 +131,28 @@ pub fn mm256_avg_epu8(a: m256i, b: m256i) -> m256i {
 
 // vpblendw
 // __m256i _mm256_blend_epi16 (__m256i a, __m256i b, const int imm8)
+#[inline]
+pub fn mm256_blend_epi16(a: m256i, b: m256i, imm8: i32) -> m256i {
+    let x: i16x16 = blend_shuffle16!(a.as_i16x16(), b.as_i16x16(), imm8);
+    x.as_m256i()
+}
+
 // vpblendd
 // __m128i _mm_blend_epi32 (__m128i a, __m128i b, const int imm8)
+#[inline]
+pub fn mm_blend_epi32(a: m128i, b: m128i, imm8: i32) -> m128i {
+    let x: i32x4 = blend_shuffle4!(a.as_i32x4(), b.as_i32x4(), imm8);
+    x.as_m128i()
+}
+
 // vpblendd
 // __m256i _mm256_blend_epi32 (__m256i a, __m256i b, const int imm8)
+#[inline]
+pub fn mm256_blend_epi32(a: m256i, b: m256i, imm8: i32) -> m256i {
+    let x: i32x8 = blend_shuffle8!(a.as_i32x8(), b.as_i32x8(), imm8);
+    x.as_m256i()
+}
+
 // vpblendvb
 // __m256i _mm256_blendv_epi8 (__m256i a, __m256i b, __m256i mask)
 // vpbroadcastb
@@ -675,6 +693,37 @@ mod tests {
                    [1 | 2, 2 | 3, 3 | 4, 4 | 5, 5 | 6, 6 | 7, 7 | 8, 8 | 9]);
         assert_eq!(mm256_xor_si256(a, b).as_i32x8().as_array(),
                    [1 ^ 2, 2 ^ 3, 3 ^ 4, 4 ^ 5, 5 ^ 6, 6 ^ 7, 7 ^ 8, 8 ^ 9]);
+    }
+
+    #[test]
+    fn test_blend() {
+        {
+            let a = mm256_setr_epi16(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
+            let b = mm256_setr_epi16(17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32);
+
+            assert_eq!(mm256_blend_epi16(a, b, 0).as_i16x16().as_array(),
+                       [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
+            assert_eq!(mm256_blend_epi16(a, b, 0xFF).as_i16x16().as_array(),
+                       [17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32]);
+            assert_eq!(mm256_blend_epi16(a, b, 0x11).as_i16x16().as_array(),
+                       [17, 2, 3, 4, 21, 6, 7, 8, 25, 10, 11, 12, 29, 14, 15, 16]);
+        }
+        {
+            let a = mm_setr_epi32(1, 2, 3, 4);
+            let b = mm_setr_epi32(11, 12, 13, 14);
+
+            assert_eq!(mm_blend_epi32(a, b, 0).as_i32x4().as_array(), [1, 2, 3, 4]);
+            assert_eq!(mm_blend_epi32(a, b, 0xFF).as_i32x4().as_array(), [11, 12, 13, 14]);
+            assert_eq!(mm_blend_epi32(a, b, 0x03).as_i32x4().as_array(), [11, 12, 3, 4]);
+        }
+        {
+            let a = mm256_setr_epi32(1, 2, 3, 4, 5, 6, 7, 8);
+            let b = mm256_setr_epi32(11, 12, 13, 14, 15, 16, 17, 18);
+
+            assert_eq!(mm256_blend_epi32(a, b, 0).as_i32x8().as_array(), [1, 2, 3, 4, 5, 6, 7, 8]);
+            assert_eq!(mm256_blend_epi32(a, b, 0xFF).as_i32x8().as_array(), [11, 12, 13, 14, 15, 16, 17, 18]);
+            assert_eq!(mm256_blend_epi32(a, b, 0x11).as_i32x8().as_array(), [11, 2, 3, 4, 15, 6, 7, 8]);
+        }
     }
 
     #[test]
