@@ -17,6 +17,11 @@ extern "platform-intrinsic" {
     fn x86_mm256_avg_epu16(x: u16x16, y: u16x16) -> u16x16;
 }
 
+extern {
+    #[link_name = "llvm.x86.avx2.pblendvb"]
+    fn avx2_pblendvb(a: i8x32, b: i8x32, c: i8x32) -> i8x32;
+}
+
 // vpabsw
 // __m256i _mm256_abs_epi16 (__m256i a)
 #[inline]
@@ -155,6 +160,11 @@ pub fn mm256_blend_epi32(a: m256i, b: m256i, imm8: i32) -> m256i {
 
 // vpblendvb
 // __m256i _mm256_blendv_epi8 (__m256i a, __m256i b, __m256i mask)
+#[inline]
+pub fn mm256_blendv_epi8(a: m256i, b: m256i, mask: m256i) -> m256i {
+    unsafe { avx2_pblendvb(a.as_i8x32(), b.as_i8x32(), mask.as_i8x32()).as_m256i() }
+}
+
 // vpbroadcastb
 // __m128i _mm_broadcastb_epi8 (__m128i a)
 // vpbroadcastb
@@ -697,6 +707,14 @@ mod tests {
 
     #[test]
     fn test_blend() {
+        {
+            let mask = mm256_setr_epi8(0, !0, 0, !0, 0, !0, 0, !0, 0, !0, 0, !0, 0, !0, 0, !0,
+                                       0, !0, 0, !0, 0, !0, 0, !0, 0, !0, 0, !0, 0, !0, 0, !0);
+
+            assert_eq!(mm256_blendv_epi8(seq8(), mseq8(), mask).as_i8x32().as_array(),
+                       [1, -2, 3, -4, 5, -6, 7, -8, 9, -10, 11, -12, 13, -14, 15, -16,
+                        17, -18, 19, -20, 21, -22, 23, -24, 25, -26, 27, -28, 29, -30, 31, -32]);
+        }
         {
             let a = mm256_setr_epi16(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
             let b = mm256_setr_epi16(17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32);
