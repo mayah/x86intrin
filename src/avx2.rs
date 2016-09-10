@@ -1,6 +1,7 @@
 use super::*;
 use super::{simd_add,
             simd_and, simd_or, simd_xor,
+            simd_eq, simd_gt,
             simd_shuffle2, simd_shuffle4, simd_shuffle8, simd_shuffle16, simd_shuffle32};
 
 extern "platform-intrinsic" {
@@ -306,20 +307,68 @@ pub fn mm256_bsrli_epi128(a: m256i, imm8: i32) -> m256i {
 
 // vpcmpeqw
 // __m256i _mm256_cmpeq_epi16 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_cmpeq_epi16(a: m256i, b: m256i) -> m256i {
+    let x: i16x16 = unsafe { simd_eq(a.as_i16x16(), b.as_i16x16()) };
+    x.as_m256i()
+}
+
 // vpcmpeqd
 // __m256i _mm256_cmpeq_epi32 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_cmpeq_epi32(a: m256i, b: m256i) -> m256i {
+    let x: i32x8 = unsafe { simd_eq(a.as_i32x8(), b.as_i32x8()) };
+    x.as_m256i()
+}
+
 // vpcmpeqq
 // __m256i _mm256_cmpeq_epi64 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_cmpeq_epi64(a: m256i, b: m256i) -> m256i {
+    let x: i64x4 = unsafe { simd_eq(a.as_i64x4(), b.as_i64x4()) };
+    x.as_m256i()
+}
+
 // vpcmpeqb
 // __m256i _mm256_cmpeq_epi8 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_cmpeq_epi8(a: m256i, b: m256i) -> m256i {
+    let x: i8x32 = unsafe { simd_eq(a.as_i8x32(), b.as_i8x32()) };
+    x.as_m256i()
+}
+
 // vpcmpgtw
 // __m256i _mm256_cmpgt_epi16 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_cmpgt_epi16(a: m256i, b: m256i) -> m256i {
+    let x: i16x16 = unsafe { simd_gt(a.as_i16x16(), b.as_i16x16()) };
+    x.as_m256i()
+}
+
 // vpcmpgtd
 // __m256i _mm256_cmpgt_epi32 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_cmpgt_epi32(a: m256i, b: m256i) -> m256i {
+    let x: i32x8 = unsafe { simd_gt(a.as_i32x8(), b.as_i32x8()) };
+    x.as_m256i()
+}
+
 // vpcmpgtq
 // __m256i _mm256_cmpgt_epi64 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_cmpgt_epi64(a: m256i, b: m256i) -> m256i {
+    let x: i64x4 = unsafe { simd_gt(a.as_i64x4(), b.as_i64x4()) };
+    x.as_m256i()
+}
+
 // vpcmpgtb
 // __m256i _mm256_cmpgt_epi8 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_cmpgt_epi8(a: m256i, b: m256i) -> m256i {
+    let x: i8x32 = unsafe { simd_gt(a.as_i8x32(), b.as_i8x32()) };
+    x.as_m256i()
+}
+
 // vpmovsxwd
 // __m256i _mm256_cvtepi16_epi32 (__m128i a)
 // vpmovsxwq
@@ -935,6 +984,34 @@ mod tests {
         assert_eq!(mm256_srli_si256(seq8(), 3).as_i8x32().as_array(),
                    [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 0, 0, 0,
                     20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 0, 0, 0]);
+    }
+
+    #[test]
+    fn test_cmp() {
+        let x8 = mm256_setr_epi8(1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8,
+                                 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50);
+        let x16 = mm256_setr_epi16(1, 2, 3, 4, 1, 2, 3, 4, 50, 50, 50, 50, 50, 50, 50, 50);
+        let x32 = mm256_setr_epi32(1, 2, 1, 2, 50, 50, 50, 50);
+        let x64 = mm256_setr_epi64x(1, 1, 50, 50);
+
+        assert_eq!(mm256_cmpeq_epi8(seq8(), x8).as_i8x32().as_array(),
+                   [!0, !0, !0, !0, !0, !0, !0, !0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+        assert_eq!(mm256_cmpeq_epi16(seq16(), x16).as_i16x16().as_array(),
+                   [!0, !0, !0, !0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+        assert_eq!(mm256_cmpeq_epi32(seq32(), x32).as_i32x8().as_array(),
+                   [!0, !0, 0, 0, 0, 0, 0, 0]);
+        assert_eq!(mm256_cmpeq_epi64(seq64(), x64).as_i64x4().as_array(),
+                   [!0, 0, 0, 0]);
+
+        assert_eq!(mm256_cmpgt_epi8(seq8(), x8).as_i8x32().as_array(),
+                   [0, 0, 0, 0, 0, 0, 0, 0, !0, !0, !0, !0, !0, !0, !0, !0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+        assert_eq!(mm256_cmpgt_epi16(seq16(), x16).as_i16x16().as_array(),
+                   [0, 0, 0, 0, !0, !0, !0, !0, 0, 0, 0, 0, 0, 0, 0, 0]);
+        assert_eq!(mm256_cmpgt_epi32(seq32(), x32).as_i32x8().as_array(),
+                   [0, 0, !0, !0, 0, 0, 0, 0]);
+        assert_eq!(mm256_cmpgt_epi64(seq64(), x64).as_i64x4().as_array(),
+                   [0, !0, 0, 0]);
     }
 
     #[test]
