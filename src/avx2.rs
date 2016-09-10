@@ -14,6 +14,13 @@ extern "platform-intrinsic" {
     fn x86_mm256_adds_epi16(x: i16x16, y: i16x16) -> i16x16;
     fn x86_mm256_adds_epu16(x: u16x16, y: u16x16) -> u16x16;
 
+    fn x86_mm256_hadd_epi16(x: i16x16, y: i16x16) -> i16x16;
+    fn x86_mm256_hadd_epi32(x: i32x8, y: i32x8) -> i32x8;
+    fn x86_mm256_hadds_epi16(x: i16x16, y: i16x16) -> i16x16;
+    fn x86_mm256_hsub_epi16(x: i16x16, y: i16x16) -> i16x16;
+    fn x86_mm256_hsub_epi32(x: i32x8, y: i32x8) -> i32x8;
+    fn x86_mm256_hsubs_epi16(x: i16x16, y: i16x16) -> i16x16;
+
     fn x86_mm256_avg_epu8(x: u8x32, y: u8x32) -> u8x32;
     fn x86_mm256_avg_epu16(x: u16x16, y: u16x16) -> u16x16;
 }
@@ -410,16 +417,46 @@ pub fn mm256_extracti128_si256(a: m256i, imm8: i32) -> m128i {
 
 // vphaddw
 // __m256i _mm256_hadd_epi16 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_hadd_epi16(a: m256i, b: m256i) -> m256i {
+    unsafe { x86_mm256_hadd_epi16(a.as_i16x16(), b.as_i16x16()).as_m256i() }
+}
+
 // vphaddd
 // __m256i _mm256_hadd_epi32 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_hadd_epi32(a: m256i, b: m256i) -> m256i {
+    unsafe { x86_mm256_hadd_epi32(a.as_i32x8(), b.as_i32x8()).as_m256i() }
+}
+
 // vphaddsw
 // __m256i _mm256_hadds_epi16 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_hadds_epi16(a: m256i, b: m256i) -> m256i {
+    unsafe { x86_mm256_hadds_epi16(a.as_i16x16(), b.as_i16x16()).as_m256i() }
+}
+
 // vphsubw
 // __m256i _mm256_hsub_epi16 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_hsub_epi16(a: m256i, b: m256i) -> m256i {
+    unsafe { x86_mm256_hsub_epi16(a.as_i16x16(), b.as_i16x16()).as_m256i() }
+}
+
 // vphsubd
 // __m256i _mm256_hsub_epi32 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_hsub_epi32(a: m256i, b: m256i) -> m256i {
+    unsafe { x86_mm256_hsub_epi32(a.as_i32x8(), b.as_i32x8()).as_m256i() }
+}
+
 // vphsubsw
 // __m256i _mm256_hsubs_epi16 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_hsubs_epi16(a: m256i, b: m256i) -> m256i {
+    unsafe { x86_mm256_hsubs_epi16(a.as_i16x16(), b.as_i16x16()).as_m256i() }
+}
+
 // vpgatherdd
 // __m128i _mm_i32gather_epi32 (int const* base_addr, __m128i vindex, const int scale)
 // vpgatherdd
@@ -1031,6 +1068,40 @@ mod tests {
     fn test_extract() {
         assert_eq!(mm256_extracti128_si256(seq64(), 0).as_i64x2().as_array(), [1, 2]);
         assert_eq!(mm256_extracti128_si256(seq64(), 1).as_i64x2().as_array(), [3, 4]);
+    }
+
+    #[test]
+    fn test_hadd() {
+        let x16 = mm256_setr_epi16(1, 2, 0x7000, 0x7000, -1, -2, -0x7000, -0x7000,
+                                   1, 2, 0x7000, 0x7000, -1, -2, -0x7000, -0x7000);
+        let x32 = mm256_setr_epi32(1, 2, -1, -2, 1, 2, -1, -2);
+
+        // 0x7000 + 0x7000 = 0xE000
+        let e = 0xE000u16 as i16;
+        assert_eq!(mm256_hadd_epi16(x16, x16).as_i16x16().as_array(),
+                   [3, e, -3, -e, 3, e, -3, -e, 3, e, -3, -e, 3, e, -3, -e]);
+        assert_eq!(mm256_hadd_epi32(x32, x32).as_i32x8().as_array(),
+                   [3, -3, 3, -3, 3, -3, 3, -3]);
+        assert_eq!(mm256_hadds_epi16(x16, x16).as_i16x16().as_array(),
+                   [3, 0x7FFF, -3, -0x8000, 3, 0x7FFF, -3, -0x8000,
+                    3, 0x7FFF, -3, -0x8000, 3, 0x7FFF, -3, -0x8000]);
+    }
+
+    #[test]
+    fn test_hsub() {
+        let x16 = mm256_setr_epi16(1, 2, 0x7000, -0x7000, -1, -2, -0x7000, 0x7000,
+                                   1, 2, 0x7000, -0x7000, -1, -2, -0x7000, 0x7000);
+        let x32 = mm256_setr_epi32(1, 2, -1, -2, 1, 2, -1, -2);
+
+        // 0x7000 + 0x7000 = 0xE000
+        let e = 0xE000u16 as i16;
+        assert_eq!(mm256_hsub_epi16(x16, x16).as_i16x16().as_array(),
+                   [-1, e, 1, -e, -1, e, 1, -e, -1, e, 1, -e, -1, e, 1, -e]);
+        assert_eq!(mm256_hsub_epi32(x32, x32).as_i32x8().as_array(),
+                   [-1, 1, -1, 1, -1, 1, -1, 1]);
+        assert_eq!(mm256_hsubs_epi16(x16, x16).as_i16x16().as_array(),
+                   [-1, 0x7FFF, 1, -0x8000, -1, 0x7FFF, 1, -0x8000,
+                    -1, 0x7FFF, 1, -0x8000, -1, 0x7FFF, 1, -0x8000]);
     }
 
     #[test]
