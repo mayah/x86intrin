@@ -20,6 +20,11 @@ extern "platform-intrinsic" {
 extern {
     #[link_name = "llvm.x86.avx2.pblendvb"]
     fn avx2_pblendvb(a: i8x32, b: i8x32, c: i8x32) -> i8x32;
+
+    #[link_name = "llvm.x86.avx2.psll.dq"]
+    fn avx2_psll_dq(a: i64x4, b: i32) -> i64x4;
+    #[link_name = "llvm.x86.avx2.psrl.dq"]
+    fn avx2_psrl_dq(a: i64x4, b: i32) -> i64x4;
 }
 
 // vpabsw
@@ -287,8 +292,18 @@ pub fn mm256_broadcastw_epi16(a: m128i) -> m256i {
 
 // vpslldq
 // __m256i _mm256_bslli_epi128 (__m256i a, const int imm8)
+#[inline]
+pub fn mm256_bslli_epi128(a: m256i, imm8: i32) -> m256i {
+    mm256_slli_si256(a, imm8)
+}
+
 // vpsrldq
 // __m256i _mm256_bsrli_epi128 (__m256i a, const int imm8)
+#[inline]
+pub fn mm256_bsrli_epi128(a: m256i, imm8: i32) -> m256i {
+    mm256_srli_si256(a, imm8)
+}
+
 // vpcmpeqw
 // __m256i _mm256_cmpeq_epi16 (__m256i a, __m256i b)
 // vpcmpeqd
@@ -524,8 +539,14 @@ pub fn mm256_or_si256(a: m256i, b: m256i) -> m256i {
 // __m256i _mm256_slli_epi32 (__m256i a, int imm8)
 // vpsllq
 // __m256i _mm256_slli_epi64 (__m256i a, int imm8)
+
 // vpslldq
 // __m256i _mm256_slli_si256 (__m256i a, const int imm8)
+#[inline]
+pub fn mm256_slli_si256(a: m256i, imm8: i32) -> m256i {
+    fn_imm8_arg1!(avx2_psll_dq, a.as_i64x4(), imm8 * 8).as_m256i()
+}
+
 // vpsllvd
 // __m128i _mm_sllv_epi32 (__m128i a, __m128i count)
 // vpsllvd
@@ -558,8 +579,14 @@ pub fn mm256_or_si256(a: m256i, b: m256i) -> m256i {
 // __m256i _mm256_srli_epi32 (__m256i a, int imm8)
 // vpsrlq
 // __m256i _mm256_srli_epi64 (__m256i a, int imm8)
+
 // vpsrldq
 // __m256i _mm256_srli_si256 (__m256i a, const int imm8)
+#[inline]
+pub fn mm256_srli_si256(a: m256i, imm8: i32) -> m256i {
+    fn_imm8_arg1!(avx2_psrl_dq, a.as_i64x4(), imm8 * 8).as_m256i()
+}
+
 // vpsrlvd
 // __m128i _mm_srlv_epi32 (__m128i a, __m128i count)
 // vpsrlvd
@@ -888,6 +915,26 @@ mod tests {
                    [1.0, 1.0, 1.0, 1.0]);
         assert_eq!(mm256_broadcastss_ps(seqps_128()).as_f32x8().as_array(),
                    [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]);
+    }
+
+    #[test]
+    fn test_byte_shift() {
+        assert_eq!(mm256_bslli_epi128(seq8(), 3).as_i8x32().as_array(),
+                   [0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
+                    0, 0, 0, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]);
+        assert_eq!(mm256_bsrli_epi128(seq8(), 3).as_i8x32().as_array(),
+                   [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 0, 0, 0,
+                    20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 0, 0, 0]);
+    }
+
+    #[test]
+    fn test_shift() {
+        assert_eq!(mm256_slli_si256(seq8(), 3).as_i8x32().as_array(),
+                   [0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
+                    0, 0, 0, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]);
+        assert_eq!(mm256_srli_si256(seq8(), 3).as_i8x32().as_array(),
+                   [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 0, 0, 0,
+                    20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 0, 0, 0]);
     }
 
     #[test]
