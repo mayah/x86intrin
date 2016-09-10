@@ -1,7 +1,7 @@
 use super::*;
 use super::{simd_add,
             simd_and, simd_or, simd_xor,
-            simd_shuffle4, simd_shuffle8, simd_shuffle16, simd_shuffle32};
+            simd_shuffle2, simd_shuffle4, simd_shuffle8, simd_shuffle16, simd_shuffle32};
 
 extern "platform-intrinsic" {
     fn x86_mm256_abs_epi8(x: i8x32) -> i8x32;
@@ -167,30 +167,124 @@ pub fn mm256_blendv_epi8(a: m256i, b: m256i, mask: m256i) -> m256i {
 
 // vpbroadcastb
 // __m128i _mm_broadcastb_epi8 (__m128i a)
+#[inline]
+pub fn mm_broadcastb_epi8(a: m128i) -> m128i {
+    let x: i8x16 = unsafe {
+        simd_shuffle16(a.as_i8x16(), a.as_i8x16(), [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+    };
+    x.as_m128i()
+}
+
 // vpbroadcastb
 // __m256i _mm256_broadcastb_epi8 (__m128i a)
+#[inline]
+pub fn mm256_broadcastb_epi8(a: m128i) -> m256i {
+    let x: i8x32 = unsafe {
+        simd_shuffle32(a.as_i8x16(), a.as_i8x16(),
+                       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+    };
+    x.as_m256i()
+}
+
 // vpbroadcastd
 // __m128i _mm_broadcastd_epi32 (__m128i a)
+#[inline]
+pub fn mm_broadcastd_epi32(a: m128i) -> m128i {
+    let x: i32x4 = unsafe {
+        simd_shuffle4(a.as_i32x4(), a.as_i32x4(), [0, 0, 0, 0])
+    };
+    x.as_m128i()
+}
+
 // vpbroadcastd
 // __m256i _mm256_broadcastd_epi32 (__m128i a)
+#[inline]
+pub fn mm256_broadcastd_epi32(a: m128i) -> m256i {
+    let x: i32x8 = unsafe {
+        simd_shuffle8(a.as_i32x4(), a.as_i32x4(), [0, 0, 0, 0, 0, 0, 0, 0])
+    };
+    x.as_m256i()
+}
+
 // vpbroadcastq
 // __m128i _mm_broadcastq_epi64 (__m128i a)
+#[inline]
+pub fn mm_broadcastq_epi64(a: m128i) -> m128i {
+    let x: i64x2 = unsafe {
+        simd_shuffle2(a.as_i64x2(), a.as_i64x2(), [0, 0])
+    };
+    x.as_m128i()
+}
+
 // vpbroadcastq
 // __m256i _mm256_broadcastq_epi64 (__m128i a)
+#[inline]
+pub fn mm256_broadcastq_epi64(a: m128i) -> m256i {
+    let x: i64x4 = unsafe {
+        simd_shuffle4(a.as_i64x2(), a.as_i64x2(), [0, 0, 0, 0])
+    };
+    x.as_m256i()
+}
+
 // movddup
 // __m128d _mm_broadcastsd_pd (__m128d a)
+#[inline]
+pub fn mm_broadcastsd_pd(a: m128d) -> m128d {
+    unsafe { simd_shuffle2(a, a, [0, 0]) }
+}
+
 // vbroadcastsd
 // __m256d _mm256_broadcastsd_pd (__m128d a)
+#[inline]
+pub fn mm256_broadcastsd_pd(a: m128d) -> m256d {
+    unsafe { simd_shuffle4(a, a, [0, 0, 0, 0]) }
+}
+
 // vbroadcasti128
 // __m256i _mm256_broadcastsi128_si256 (__m128i a)
+#[inline]
+pub fn mm256_broadcastsi128_si256(a: m128i) -> m256i {
+    let x: i64x4 = unsafe {
+        simd_shuffle4(a.as_i64x2(), a.as_i64x2(), [0, 1, 0, 1])
+    };
+    x.as_m256i()
+}
+
 // vbroadcastss
 // __m128 _mm_broadcastss_ps (__m128 a)
+#[inline]
+pub fn mm_broadcastss_ps(a: m128) -> m128 {
+    unsafe { simd_shuffle4(a, a, [0, 0, 0, 0]) }
+}
+
 // vbroadcastss
 // __m256 _mm256_broadcastss_ps (__m128 a)
+#[inline]
+pub fn mm256_broadcastss_ps(a: m128) -> m256 {
+    unsafe { simd_shuffle8(a, a, [0, 0, 0, 0, 0, 0, 0, 0]) }
+}
+
 // vpbroadcastw
 // __m128i _mm_broadcastw_epi16 (__m128i a)
+#[inline]
+pub fn mm_broadcastw_epi16(a: m128i) -> m128i {
+    let x: i16x8 = unsafe {
+        simd_shuffle8(a.as_i16x8(), a.as_i16x8(), [0, 0, 0, 0, 0, 0, 0, 0])
+    };
+    x.as_m128i()
+}
+
 // vpbroadcastw
 // __m256i _mm256_broadcastw_epi16 (__m128i a)
+#[inline]
+pub fn mm256_broadcastw_epi16(a: m128i) -> m256i {
+    let x: i16x16 = unsafe {
+        simd_shuffle16(a.as_i16x8(), a.as_i16x8(), [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+    };
+    x.as_m256i()
+}
+
 // vpslldq
 // __m256i _mm256_bslli_epi128 (__m256i a, const int imm8)
 // vpsrldq
@@ -593,28 +687,46 @@ mod tests {
         mm256_setr_epi8(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
                         17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32)
     }
+    fn seq8_128() -> m128i {
+        mm_setr_epi8(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)
+    }
     fn mseq8() -> m256i {
         mm256_setr_epi8(-1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -13, -14, -15, -16,
                         -17, -18, -19, -20, -21, -22, -23, -24, -25, -26, -27, -28, -29, -30, -31, -32)
     }
+
     fn seq16() -> m256i {
         mm256_setr_epi16(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)
+    }
+    fn seq16_128() -> m128i {
+        mm_setr_epi16(1, 2, 3, 4, 5, 6, 7, 8)
     }
     fn mseq16() -> m256i {
         mm256_setr_epi16(-1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -13, -14, -15, -16)
     }
+
     fn seq32() -> m256i {
         mm256_setr_epi32(1, 2, 3, 4, 5, 6, 7, 8)
+    }
+    fn seq32_128() -> m128i {
+        mm_setr_epi32(1, 2, 3, 4)
     }
     fn mseq32() -> m256i {
         mm256_setr_epi32(-1, -2, -3, -4, -5, -6, -7, -8)
     }
+
     fn seq64() -> m256i {
         mm256_setr_epi64x(1, 2, 3, 4)
+    }
+    fn seq64_128() -> m128i {
+        mm_set_epi64x(2, 1)
     }
     fn mseq64() -> m256i {
         mm256_setr_epi64x(-1, -2, -3, -4)
     }
+
+    fn seqps_128() -> m128 { mm_setr_ps(1.0, 2.0, 3.0, 4.0) }
+    fn seqpd_128() -> m128d { mm_setr_pd(1.0, 2.0) }
 
     #[test]
     fn test_mm256_abs() {
@@ -742,6 +854,40 @@ mod tests {
             assert_eq!(mm256_blend_epi32(a, b, 0xFF).as_i32x8().as_array(), [11, 12, 13, 14, 15, 16, 17, 18]);
             assert_eq!(mm256_blend_epi32(a, b, 0x11).as_i32x8().as_array(), [11, 2, 3, 4, 15, 6, 7, 8]);
         }
+    }
+
+    #[test]
+    fn test_broadcast() {
+        assert_eq!(mm_broadcastb_epi8(seq8_128()).as_i8x16().as_array(),
+                   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]);
+        assert_eq!(mm256_broadcastb_epi8(seq8_128()).as_i8x32().as_array(),
+                   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]);
+        assert_eq!(mm_broadcastd_epi32(seq32_128()).as_i32x4().as_array(),
+                   [1, 1, 1, 1]);
+        assert_eq!(mm256_broadcastd_epi32(seq32_128()).as_i32x8().as_array(),
+                   [1, 1, 1, 1, 1, 1, 1, 1]);
+        assert_eq!(mm_broadcastq_epi64(seq64_128()).as_i64x2().as_array(),
+                   [1, 1]);
+        assert_eq!(mm256_broadcastq_epi64(seq64_128()).as_i64x4().as_array(),
+                   [1, 1, 1, 1]);
+        assert_eq!(mm_broadcastw_epi16(seq16_128()).as_i16x8().as_array(),
+                   [1, 1, 1, 1, 1, 1, 1, 1]);
+        assert_eq!(mm256_broadcastw_epi16(seq16_128()).as_i16x16().as_array(),
+                   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]);
+
+        assert_eq!(mm_broadcastsd_pd(seqpd_128()).as_f64x2().as_array(),
+                   [1.0, 1.0]);
+        assert_eq!(mm256_broadcastsd_pd(seqpd_128()).as_f64x4().as_array(),
+                   [1.0, 1.0, 1.0, 1.0]);
+
+        assert_eq!(mm256_broadcastsi128_si256(seq64_128()).as_i64x4().as_array(),
+                   [1, 2, 1, 2]);
+
+        assert_eq!(mm_broadcastss_ps(seqps_128()).as_f32x4().as_array(),
+                   [1.0, 1.0, 1.0, 1.0]);
+        assert_eq!(mm256_broadcastss_ps(seqps_128()).as_f32x8().as_array(),
+                   [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]);
     }
 
     #[test]
