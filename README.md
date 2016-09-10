@@ -8,7 +8,7 @@ to what intel uses (removing prefix underscore; e.g. `__m128i -> m128i`,
 `_mm_set_epi32 -> mm_set_epi32`).
 
 I actually need various integer SIMD arithmetics, so such functions will
-be implmeneted with priority.
+be implemeneted with priority.
 
 # Current Status
 
