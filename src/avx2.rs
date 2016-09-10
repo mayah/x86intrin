@@ -369,6 +369,7 @@ pub fn mm256_cmpgt_epi8(a: m256i, b: m256i) -> m256i {
     x.as_m256i()
 }
 
+// TODO(mayah): rust does not have avx2 cvt functions yet.
 // vpmovsxwd
 // __m256i _mm256_cvtepi16_epi32 (__m128i a)
 // vpmovsxwq
@@ -393,8 +394,20 @@ pub fn mm256_cmpgt_epi8(a: m256i, b: m256i) -> m256i {
 // __m256i _mm256_cvtepu8_epi32 (__m128i a)
 // vpmovzxbq
 // __m256i _mm256_cvtepu8_epi64 (__m128i a)
+
 // vextracti128
 // __m128i _mm256_extracti128_si256 (__m256i a, const int imm8)
+#[inline]
+pub fn mm256_extracti128_si256(a: m256i, imm8: i32) -> m128i {
+    unsafe {
+        match imm8 & 0x1 {
+            0 => simd_shuffle2(a.as_i64x4(), a.as_i64x4(), [0, 1]),
+            1 => simd_shuffle2(a.as_i64x4(), a.as_i64x4(), [2, 3]),
+            _ => unreachable!()
+        }
+    }
+}
+
 // vphaddw
 // __m256i _mm256_hadd_epi16 (__m256i a, __m256i b)
 // vphaddd
@@ -1012,6 +1025,12 @@ mod tests {
                    [0, 0, !0, !0, 0, 0, 0, 0]);
         assert_eq!(mm256_cmpgt_epi64(seq64(), x64).as_i64x4().as_array(),
                    [0, !0, 0, 0]);
+    }
+
+    #[test]
+    fn test_extract() {
+        assert_eq!(mm256_extracti128_si256(seq64(), 0).as_i64x2().as_array(), [1, 2]);
+        assert_eq!(mm256_extracti128_si256(seq64(), 1).as_i64x2().as_array(), [3, 4]);
     }
 
     #[test]
