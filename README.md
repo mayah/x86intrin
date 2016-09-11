@@ -2,6 +2,7 @@
 x86 intrinsics for rust
 
 [![Crates.io Status](https://img.shields.io/crates/v/x86intrin.svg)](https://crates.io/crates/x86intrin)
+[![Build Status](https://travis-ci.org/mayah/x86intrin.svg?branch=master)](http://travis-ci.org/mayah/x86intrin)
 
 This crate will implement C-like x86 intrinsics with the similar names
 to what intel uses (removing prefix underscore; e.g. `__m128i -> m128i`,
