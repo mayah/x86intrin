@@ -1,5 +1,5 @@
 use super::*;
-use super::{simd_add,
+use super::{simd_add, simd_mul,
             simd_and, simd_or, simd_xor,
             simd_eq, simd_gt,
             simd_shuffle2, simd_shuffle4, simd_shuffle8, simd_shuffle16, simd_shuffle32};
@@ -37,6 +37,16 @@ extern "platform-intrinsic" {
     fn x86_mm256_movemask_epi8(x: i8x32) -> i32;
 
     fn x86_mm256_mpsadbw_epu8(x: u8x32, y: u8x32, z: i32) -> u16x16;
+
+    // TODO(mayah): rustc exposes x86_mm256_mul_ep{i,u}64, however, these methods name should be
+    // x86_mm256_mul_ep{i,u}32 when we obey intel intrinsic names.
+    // Also, we use them, rustc says "undefined reference to `llvm.x86.avx2.pmulq.dq'".
+    // fn x86_mm256_mul_epi64(x: i32x8, y: i32x8) -> i64x4;
+    // fn x86_mm256_mul_epu64(x: u32x8, y: u32x8) -> u64x4;
+    // TODO(mayah): rustc complains "undefined reference to `llvm.x86.avx2.pmulhw.w'".
+    // fn x86_mm256_mulhi_epi16(x: i16x16, y: i16x16) -> i16x16;
+    // fn x86_mm256_mulhi_epu16(x: u16x16, y: u16x16) -> u16x16;
+    fn x86_mm256_mulhrs_epi16(x: i16x16, y: i16x16) -> i16x16;
 
     fn x86_mm256_avg_epu8(x: u8x32, y: u8x32) -> u8x32;
     fn x86_mm256_avg_epu16(x: u16x16, y: u16x16) -> u16x16;
@@ -690,18 +700,68 @@ pub fn mm256_mpsadbw_epu8(a: m256i, b: m256i, imm8: i32) -> m256i {
 
 // vpmuldq
 // __m256i _mm256_mul_epi32 (__m256i a, __m256i b)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm256_mul_epi32(a: m256i, b: m256i) -> m256i {
+    // TODO(mayah): rustc uses `mm256_mul_epi64`, which is the same as mm256_mul_epi32 (in intel).
+    // unsafe { x86_mm256_mul_epi64(a.as_i32x8(), b.as_i32x8()).as_m256i() }
+
+    // Also, when we use mm256_mul_epi64, rust says undefined reference to `llvm.x86.avx2.pmulq.dq'
+    unimplemented!()
+}
+
 // vpmuludq
 // __m256i _mm256_mul_epu32 (__m256i a, __m256i b)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm256_mul_epu32(a: m256i, b: m256i) -> m256i {
+    // TODO(mayah): rustc uses `mm256_mul_epu64`, which is the same as mm256_mul_epu32 (in intel).
+    // unsafe { x86_mm256_mul_epu64(a.as_u32x8(), b.as_u32x8()).as_m256i() }
+
+    // Also, when we use mm256_mul_epu64, rust says undefined reference to `llvm.x86.avx2.pmulq.dq'
+    unimplemented!()
+}
+
 // vpmulhw
 // __m256i _mm256_mulhi_epi16 (__m256i a, __m256i b)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm256_mulhi_epi16(a: m256i, b: m256i) -> m256i {
+    // rustc complains "undefined reference to `llvm.x86.avx2.pmulhw.w'".
+    // unsafe { x86_mm256_mulhi_epi16(a.as_i16x16(), b.as_i16x16()).as_m256i() }
+    unimplemented!()
+}
+
 // vpmulhuw
 // __m256i _mm256_mulhi_epu16 (__m256i a, __m256i b)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm256_mulhi_epu16(a: m256i, b: m256i) -> m256i {
+    // rustc complains "undefined reference to `llvm.x86.avx2.pmulhw.w'".
+    // unsafe { x86_mm256_mulhi_epu16(a.as_u16x16(), b.as_u16x16()).as_m256i() }
+    unimplemented!()
+}
+
 // vpmulhrsw
 // __m256i _mm256_mulhrs_epi16 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_mulhrs_epi16(a: m256i, b: m256i) -> m256i {
+    unsafe { x86_mm256_mulhrs_epi16(a.as_i16x16(), b.as_i16x16()).as_m256i() }
+}
+
 // vpmullw
 // __m256i _mm256_mullo_epi16 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_mullo_epi16(a: m256i, b: m256i) -> m256i {
+    unsafe { simd_mul(a.as_i16x16(), b.as_i16x16()).as_m256i() }
+}
+
 // vpmulld
 // __m256i _mm256_mullo_epi32 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_mullo_epi32(a: m256i, b: m256i) -> m256i {
+    unsafe { simd_mul(a.as_i32x8(), b.as_i32x8()).as_m256i() }
+}
 
 // vpor
 // __m256i _mm256_or_si256 (__m256i a, __m256i b)
@@ -1277,6 +1337,36 @@ mod tests {
         assert_eq!(mm256_mpsadbw_epu8(a, b, 1 | 4 | 32 | 8).as_u16x16().as_array(),
                    [269, 267, 264, 290, 342, 446, 653, 588,
                     269, 267, 264, 290, 342, 446, 653, 588]);
+    }
+
+    #[test]
+    fn test_mul() {
+        //assert_eq!(mm256_mul_epi32(seq32(), mseq32()).as_i64x4().as_array(),
+        //           [-1, -9, -25, -49]);
+        //assert_eq!(mm256_mul_epu32(seq32(), mseq32()).as_u64x4().as_array(),
+        //           [1 * (-1i64 as u64), 3 * (-3i64 as u64), 5 * (-5i64 as u64), 7 * (-7i64 as u64)]);
+
+        let x = mm256_setr_epi16(0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4, 5, 6, 7);
+        let y = mm256_setr_epi16(0, 1, 2, 3, -4, -5, -6, -7, 0, 1, 2, 3, -4, -5, -6, -7);
+
+        //assert_eq!(mm256_mulhi_epi16(x, y).as_i16x16().as_array(),
+        //           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+        //assert_eq!(mm256_mulhi_epu16(x, y).as_u16x16().as_array(),
+        //           [0, 0, 0, 0, !0, !0, !0, !0, 0, 0, 0, 0, !0, !0, !0, !0]);
+
+        assert_eq!(mm256_mullo_epi16(x, y).as_i16x16().as_array(),
+                   [0, 1, 4, 9, -16, -25, -36, -49, 0, 1, 4, 9, -16, -25, -36, -49]);
+        assert_eq!(mm256_mullo_epi32(seq32(), mseq32()).as_i32x8().as_array(),
+                   [-1, -4, -9, -16, -25, -36, -49, -64]);
+
+        let x16 = mm256_setr_epi16(-0x5CEE, 0x0105, 0x3DA9, -0x7FFF, 0x7FFF, 0x1111, -0x219D, -0x1DBC,
+                                   -0x5CEE, 0x0105, 0x3DA9, -0x7FFF, 0x7FFF, 0x1111, -0x219D, -0x1DBC);
+        let y16 = mm256_setr_epi16(0x4000, -0x510A, 0x209D, -0x7FFF, 0x0000, 0x2222, 0x1027, 0x7AEF,
+                                   0x4000, -0x510A, 0x209D, -0x7FFF, 0x0000, 0x2222, 0x1027, 0x7AEF);
+
+        assert_eq!(mm256_mulhrs_epi16(x16, y16).as_i16x16().as_array(),
+                   [-11895, -165, 4022, 32766, 0, 1165, -1086, -7311,
+                    -11895, -165, 4022, 32766, 0, 1165, -1086, -7311]);
     }
 
     #[test]
