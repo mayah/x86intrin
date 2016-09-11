@@ -36,6 +36,8 @@ extern "platform-intrinsic" {
 
     fn x86_mm256_movemask_epi8(x: i8x32) -> i32;
 
+    fn x86_mm256_mpsadbw_epu8(x: u8x32, y: u8x32, z: i32) -> u16x16;
+
     fn x86_mm256_avg_epu8(x: u8x32, y: u8x32) -> u8x32;
     fn x86_mm256_avg_epu16(x: u16x16, y: u16x16) -> u16x16;
 }
@@ -681,6 +683,11 @@ pub fn mm256_movemask_epi8(a: m256i) -> i32 {
 
 // vmpsadbw
 // __m256i _mm256_mpsadbw_epu8 (__m256i a, __m256i b, const int imm8)
+#[inline]
+pub fn mm256_mpsadbw_epu8(a: m256i, b: m256i, imm8: i32) -> m256i {
+    fn_imm8_arg2!(x86_mm256_mpsadbw_epu8, a.as_u8x32(), b.as_u8x32(), imm8).as_m256i()
+}
+
 // vpmuldq
 // __m256i _mm256_mul_epi32 (__m256i a, __m256i b)
 // vpmuludq
@@ -1259,6 +1266,17 @@ mod tests {
         let a = mm256_setr_epi8(1, 2, 3, 4, -1, -2, -3, -4, 1, 2, 3, 4, -1, -2, -3, -4,
                                 1, 2, 3, 4, -1, -2, -3, -4, 1, 2, 3, 4, -1, -2, -3, -4);
         assert_eq!(mm256_movemask_epi8(a), 0xF0F0F0F0u32 as i32);
+    }
+
+    #[test]
+    fn test_mpsadbw() {
+        let a = u8x32(15, 60, 55, 31, 0, 1, 2, 4, 8, 16, 32, 64, 128, 255, 1, 17,
+                      15, 60, 55, 31, 0, 1, 2, 4, 8, 16, 32, 64, 128, 255, 1, 17).as_m256i();
+        let b = u8x32(2, 4, 8, 64, 255, 0, 1, 16, 32, 64, 128, 255, 75, 31, 42, 11,
+                      2, 4, 8, 64, 255, 0, 1, 16, 32, 64, 128, 255, 75, 31, 42, 11).as_m256i();
+        assert_eq!(mm256_mpsadbw_epu8(a, b, 1 | 4 | 32 | 8).as_u16x16().as_array(),
+                   [269, 267, 264, 290, 342, 446, 653, 588,
+                    269, 267, 264, 290, 342, 446, 653, 588]);
     }
 
     #[test]
