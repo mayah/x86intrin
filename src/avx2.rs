@@ -521,8 +521,22 @@ pub fn mm256_hsubs_epi16(a: m256i, b: m256i) -> m256i {
 // __m128 _mm256_i64gather_ps (float const* base_addr, __m256i vindex, const int scale)
 // vgatherqps
 // __m128 _mm256_mask_i64gather_ps (__m128 src, float const* base_addr, __m256i vindex, __m128 mask, const int scale)
+
 // vinserti128
 // __m256i _mm256_inserti128_si256 (__m256i a, __m128i b, const int imm8)
+#[inline]
+pub fn mm256_inserti128_si256(a: m256i, b: m128i, imm8: i32) -> m256i {
+    unsafe {
+        let b256 = mm256_castsi128_si256(b);
+        let x: i64x4 = match imm8 & 0x1 {
+            0 => simd_shuffle4(a.as_i64x4(), b256.as_i64x4(), [4, 5, 2, 3]),
+            1 => simd_shuffle4(a.as_i64x4(), b256.as_i64x4(), [0, 1, 4, 5]),
+            _ => unreachable!()
+        };
+        x.as_m256i()
+    }
+}
+
 // vpmaddwd
 // __m256i _mm256_madd_epi16 (__m256i a, __m256i b)
 // vpmaddubsw
@@ -850,6 +864,9 @@ mod tests {
     fn mseq64() -> m256i {
         mm256_setr_epi64x(-1, -2, -3, -4)
     }
+    fn mseq64_128() -> m128i {
+        mm_set_epi64x(-2, -1)
+    }
 
     fn seqps_128() -> m128 { mm_setr_ps(1.0, 2.0, 3.0, 4.0) }
     fn seqpd_128() -> m128d { mm_setr_pd(1.0, 2.0) }
@@ -1068,6 +1085,12 @@ mod tests {
     fn test_extract() {
         assert_eq!(mm256_extracti128_si256(seq64(), 0).as_i64x2().as_array(), [1, 2]);
         assert_eq!(mm256_extracti128_si256(seq64(), 1).as_i64x2().as_array(), [3, 4]);
+    }
+
+    #[test]
+    fn test_insert() {
+        assert_eq!(mm256_inserti128_si256(seq64(), mseq64_128(), 0).as_i64x4().as_array(), [-1, -2, 3, 4]);
+        assert_eq!(mm256_inserti128_si256(seq64(), mseq64_128(), 1).as_i64x4().as_array(), [1, 2, -1, -2]);
     }
 
     #[test]
