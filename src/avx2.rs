@@ -33,6 +33,11 @@ extern "platform-intrinsic" {
     fn x86_mm256_maskload_epi32(mem_addr: *const i32x8, mask: i32x8) -> i32x8;
     fn x86_mm256_maskload_epi64(mem_addr: *const i64x4, mask: i64x4) -> i64x4;
 
+    fn x86_mm_maskstore_epi32(mem_addr: *mut i32, mask: i32x4, a: i32x4);
+    fn x86_mm_maskstore_epi64(mem_addr: *mut i64, mask: i64x2, a: i64x2);
+    fn x86_mm256_maskstore_epi32(mem_addr: *mut i32, mask: i32x8, a: i32x8);
+    fn x86_mm256_maskstore_epi64(mem_addr: *mut i64, mask: i64x4, a: i64x4);
+
     fn x86_mm256_max_epi16(x: i16x16, y: i16x16) -> i16x16;
     fn x86_mm256_max_epi32(x: i32x8, y: i32x8) -> i32x8;
     fn x86_mm256_max_epi8(x: i8x32, y: i8x32) -> i8x32;
@@ -646,12 +651,31 @@ pub unsafe fn mm256_maskload_epi64(mem_addr: *const i64, mask: m256i) -> m256i {
 
 // vpmaskmovd
 // void _mm_maskstore_epi32 (int* mem_addr, __m128i mask, __m128i a)
+#[inline]
+pub unsafe fn mm_maskstore_epi32(mem_addr: *mut i32, mask: m128i, a: m128i) {
+    x86_mm_maskstore_epi32(mem_addr, mask.as_i32x4(), a.as_i32x4())
+}
+
 // vpmaskmovd
 // void _mm256_maskstore_epi32 (int* mem_addr, __m256i mask, __m256i a)
+#[inline]
+pub unsafe fn mm256_maskstore_epi32(mem_addr: *mut i32, mask: m256i, a: m256i) {
+    x86_mm256_maskstore_epi32(mem_addr, mask.as_i32x8(), a.as_i32x8())
+}
+
 // vpmaskmovq
 // void _mm_maskstore_epi64 (__int64* mem_addr, __m128i mask, __m128i a)
+#[inline]
+pub unsafe fn mm_maskstore_epi64(mem_addr: *mut i64, mask: m128i, a: m128i) {
+    x86_mm_maskstore_epi64(mem_addr, mask.as_i64x2(), a.as_i64x2())
+}
+
 // vpmaskmovq
 // void _mm256_maskstore_epi64 (__int64* mem_addr, __m256i mask, __m256i a)
+#[inline]
+pub unsafe fn mm256_maskstore_epi64(mem_addr: *mut i64, mask: m256i, a: m256i) {
+    x86_mm256_maskstore_epi64(mem_addr, mask.as_i64x4(), a.as_i64x4())
+}
 
 // vpmaxsw
 // __m256i _mm256_max_epi16 (__m256i a, __m256i b)
@@ -1709,6 +1733,36 @@ mod tests {
             assert_eq!(mm256_maskload_epi32(p32_256, m32_256).as_i32x8().as_array(), [0, 2, 0, 4, 0, 6, 0, 8]);
             assert_eq!(mm256_maskload_epi64(p64_256, m64_256).as_i64x4().as_array(), [0, 2, 0, 4]);
         }
+    }
+
+    #[test]
+    fn test_maskstore() {
+        let mut a32_128 = mm_setzero_si128();
+        let mut a64_128 = mm_setzero_si128();
+        let mut a32_256 = mm256_setzero_si256();
+        let mut a64_256 = mm256_setzero_si256();
+
+        let m32_128 = mm_setr_epi32(0, !0, 0, !0);
+        let m64_128 = mm_set_epi64x(!0, 0);
+        let m32_256 = mm256_setr_epi32(0, !0, 0, !0, 0, !0, 0, !0);
+        let m64_256 = mm256_setr_epi64x(0, !0, 0, !0);
+
+        unsafe {
+            let p32_128 = &mut a32_128 as *mut m128i as *mut i32;
+            let p64_128 = &mut a64_128 as *mut m128i as *mut i64;
+            let p32_256 = &mut a32_256 as *mut m256i as *mut i32;
+            let p64_256 = &mut a64_256 as *mut m256i as *mut i64;
+
+            mm_maskstore_epi32(p32_128, m32_128, seq32_128());
+            mm_maskstore_epi64(p64_128, m64_128, seq64_128());
+            mm256_maskstore_epi32(p32_256, m32_256, seq32());
+            mm256_maskstore_epi64(p64_256, m64_256, seq64());
+        };
+
+        assert_eq!(a32_128.as_i32x4().as_array(), [0, 2, 0, 4]);
+        assert_eq!(a64_128.as_i64x2().as_array(), [0, 2]);
+        assert_eq!(a32_256.as_i32x8().as_array(), [0, 2, 0, 4, 0, 6, 0, 8]);
+        assert_eq!(a64_256.as_i64x4().as_array(), [0, 2, 0, 4]);
     }
 
     #[test]
