@@ -67,6 +67,8 @@ extern "platform-intrinsic" {
     fn x86_mm256_sign_epi8(x: i8x32, y: i8x32) -> i8x32;
     fn x86_mm256_sign_epi16(x: i16x16, y: i16x16) -> i16x16;
     fn x86_mm256_sign_epi32(x: i32x8, y: i32x8) -> i32x8;
+
+    fn x86_mm256_shuffle_epi8(x: i8x32, y: i8x32) -> i8x32;
 }
 
 extern {
@@ -893,6 +895,11 @@ pub fn mm256_shuffle_epi32(a: m256i, imm8: i32) -> m256i {
 
 // vpshufb
 // __m256i _mm256_shuffle_epi8 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_shuffle_epi8(a: m256i, b: m256i) -> m256i {
+    unsafe { x86_mm256_shuffle_epi8(a.as_i8x32(), b.as_i8x32()).as_m256i() }
+}
+
 // vpshufhw
 // __m256i _mm256_shufflehi_epi16 (__m256i a, const int imm8)
 // vpshuflw
@@ -1608,10 +1615,22 @@ mod tests {
     }
 
     #[test]
-    fn test_shuffle() {
+    fn test_shuffle_epi32() {
         let s32 = mm256_shuffle_epi32(seq32(), (2 << 0) | (0 << 2) | (3 << 4) | (1 << 6));
         assert_eq!(s32.as_i32x8().as_array(),
                    [3, 1, 4, 2, 7, 5, 8, 6]);
+    }
+
+    #[test]
+    fn test_shuffle_epi8() {
+        let x8 = mm256_setr_epi8(51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66,
+                                 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66);
+        let idx = mm256_setr_epi8(4, 5, 6, 7, 0, 1, 2, 3, 12, 13, 14, 15, 8, 9, 10, 11,
+                                  4, 5, 6, 7, 0, 1, 2, 3, 12, 13, 14, 15, 8, 9, 10, 11);
+
+        assert_eq!(mm256_shuffle_epi8(x8, idx).as_i8x32().as_array(),
+                   [55, 56, 57, 58, 51, 52, 53, 54, 63, 64, 65, 66, 59, 60, 61, 62,
+                    55, 56, 57, 58, 51, 52, 53, 54, 63, 64, 65, 66, 59, 60, 61, 62]);
     }
 
     #[test]
