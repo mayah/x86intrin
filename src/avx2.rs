@@ -13,6 +13,10 @@ extern "platform-intrinsic" {
     fn x86_mm256_adds_epu8(x: u8x32, y: u8x32) -> u8x32;
     fn x86_mm256_adds_epi16(x: i16x16, y: i16x16) -> i16x16;
     fn x86_mm256_adds_epu16(x: u16x16, y: u16x16) -> u16x16;
+    fn x86_mm256_subs_epi8(x: i8x32, y: i8x32) -> i8x32;
+    fn x86_mm256_subs_epu8(x: u8x32, y: u8x32) -> u8x32;
+    fn x86_mm256_subs_epi16(x: i16x16, y: i16x16) -> i16x16;
+    fn x86_mm256_subs_epu16(x: u16x16, y: u16x16) -> u16x16;
 
     fn x86_mm256_hadd_epi16(x: i16x16, y: i16x16) -> i16x16;
     fn x86_mm256_hadd_epi32(x: i32x8, y: i32x8) -> i32x8;
@@ -925,12 +929,31 @@ pub fn mm256_sub_epi8(a: m256i, b: m256i) -> m256i {
 
 // vpsubsw
 // __m256i _mm256_subs_epi16 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_subs_epi16(a: m256i, b: m256i) -> m256i {
+    unsafe { x86_mm256_subs_epi16(a.as_i16x16(), b.as_i16x16()).as_m256i() }
+}
+
 // vpsubsb
 // __m256i _mm256_subs_epi8 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_subs_epi8(a: m256i, b: m256i) -> m256i {
+    unsafe { x86_mm256_subs_epi8(a.as_i8x32(), b.as_i8x32()).as_m256i() }
+}
+
 // vpsubusw
 // __m256i _mm256_subs_epu16 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_subs_epu16(a: m256i, b: m256i) -> m256i {
+    unsafe { x86_mm256_subs_epu16(a.as_u16x16(), b.as_u16x16()).as_m256i() }
+}
+
 // vpsubusb
 // __m256i _mm256_subs_epu8 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_subs_epu8(a: m256i, b: m256i) -> m256i {
+    unsafe { x86_mm256_subs_epu8(a.as_u8x32(), b.as_u8x32()).as_m256i() }
+}
 
 // vpunpckhwd
 // __m256i _mm256_unpackhi_epi16 (__m256i a, __m256i b)
@@ -1142,6 +1165,34 @@ mod tests {
 
         assert_eq!(mm256_adds_epu16(a16, b16).as_u16x16().as_array(),
                    [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFE]);
+    }
+
+    #[test]
+    fn test_mm256_subs() {
+        let a8 = mm256_setr_epi8(1, -3, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+                                 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
+        let b8 = mm256_setr_epi8(-0x80, 0x7F, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
+
+        let a16 = mm256_setr_epi16(1, -3, 3, 4, 5, 6, 7, 8,
+                                   1, 2, 3, 4, 5, 6, 7, 8);
+        let b16 = mm256_setr_epi16(-0x8000, 0x7FFF, 1, 1, 1, 1, 1, 1,
+                                   3, 1, 1, 1, 1, 1, 1, 1);
+
+
+        assert_eq!(mm256_subs_epi8(a8, b8).as_i8x32().as_array(),
+                   [127, -128, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+                    -2, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
+        assert_eq!(mm256_subs_epu8(a8, b8).as_u8x32().as_array(),
+                   [0, 126, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+                    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
+
+        assert_eq!(mm256_subs_epi16(a16, b16).as_i16x16().as_array(),
+                   [0x7FFF, -0x8000, 2, 3, 4, 5, 6, 7,
+                    -2, 1, 2, 3, 4, 5, 6, 7]);
+        assert_eq!(mm256_subs_epu16(a16, b16).as_u16x16().as_array(),
+                   [0, 0x7FFE, 2, 3, 4, 5, 6, 7,
+                    0, 1, 2, 3, 4, 5, 6, 7]);
     }
 
     #[test]
