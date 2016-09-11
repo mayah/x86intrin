@@ -87,6 +87,9 @@ extern {
 
     #[link_name = "llvm.x86.avx2.psad.bw"]
     fn avx2_psad_bw(a: u8x32, b: u8x32) -> u64x4;
+
+    #[link_name = "llvm.x86.avx2.vperm2i128"]
+    fn avx2_vperm2i128(a: i64x4, b: i64x4, c: u8) -> i64x4;
 }
 
 // vpabsw
@@ -817,6 +820,11 @@ pub fn mm256_packus_epi32(a: m256i, b: m256i) -> m256i {
 
 // vperm2i128
 // __m256i _mm256_permute2x128_si256 (__m256i a, __m256i b, const int imm8)
+#[inline]
+pub fn mm256_permute2x128_si256(a: m256i, b: m256i, imm8: i32) -> m256i {
+    fn_imm8_arg2!(avx2_vperm2i128, a.as_i64x4(), b.as_i64x4(), imm8).as_m256i()
+}
+
 // vpermq
 // __m256i _mm256_permute4x64_epi64 (__m256i a, const int imm8)
 // vpermpd
@@ -1705,6 +1713,14 @@ mod tests {
                    [1, -1, 0x7FFF, -0x8000, 1, -1, 0x7FFF, -0x8000, 1, -1, 0x7FFF, -0x8000, 1, -1, 0x7FFF, -0x8000]);
         assert_eq!(mm256_packus_epi32(b, b).as_u16x16().as_array(),
                    [1, 0, 0xFFFF, 0, 1, 0, 0xFFFF, 0, 1, 0, 0xFFFF, 0, 1, 0, 0xFFFF, 0]);
+    }
+
+    #[test]
+    fn test_permute() {
+        assert_eq!(mm256_permute2x128_si256(seq64(), mseq64(), (1 << 7) | (1 << 3)).as_i64x4().as_array(),
+                   [0, 0, 0, 0]);
+        assert_eq!(mm256_permute2x128_si256(seq64(), mseq64(), (3 << 0) | (1 << 4)).as_i64x4().as_array(),
+                   [-3, -4, 3, 4]);
     }
 
     #[test]
