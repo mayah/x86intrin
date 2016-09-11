@@ -1144,8 +1144,14 @@ pub fn mm256_srli_si256(a: m256i, imm8: i32) -> m256i {
 // __m128i _mm_srlv_epi64 (__m128i a, __m128i count)
 // vpsrlvq
 // __m256i _mm256_srlv_epi64 (__m256i a, __m256i count)
+
 // vmovntdqa
 // __m256i _mm256_stream_load_si256 (__m256i const* mem_addr)
+#[inline]
+#[allow(unused_variables)]
+pub fn mm256_stream_load_si256(mem_addr: *const m256i) -> m256i {
+    unimplemented!()
+}
 
 // vpsubw
 // __m256i _mm256_sub_epi16 (__m256i a, __m256i b)
