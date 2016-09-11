@@ -1,5 +1,5 @@
 use super::*;
-use super::{simd_add, simd_mul,
+use super::{simd_add, simd_sub, simd_mul,
             simd_and, simd_or, simd_xor,
             simd_eq, simd_gt,
             simd_shuffle2, simd_shuffle4, simd_shuffle8, simd_shuffle16, simd_shuffle32};
@@ -894,14 +894,35 @@ pub fn mm256_srli_si256(a: m256i, imm8: i32) -> m256i {
 // __m256i _mm256_srlv_epi64 (__m256i a, __m256i count)
 // vmovntdqa
 // __m256i _mm256_stream_load_si256 (__m256i const* mem_addr)
+
 // vpsubw
 // __m256i _mm256_sub_epi16 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_sub_epi16(a: m256i, b: m256i) -> m256i {
+    unsafe { simd_sub(a.as_i16x16(), b.as_i16x16()).as_m256i() }
+}
+
 // vpsubd
 // __m256i _mm256_sub_epi32 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_sub_epi32(a: m256i, b: m256i) -> m256i {
+    unsafe { simd_sub(a.as_i32x8(), b.as_i32x8()).as_m256i() }
+}
+
 // vpsubq
 // __m256i _mm256_sub_epi64 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_sub_epi64(a: m256i, b: m256i) -> m256i {
+    unsafe { simd_sub(a.as_i64x4(), b.as_i64x4()).as_m256i() }
+}
+
 // vpsubb
 // __m256i _mm256_sub_epi8 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_sub_epi8(a: m256i, b: m256i) -> m256i {
+    unsafe { simd_sub(a.as_i8x32(), b.as_i8x32()).as_m256i() }
+}
+
 // vpsubsw
 // __m256i _mm256_subs_epi16 (__m256i a, __m256i b)
 // vpsubsb
@@ -1088,6 +1109,16 @@ mod tests {
                    [2, 4, 6, 8, -2, -4, -6, -8]);
         assert_eq!(mm256_add_epi64(a64, a64).as_i64x4().as_array(),
                    [2, 4, -2, -4]);
+
+        assert_eq!(mm256_sub_epi8(seq8(), mseq8()).as_i8x32().as_array(),
+                   [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32,
+                    34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62, 64]);
+        assert_eq!(mm256_sub_epi16(seq16(), mseq16()).as_i16x16().as_array(),
+                   [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32]);
+        assert_eq!(mm256_sub_epi32(seq32(), mseq32()).as_i32x8().as_array(),
+                   [2, 4, 6, 8, 10, 12, 14, 16]);
+        assert_eq!(mm256_sub_epi64(seq64(), mseq64()).as_i64x4().as_array(),
+                   [2, 4, 6, 8]);
     }
 
     #[test]
