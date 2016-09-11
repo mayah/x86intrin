@@ -28,6 +28,11 @@ extern "platform-intrinsic" {
     fn x86_mm256_avg_epu8(x: u8x32, y: u8x32) -> u8x32;
     fn x86_mm256_avg_epu16(x: u16x16, y: u16x16) -> u16x16;
 
+    fn x86_mm_maskload_epi32(mem_addr: *const i32x4, mask: i32x4) -> i32x4;
+    fn x86_mm_maskload_epi64(mem_addr: *const i64x2, mask: i64x2) -> i64x2;
+    fn x86_mm256_maskload_epi32(mem_addr: *const i32x8, mask: i32x8) -> i32x8;
+    fn x86_mm256_maskload_epi64(mem_addr: *const i64x4, mask: i64x4) -> i64x4;
+
     fn x86_mm256_max_epi16(x: i16x16, y: i16x16) -> i16x16;
     fn x86_mm256_max_epi32(x: i32x8, y: i32x8) -> i32x8;
     fn x86_mm256_max_epi8(x: i8x32, y: i8x32) -> i8x32;
@@ -613,12 +618,32 @@ pub fn mm256_maddubs_epi16(a: m256i, b: m256i) -> m256i {
 
 // vpmaskmovd
 // __m128i _mm_maskload_epi32 (int const* mem_addr, __m128i mask)
+#[inline]
+pub unsafe fn mm_maskload_epi32(mem_addr: *const i32, mask: m128i) -> m128i {
+    x86_mm_maskload_epi32(mem_addr as *const i32x4, mask.as_i32x4()).as_m128i()
+}
+
 // vpmaskmovd
 // __m256i _mm256_maskload_epi32 (int const* mem_addr, __m256i mask)
+#[inline]
+pub unsafe fn mm256_maskload_epi32(mem_addr: *const i32, mask: m256i) -> m256i {
+    x86_mm256_maskload_epi32(mem_addr as *const i32x8, mask.as_i32x8()).as_m256i()
+}
+
 // vpmaskmovq
 // __m128i _mm_maskload_epi64 (__int64 const* mem_addr, __m128i mask)
+#[inline]
+pub unsafe fn mm_maskload_epi64(mem_addr: *const i64, mask: m128i) -> m128i {
+    x86_mm_maskload_epi64(mem_addr as *const i64x2, mask.as_i64x2()).as_m128i()
+}
+
 // vpmaskmovq
 // __m256i _mm256_maskload_epi64 (__int64 const* mem_addr, __m256i mask)
+#[inline]
+pub unsafe fn mm256_maskload_epi64(mem_addr: *const i64, mask: m256i) -> m256i {
+    x86_mm256_maskload_epi64(mem_addr as *const i64x4, mask.as_i64x4()).as_m256i()
+}
+
 // vpmaskmovd
 // void _mm_maskstore_epi32 (int* mem_addr, __m128i mask, __m128i a)
 // vpmaskmovd
@@ -1659,6 +1684,31 @@ mod tests {
                     9 * 9 + 10 * 10, 11 * 11 + 12 * 12, 13 * 13 + 14 * 14, 15 * 15 + 16 * 16,
                     17 * 17 + 18 * 18, 19 * 19 + 20 * 20, 21 * 21 + 22 * 22, 23 * 23 + 24 * 24,
                     25 * 25 + 26 * 26, 27 * 27 + 28 * 28, 29 * 29 + 30 * 30, 31 * 31 + 32 * 32]);
+    }
+
+    #[test]
+    fn test_maskload() {
+        let a32_128 = seq32_128();
+        let a64_128 = seq64_128();
+        let a32_256 = seq32();
+        let a64_256 = seq64();
+
+        let p32_128 = &a32_128 as *const m128i as *const i32;
+        let p64_128 = &a64_128 as *const m128i as *const i64;
+        let p32_256 = &a32_256 as *const m256i as *const i32;
+        let p64_256 = &a64_256 as *const m256i as *const i64;
+
+        let m32_128 = mm_setr_epi32(0, !0, 0, !0);
+        let m64_128 = mm_set_epi64x(!0, 0);
+        let m32_256 = mm256_setr_epi32(0, !0, 0, !0, 0, !0, 0, !0);
+        let m64_256 = mm256_setr_epi64x(0, !0, 0, !0);
+
+        unsafe {
+            assert_eq!(mm_maskload_epi32(p32_128, m32_128).as_i32x4().as_array(), [0, 2, 0, 4]);
+            assert_eq!(mm_maskload_epi64(p64_128, m64_128).as_i64x2().as_array(), [0, 2]);
+            assert_eq!(mm256_maskload_epi32(p32_256, m32_256).as_i32x8().as_array(), [0, 2, 0, 4, 0, 6, 0, 8]);
+            assert_eq!(mm256_maskload_epi64(p64_256, m64_256).as_i64x4().as_array(), [0, 2, 0, 4]);
+        }
     }
 
     #[test]
