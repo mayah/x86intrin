@@ -34,6 +34,8 @@ extern "platform-intrinsic" {
     fn x86_mm256_min_epu32(x: u32x8, y: u32x8) -> u32x8;
     fn x86_mm256_min_epu8(x: u8x32, y: u8x32) -> u8x32;
 
+    fn x86_mm256_movemask_epi8(x: i8x32) -> i32;
+
     fn x86_mm256_avg_epu8(x: u8x32, y: u8x32) -> u8x32;
     fn x86_mm256_avg_epu16(x: u16x16, y: u16x16) -> u16x16;
 }
@@ -672,6 +674,11 @@ pub fn mm256_min_epu8(a: m256i, b: m256i) -> m256i {
 
 // vpmovmskb
 // int _mm256_movemask_epi8 (__m256i a)
+#[inline]
+pub fn mm256_movemask_epi8(a: m256i) -> i32 {
+    unsafe { x86_mm256_movemask_epi8(a.as_i8x32()) }
+}
+
 // vmpsadbw
 // __m256i _mm256_mpsadbw_epu8 (__m256i a, __m256i b, const int imm8)
 // vpmuldq
@@ -1245,7 +1252,13 @@ mod tests {
         assert_eq!(mm256_min_epu8(seq8(), mseq8()).as_i8x32().as_array(), seq8().as_i8x32().as_array());
         assert_eq!(mm256_min_epu16(seq16(), mseq16()).as_i16x16().as_array(), seq16().as_i16x16().as_array());
         assert_eq!(mm256_min_epu32(seq32(), mseq32()).as_i32x8().as_array(), seq32().as_i32x8().as_array());
+    }
 
+    #[test]
+    fn test_movemask() {
+        let a = mm256_setr_epi8(1, 2, 3, 4, -1, -2, -3, -4, 1, 2, 3, 4, -1, -2, -3, -4,
+                                1, 2, 3, 4, -1, -2, -3, -4, 1, 2, 3, 4, -1, -2, -3, -4);
+        assert_eq!(mm256_movemask_epi8(a), 0xF0F0F0F0u32 as i32);
     }
 
     #[test]
