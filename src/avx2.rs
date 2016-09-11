@@ -29,6 +29,11 @@ extern {
     #[link_name = "llvm.x86.avx2.pblendvb"]
     fn avx2_pblendvb(a: i8x32, b: i8x32, c: i8x32) -> i8x32;
 
+    #[link_name = "llvm.x86.avx2.pmadd.wd"]
+    fn avx2_pmadd_wd(a: i16x16, b: i16x16) -> i32x8;
+    #[link_name = "llvm.x86.avx2.pmadd.ub.sw"]
+    fn avx2_pmadd_ub_sw(a: i8x32, b: i8x32) -> i16x16;
+
     #[link_name = "llvm.x86.avx2.psll.dq"]
     fn avx2_psll_dq(a: i64x4, b: i32) -> i64x4;
     #[link_name = "llvm.x86.avx2.psrl.dq"]
@@ -539,8 +544,18 @@ pub fn mm256_inserti128_si256(a: m256i, b: m128i, imm8: i32) -> m256i {
 
 // vpmaddwd
 // __m256i _mm256_madd_epi16 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_madd_epi16(a: m256i, b: m256i) -> m256i {
+    unsafe { avx2_pmadd_wd(a.as_i16x16(), b.as_i16x16()).as_m256i() }
+}
+
 // vpmaddubsw
 // __m256i _mm256_maddubs_epi16 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_maddubs_epi16(a: m256i, b: m256i) -> m256i {
+    unsafe { avx2_pmadd_ub_sw(a.as_i8x32(), b.as_i8x32()).as_m256i() }
+}
+
 // vpmaskmovd
 // __m128i _mm_maskload_epi32 (int const* mem_addr, __m128i mask)
 // vpmaskmovd
@@ -1125,6 +1140,18 @@ mod tests {
         assert_eq!(mm256_hsubs_epi16(x16, x16).as_i16x16().as_array(),
                    [-1, 0x7FFF, 1, -0x8000, -1, 0x7FFF, 1, -0x8000,
                     -1, 0x7FFF, 1, -0x8000, -1, 0x7FFF, 1, -0x8000]);
+    }
+
+    #[test]
+    fn test_madd() {
+        assert_eq!(mm256_madd_epi16(seq16(), seq16()).as_i32x8().as_array(),
+                   [1 * 1 + 2 * 2, 3 * 3 + 4 * 4, 5 * 5 + 6 * 6, 7 * 7 + 8 * 8,
+                    9 * 9 + 10 * 10, 11 * 11 + 12 * 12, 13 * 13 + 14 * 14, 15 * 15 + 16 * 16]);
+        assert_eq!(mm256_maddubs_epi16(seq8(), seq8()).as_i16x16().as_array(),
+                   [1 * 1 + 2 * 2, 3 * 3 + 4 * 4, 5 * 5 + 6 * 6, 7 * 7 + 8 * 8,
+                    9 * 9 + 10 * 10, 11 * 11 + 12 * 12, 13 * 13 + 14 * 14, 15 * 15 + 16 * 16,
+                    17 * 17 + 18 * 18, 19 * 19 + 20 * 20, 21 * 21 + 22 * 22, 23 * 23 + 24 * 24,
+                    25 * 25 + 26 * 26, 27 * 27 + 28 * 28, 29 * 29 + 30 * 30, 31 * 31 + 32 * 32]);
     }
 
     #[test]
