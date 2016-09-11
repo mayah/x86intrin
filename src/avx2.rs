@@ -64,6 +64,9 @@ extern "platform-intrinsic" {
     // However, the return type should be u64x4 (or i64x4).
     // fn x86_mm256_sad_epu8(x: u8x32, y: u8x32) -> u8x32;
 
+    fn x86_mm256_permutevar8x32_epi32(x: i32x8, y: i32x8) -> i32x8;
+    fn x86_mm256_permutevar8x32_ps(x: m256, y: i32x8) -> m256;
+
     fn x86_mm256_sign_epi8(x: i8x32, y: i8x32) -> i8x32;
     fn x86_mm256_sign_epi16(x: i16x16, y: i16x16) -> i16x16;
     fn x86_mm256_sign_epi32(x: i32x8, y: i32x8) -> i32x8;
@@ -827,12 +830,32 @@ pub fn mm256_permute2x128_si256(a: m256i, b: m256i, imm8: i32) -> m256i {
 
 // vpermq
 // __m256i _mm256_permute4x64_epi64 (__m256i a, const int imm8)
+#[inline]
+pub fn mm256_permute4x64_epi64(a: m256i, imm8: i32) -> m256i {
+    let x: i64x4 = permute_shuffle4!(a.as_i64x4(), mm256_setzero_si256().as_i64x4(), imm8);
+    x.as_m256i()
+}
+
 // vpermpd
 // __m256d _mm256_permute4x64_pd (__m256d a, const int imm8)
+#[inline]
+pub fn mm256_permute4x64_pd(a: m256d, imm8: i32) -> m256d {
+    permute_shuffle4!(a, mm256_setzero_pd(), imm8)
+}
+
 // vpermd
 // __m256i _mm256_permutevar8x32_epi32 (__m256i a, __m256i idx)
+#[inline]
+pub fn mm256_permutevar8x32_epi32(a: m256i, idx: m256i) -> m256i {
+    unsafe { x86_mm256_permutevar8x32_epi32(a.as_i32x8(), idx.as_i32x8()).as_m256i() }
+}
+
 // vpermps
 // __m256 _mm256_permutevar8x32_ps (__m256 a, __m256i idx)
+#[inline]
+pub fn mm256_permutevar8x32_ps(a: m256, idx: m256i) -> m256 {
+    unsafe { x86_mm256_permutevar8x32_ps(a, idx.as_i32x8()) }
+}
 
 // vpsadbw
 // __m256i _mm256_sad_epu8 (__m256i a, __m256i b)
@@ -1321,7 +1344,9 @@ mod tests {
         mm_set_epi64x(-2, -1)
     }
 
+    fn seqps() -> m256 { mm256_setr_ps(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0) }
     fn seqps_128() -> m128 { mm_setr_ps(1.0, 2.0, 3.0, 4.0) }
+    fn seqpd() -> m256d { mm256_setr_pd(1.0, 2.0, 3.0, 4.0) }
     fn seqpd_128() -> m128d { mm_setr_pd(1.0, 2.0) }
 
     #[test]
@@ -1721,6 +1746,17 @@ mod tests {
                    [0, 0, 0, 0]);
         assert_eq!(mm256_permute2x128_si256(seq64(), mseq64(), (3 << 0) | (1 << 4)).as_i64x4().as_array(),
                    [-3, -4, 3, 4]);
+
+        assert_eq!(mm256_permute4x64_epi64(seq64(), (1 << 0) | (0 << 2) | (3 << 4) | (2 << 6)).as_i64x4().as_array(),
+                   [2, 1, 4, 3]);
+        assert_eq!(mm256_permute4x64_pd(seqpd(), (1 << 0) | (0 << 2) | (3 << 4) | (2 << 6)).as_f64x4().as_array(),
+                   [2.0, 1.0, 4.0, 3.0]);
+
+        let idx = mm256_setr_epi32(3, 4, 5, 6, 1, 2, 3, 0);
+        assert_eq!(mm256_permutevar8x32_epi32(seq32(), idx).as_i32x8().as_array(),
+                   [4, 5, 6, 7, 2, 3, 4, 1]);
+        assert_eq!(mm256_permutevar8x32_ps(seqps(), idx).as_f32x8().as_array(),
+                   [4.0, 5.0, 6.0, 7.0, 2.0, 3.0, 4.0, 1.0]);
     }
 
     #[test]
