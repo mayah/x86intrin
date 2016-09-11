@@ -57,6 +57,10 @@ extern "platform-intrinsic" {
     fn x86_mm256_packs_epi32(x: i32x8, y: i32x8) -> i16x16;
     fn x86_mm256_packus_epi32(x: i32x8, y: i32x8) -> u16x16;
 
+    // TODO(mayah): rust exposes mm256_sad_epu8 as (u8x32, u8x32) -> u8x32.
+    // However, the return type should be u64x4 (or i64x4).
+    // fn x86_mm256_sad_epu8(x: u8x32, y: u8x32) -> u8x32;
+
     fn x86_mm256_avg_epu8(x: u8x32, y: u8x32) -> u8x32;
     fn x86_mm256_avg_epu16(x: u16x16, y: u16x16) -> u16x16;
 }
@@ -74,6 +78,9 @@ extern {
     fn avx2_psll_dq(a: i64x4, b: i32) -> i64x4;
     #[link_name = "llvm.x86.avx2.psrl.dq"]
     fn avx2_psrl_dq(a: i64x4, b: i32) -> i64x4;
+
+    #[link_name = "llvm.x86.avx2.psad.bw"]
+    fn avx2_psad_bw(a: u8x32, b: u8x32) -> u64x4;
 }
 
 // vpabsw
@@ -812,8 +819,14 @@ pub fn mm256_packus_epi32(a: m256i, b: m256i) -> m256i {
 // __m256i _mm256_permutevar8x32_epi32 (__m256i a, __m256i idx)
 // vpermps
 // __m256 _mm256_permutevar8x32_ps (__m256 a, __m256i idx)
+
 // vpsadbw
 // __m256i _mm256_sad_epu8 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_sad_epu8(a: m256i, b: m256i) -> m256i {
+    unsafe { avx2_psad_bw(a.as_u8x32(), b.as_u8x32()).as_m256i() }
+}
+
 // vpshufd
 // __m256i _mm256_shuffle_epi32 (__m256i a, const int imm8)
 // vpshufb
@@ -1488,6 +1501,16 @@ mod tests {
                    [1, -1, 0x7FFF, -0x8000, 1, -1, 0x7FFF, -0x8000, 1, -1, 0x7FFF, -0x8000, 1, -1, 0x7FFF, -0x8000]);
         assert_eq!(mm256_packus_epi32(b, b).as_u16x16().as_array(),
                    [1, 0, 0xFFFF, 0, 1, 0, 0xFFFF, 0, 1, 0, 0xFFFF, 0, 1, 0, 0xFFFF, 0]);
+    }
+
+    #[test]
+    fn test_sad() {
+        let x8 = mm256_setr_epi8(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+                                 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
+        let y8 = mm256_setr_epi8(5, 5, 5, 5, 5, 5, 5, 5, 5,  5,  5,  5,  5,  5,  5,  5,
+                                 5, 5, 5, 5, 5, 5, 5, 5, 5,  5,  5,  5,  5,  5,  5,  5);
+
+        assert_eq!(mm256_sad_epu8(x8, y8).as_i64x4().as_array(), [16, 60, 16, 60]);
     }
 
     #[test]
