@@ -25,6 +25,9 @@ extern "platform-intrinsic" {
     fn x86_mm256_hsub_epi32(x: i32x8, y: i32x8) -> i32x8;
     fn x86_mm256_hsubs_epi16(x: i16x16, y: i16x16) -> i16x16;
 
+    fn x86_mm256_avg_epu8(x: u8x32, y: u8x32) -> u8x32;
+    fn x86_mm256_avg_epu16(x: u16x16, y: u16x16) -> u16x16;
+
     fn x86_mm256_max_epi16(x: i16x16, y: i16x16) -> i16x16;
     fn x86_mm256_max_epi32(x: i32x8, y: i32x8) -> i32x8;
     fn x86_mm256_max_epi8(x: i8x32, y: i8x32) -> i8x32;
@@ -61,8 +64,9 @@ extern "platform-intrinsic" {
     // However, the return type should be u64x4 (or i64x4).
     // fn x86_mm256_sad_epu8(x: u8x32, y: u8x32) -> u8x32;
 
-    fn x86_mm256_avg_epu8(x: u8x32, y: u8x32) -> u8x32;
-    fn x86_mm256_avg_epu16(x: u16x16, y: u16x16) -> u16x16;
+    fn x86_mm256_sign_epi8(x: i8x32, y: i8x32) -> i8x32;
+    fn x86_mm256_sign_epi16(x: i16x16, y: i16x16) -> i16x16;
+    fn x86_mm256_sign_epi32(x: i32x8, y: i32x8) -> i32x8;
 }
 
 extern {
@@ -835,12 +839,28 @@ pub fn mm256_sad_epu8(a: m256i, b: m256i) -> m256i {
 // __m256i _mm256_shufflehi_epi16 (__m256i a, const int imm8)
 // vpshuflw
 // __m256i _mm256_shufflelo_epi16 (__m256i a, const int imm8)
+
 // vpsignw
 // __m256i _mm256_sign_epi16 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_sign_epi16(a: m256i, b: m256i) -> m256i {
+    unsafe { x86_mm256_sign_epi16(a.as_i16x16(), b.as_i16x16()).as_m256i() }
+}
+
 // vpsignd
 // __m256i _mm256_sign_epi32 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_sign_epi32(a: m256i, b: m256i) -> m256i {
+    unsafe { x86_mm256_sign_epi32(a.as_i32x8(), b.as_i32x8()).as_m256i() }
+}
+
 // vpsignb
 // __m256i _mm256_sign_epi8 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_sign_epi8(a: m256i, b: m256i) -> m256i {
+    unsafe { x86_mm256_sign_epi8(a.as_i8x32(), b.as_i8x32()).as_m256i() }
+}
+
 // vpsllw
 // __m256i _mm256_sll_epi16 (__m256i a, __m128i count)
 // vpslld
@@ -1511,6 +1531,22 @@ mod tests {
                                  5, 5, 5, 5, 5, 5, 5, 5, 5,  5,  5,  5,  5,  5,  5,  5);
 
         assert_eq!(mm256_sad_epu8(x8, y8).as_i64x4().as_array(), [16, 60, 16, 60]);
+    }
+
+    #[test]
+    fn test_sign() {
+        let idx8 = mm256_setr_epi8(0, 1, 2, 3, -1, -2, -3, -4, 0, 1, 2, 3, -1, -2, -3, -4,
+                                   0, 1, 2, 3, -1, -2, -3, -4, 0, 1, 2, 3, -1, -2, -3, -4);
+        let idx16 = mm256_setr_epi16(0, 1, -1, 0, 1, -1, 0, 1, 0, 1, -1, 0, 1, -1, 0, 1);
+        let idx32 = mm256_setr_epi32(0, 1, -1, 0, 0, 1, -1, 0);
+
+        assert_eq!(mm256_sign_epi8(seq8(), idx8).as_i8x32().as_array(),
+                   [0, 2, 3, 4, -5, -6, -7, -8, 0, 10, 11, 12, -13, -14, -15, -16,
+                    0, 18, 19, 20, -21, -22, -23, -24, 0, 26, 27, 28, -29, -30, -31, -32]);
+        assert_eq!(mm256_sign_epi16(seq16(), idx16).as_i16x16().as_array(),
+                   [0, 2, -3, 0, 5, -6, 0, 8, 0, 10, -11, 0, 13, -14, 0, 16]);
+        assert_eq!(mm256_sign_epi32(seq32(), idx32).as_i32x8().as_array(),
+                   [0, 2, -3, 0, 0, 6, -7, 0]);
     }
 
     #[test]
