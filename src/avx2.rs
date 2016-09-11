@@ -21,6 +21,19 @@ extern "platform-intrinsic" {
     fn x86_mm256_hsub_epi32(x: i32x8, y: i32x8) -> i32x8;
     fn x86_mm256_hsubs_epi16(x: i16x16, y: i16x16) -> i16x16;
 
+    fn x86_mm256_max_epi16(x: i16x16, y: i16x16) -> i16x16;
+    fn x86_mm256_max_epi32(x: i32x8, y: i32x8) -> i32x8;
+    fn x86_mm256_max_epi8(x: i8x32, y: i8x32) -> i8x32;
+    fn x86_mm256_max_epu16(x: u16x16, y: u16x16) -> u16x16;
+    fn x86_mm256_max_epu32(x: u32x8, y: u32x8) -> u32x8;
+    fn x86_mm256_max_epu8(x: u8x32, y: u8x32) -> u8x32;
+    fn x86_mm256_min_epi16(x: i16x16, y: i16x16) -> i16x16;
+    fn x86_mm256_min_epi32(x: i32x8, y: i32x8) -> i32x8;
+    fn x86_mm256_min_epi8(x: i8x32, y: i8x32) -> i8x32;
+    fn x86_mm256_min_epu16(x: u16x16, y: u16x16) -> u16x16;
+    fn x86_mm256_min_epu32(x: u32x8, y: u32x8) -> u32x8;
+    fn x86_mm256_min_epu8(x: u8x32, y: u8x32) -> u8x32;
+
     fn x86_mm256_avg_epu8(x: u8x32, y: u8x32) -> u8x32;
     fn x86_mm256_avg_epu16(x: u16x16, y: u16x16) -> u16x16;
 }
@@ -572,30 +585,91 @@ pub fn mm256_maddubs_epi16(a: m256i, b: m256i) -> m256i {
 // void _mm_maskstore_epi64 (__int64* mem_addr, __m128i mask, __m128i a)
 // vpmaskmovq
 // void _mm256_maskstore_epi64 (__int64* mem_addr, __m256i mask, __m256i a)
+
 // vpmaxsw
 // __m256i _mm256_max_epi16 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_max_epi16(a: m256i, b: m256i) -> m256i {
+    unsafe { x86_mm256_max_epi16(a.as_i16x16(), b.as_i16x16()).as_m256i() }
+}
+
 // vpmaxsd
 // __m256i _mm256_max_epi32 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_max_epi32(a: m256i, b: m256i) -> m256i {
+    unsafe { x86_mm256_max_epi32(a.as_i32x8(), b.as_i32x8()).as_m256i() }
+}
+
 // vpmaxsb
 // __m256i _mm256_max_epi8 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_max_epi8(a: m256i, b: m256i) -> m256i {
+    unsafe { x86_mm256_max_epi8(a.as_i8x32(), b.as_i8x32()).as_m256i() }
+}
+
 // vpmaxuw
 // __m256i _mm256_max_epu16 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_max_epu16(a: m256i, b: m256i) -> m256i {
+    unsafe { x86_mm256_max_epu16(a.as_u16x16(), b.as_u16x16()).as_m256i() }
+}
+
 // vpmaxud
 // __m256i _mm256_max_epu32 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_max_epu32(a: m256i, b: m256i) -> m256i {
+    unsafe { x86_mm256_max_epu32(a.as_u32x8(), b.as_u32x8()).as_m256i() }
+}
+
 // vpmaxub
 // __m256i _mm256_max_epu8 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_max_epu8(a: m256i, b: m256i) -> m256i {
+    unsafe { x86_mm256_max_epu8(a.as_u8x32(), b.as_u8x32()).as_m256i() }
+}
+
 // vpminsw
 // __m256i _mm256_min_epi16 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_min_epi16(a: m256i, b: m256i) -> m256i {
+    unsafe { x86_mm256_min_epi16(a.as_i16x16(), b.as_i16x16()).as_m256i() }
+}
+
 // vpminsd
 // __m256i _mm256_min_epi32 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_min_epi32(a: m256i, b: m256i) -> m256i {
+    unsafe { x86_mm256_min_epi32(a.as_i32x8(), b.as_i32x8()).as_m256i() }
+}
+
 // vpminsb
 // __m256i _mm256_min_epi8 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_min_epi8(a: m256i, b: m256i) -> m256i {
+    unsafe { x86_mm256_min_epi8(a.as_i8x32(), b.as_i8x32()).as_m256i() }
+}
+
 // vpminuw
 // __m256i _mm256_min_epu16 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_min_epu16(a: m256i, b: m256i) -> m256i {
+    unsafe { x86_mm256_min_epu16(a.as_u16x16(), b.as_u16x16()).as_m256i() }
+}
+
 // vpminud
 // __m256i _mm256_min_epu32 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_min_epu32(a: m256i, b: m256i) -> m256i {
+    unsafe { x86_mm256_min_epu32(a.as_u32x8(), b.as_u32x8()).as_m256i() }
+}
+
 // vpminub
 // __m256i _mm256_min_epu8 (__m256i a, __m256i b)
+#[inline]
+pub fn mm256_min_epu8(a: m256i, b: m256i) -> m256i {
+    unsafe { x86_mm256_min_epu8(a.as_u8x32(), b.as_u8x32()).as_m256i() }
+}
+
 // vpmovmskb
 // int _mm256_movemask_epi8 (__m256i a)
 // vmpsadbw
@@ -1152,6 +1226,26 @@ mod tests {
                     9 * 9 + 10 * 10, 11 * 11 + 12 * 12, 13 * 13 + 14 * 14, 15 * 15 + 16 * 16,
                     17 * 17 + 18 * 18, 19 * 19 + 20 * 20, 21 * 21 + 22 * 22, 23 * 23 + 24 * 24,
                     25 * 25 + 26 * 26, 27 * 27 + 28 * 28, 29 * 29 + 30 * 30, 31 * 31 + 32 * 32]);
+    }
+
+    #[test]
+    fn test_minmax() {
+        assert_eq!(mm256_max_epi8(seq8(), mseq8()).as_i8x32().as_array(), seq8().as_i8x32().as_array());
+        assert_eq!(mm256_max_epi16(seq16(), mseq16()).as_i16x16().as_array(), seq16().as_i16x16().as_array());
+        assert_eq!(mm256_max_epi32(seq32(), mseq32()).as_i32x8().as_array(), seq32().as_i32x8().as_array());
+
+        assert_eq!(mm256_max_epu8(seq8(), mseq8()).as_i8x32().as_array(), mseq8().as_i8x32().as_array());
+        assert_eq!(mm256_max_epu16(seq16(), mseq16()).as_i16x16().as_array(), mseq16().as_i16x16().as_array());
+        assert_eq!(mm256_max_epu32(seq32(), mseq32()).as_i32x8().as_array(), mseq32().as_i32x8().as_array());
+
+        assert_eq!(mm256_min_epi8(seq8(), mseq8()).as_i8x32().as_array(), mseq8().as_i8x32().as_array());
+        assert_eq!(mm256_min_epi16(seq16(), mseq16()).as_i16x16().as_array(), mseq16().as_i16x16().as_array());
+        assert_eq!(mm256_min_epi32(seq32(), mseq32()).as_i32x8().as_array(), mseq32().as_i32x8().as_array());
+
+        assert_eq!(mm256_min_epu8(seq8(), mseq8()).as_i8x32().as_array(), seq8().as_i8x32().as_array());
+        assert_eq!(mm256_min_epu16(seq16(), mseq16()).as_i16x16().as_array(), seq16().as_i16x16().as_array());
+        assert_eq!(mm256_min_epu32(seq32(), mseq32()).as_i32x8().as_array(), seq32().as_i32x8().as_array());
+
     }
 
     #[test]
