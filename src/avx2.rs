@@ -833,6 +833,64 @@ pub fn mm256_sad_epu8(a: m256i, b: m256i) -> m256i {
 
 // vpshufd
 // __m256i _mm256_shuffle_epi32 (__m256i a, const int imm8)
+#[inline]
+pub fn mm256_shuffle_epi32(a: m256i, imm8: i32) -> m256i {
+    macro_rules! shuffle4 {
+        ($v0: expr, $v4: expr, $v1: expr, $v5: expr, $v2: expr, $v6: expr, $v3: expr, $v7: expr) => {
+            unsafe {
+                let x: i32x8 = simd_shuffle8(a.as_i32x8(), a.as_i32x8(), [$v0, $v1, $v2, $v3, $v4, $v5, $v6, $v7]);
+                x.as_m256i()
+            }
+        }
+    }
+    macro_rules! shuffle3 {
+        ($v0: expr, $v4: expr, $v1: expr, $v5: expr, $v2: expr, $v6: expr) => {
+            match (imm8 >> 6) & 3 {
+                0 => shuffle4!($v0, $v4, $v1, $v5, $v2, $v6, 0, 4),
+                1 => shuffle4!($v0, $v4, $v1, $v5, $v2, $v6, 1, 5),
+                2 => shuffle4!($v0, $v4, $v1, $v5, $v2, $v6, 2, 6),
+                3 => shuffle4!($v0, $v4, $v1, $v5, $v2, $v6, 3, 7),
+                _ => unreachable!()
+            }
+        }
+    }
+    macro_rules! shuffle2 {
+        ($v0: expr, $v4: expr, $v1:expr, $v5: expr) => {
+            match (imm8 >> 4) & 3 {
+                0 => shuffle3!($v0, $v4, $v1, $v5, 0, 4),
+                1 => shuffle3!($v0, $v4, $v1, $v5, 1, 5),
+                2 => shuffle3!($v0, $v4, $v1, $v5, 2, 6),
+                3 => shuffle3!($v0, $v4, $v1, $v5, 3, 7),
+                _ => unreachable!()
+            }
+        }
+    }
+    macro_rules! shuffle1 {
+        ($v0: expr, $v4: expr) => {
+            match (imm8 >> 2) & 0x3 {
+                0 => shuffle2!($v0, $v4, 0, 4),
+                1 => shuffle2!($v0, $v4, 1, 5),
+                2 => shuffle2!($v0, $v4, 2, 6),
+                3 => shuffle2!($v0, $v4, 3, 7),
+                _ => unreachable!()
+            }
+        }
+    }
+    macro_rules! shuffle0 {
+        () => {
+            match (imm8 >> 0) & 0x3 {
+                0 => shuffle1!(0, 4),
+                1 => shuffle1!(1, 5),
+                2 => shuffle1!(2, 6),
+                3 => shuffle1!(3, 7),
+                _ => unreachable!()
+            }
+        }
+    }
+
+    shuffle0!()
+}
+
 // vpshufb
 // __m256i _mm256_shuffle_epi8 (__m256i a, __m256i b)
 // vpshufhw
@@ -1547,6 +1605,13 @@ mod tests {
                    [0, 2, -3, 0, 5, -6, 0, 8, 0, 10, -11, 0, 13, -14, 0, 16]);
         assert_eq!(mm256_sign_epi32(seq32(), idx32).as_i32x8().as_array(),
                    [0, 2, -3, 0, 0, 6, -7, 0]);
+    }
+
+    #[test]
+    fn test_shuffle() {
+        let s32 = mm256_shuffle_epi32(seq32(), (2 << 0) | (0 << 2) | (3 << 4) | (1 << 6));
+        assert_eq!(s32.as_i32x8().as_array(),
+                   [3, 1, 4, 2, 7, 5, 8, 6]);
     }
 
     #[test]
