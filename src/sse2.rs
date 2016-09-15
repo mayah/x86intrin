@@ -1237,7 +1237,7 @@ pub fn mm_set1_epi32(a: i32) -> m128i {
 // ...
 // __m128i _mm_set1_epi64x (__int64 a)
 #[inline]
-pub fn mm_set1_epi64(a: i64) -> m128i {
+pub fn mm_set1_epi64x(a: i64) -> m128i {
     i64x2(a, a).as_m128i()
 }
 
@@ -2581,7 +2581,7 @@ mod tests {
 
         assert_eq!(mm_set1_epi16(1).as_i16x8().as_array(), [1, 1, 1, 1, 1, 1, 1, 1]);
         assert_eq!(mm_set1_epi32(1).as_i32x4().as_array(), [1, 1, 1, 1]);
-        assert_eq!(mm_set1_epi64(1).as_i64x2().as_array(), [1, 1]);
+        assert_eq!(mm_set1_epi64x(1).as_i64x2().as_array(), [1, 1]);
         assert_eq!(mm_set1_epi8(1).as_i8x16().as_array(),
                    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]);
     }
