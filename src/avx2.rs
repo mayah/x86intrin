@@ -82,6 +82,24 @@ extern "platform-intrinsic" {
     fn x86_mm256_sign_epi32(x: i32x8, y: i32x8) -> i32x8;
 
     fn x86_mm256_shuffle_epi8(x: i8x32, y: i8x32) -> i8x32;
+
+    // TODO(mayah): Some of these cause llvm assertion failure.
+    // fn x86_mm_mask_i32gather_epi32(src: i32x4, base_addr: *const i32, vindex: i32x4, mask: i32x4, scale: i32) -> i32x4;
+    // fn x86_mm_mask_i32gather_epi64(src: i64x2, base_addr: *const i64, vindex: i32x4, mask: i64x2, scale: i32) -> i64x2;
+    // fn x86_mm_mask_i32gather_ps(src: m128, base_addr: *const f32, vindex: i32x4, mask: i32x4, scale: i32) -> m128;
+    // fn x86_mm_mask_i32gather_pd(src: m128d, base_addr: *const f64, vindex: i32x4, mask: i64x2, scale: i32) -> m128d;
+    // fn x86_mm256_mask_i32gather_epi32(src: i32x8, base_addr: *const i32, vindex: i32x8, mask: i32x8, scale: i32) -> i32x8;
+    // fn x86_mm256_mask_i32gather_epi64(src: i64x4, base_addr: *const i64, vindex: i32x4, mask: i64x4, scale: i32) -> i64x4;
+    // fn x86_mm256_mask_i32gather_ps(src: m256, base_addr: *const f32, vindex: i32x8, mask: i32x8, scale: i32) -> m256;
+    // fn x86_mm256_mask_i32gather_pd(src: m256d, base_addr: *const f64, vindex: i32x4, mask: i64x4, scale: i32) -> m256d;
+    // fn x86_mm_mask_i64gather_epi32(src: i32x4, base_addr: *const i32, vindex: i64x2, mask: i32x4, scale: i32) -> i32x4;
+    // fn x86_mm_mask_i64gather_epi64(src: i64x2, base_addr: *const i64, vindex: i64x2, mask: i64x2, scale: i32) -> i64x2;
+    // fn x86_mm_mask_i64gather_ps(src: m128, base_addr: *const f32, vindex: i64x2, mask: i32x4, scale: i32) -> m128;
+    // fn x86_mm_mask_i64gather_pd(src: m128d, base_addr: *const f64, vindex: i64x2, mask: i64x2, scale: i32) -> m128d;
+    // fn x86_mm256_mask_i64gather_epi32(src: i32x4, base_addr: *const i32, vindex: i64x4, mask: i32x4, scale: i32) -> i32x4;
+    // fn x86_mm256_mask_i64gather_epi64(src: i64x4, base_addr: *const i64, vindex: i64x4, mask: i64x4, scale: i32) -> i64x4;
+    // fn x86_mm256_mask_i64gather_ps(src: m128, base_addr: *const f32, vindex: i64x4, mask: i32x4, scale: i32) -> m128;
+    // fn x86_mm256_mask_i64gather_pd(src: m256d, base_addr: *const f64, vindex: i64x4, mask: i64x4, scale: i32) -> m256d;
 }
 
 extern {
@@ -155,6 +173,39 @@ extern {
 
     #[link_name = "llvm.x86.avx2.vperm2i128"]
     fn avx2_vperm2i128(a: i64x4, b: i64x4, c: u8) -> i64x4;
+
+    #[link_name = "llvm.x86.avx2.gather.d.pd"]
+    fn avx2_gather_d_pd(a: m128d, b: *const i8, c: i32x4, d: m128d, e: i8) -> m128d;
+    #[link_name = "llvm.x86.avx2.gather.d.pd.256"]
+    fn avx2_gather_d_pd_256(a: m256d, b: *const i8, c: i32x4, d: m256d, e: i8) -> m256d;
+    #[link_name = "llvm.x86.avx2.gather.q.pd"]
+    fn avx2_gather_q_pd(a: m128d, b: *const i8, c: i64x2, d: m128d, e: i8) -> m128d;
+    #[link_name = "llvm.x86.avx2.gather.q.pd.256"]
+    fn avx2_gather_q_pd_256(a: m256d, b: *const i8, c: i64x4, d: m256d, e: i8) -> m256d;
+    #[link_name = "llvm.x86.avx2.gather.d.ps"]
+    fn avx2_gather_d_ps(a: m128, b: *const i8, c: i32x4, d: m128, e: i8) -> m128;
+    #[link_name = "llvm.x86.avx2.gather.d.ps.256"]
+    fn avx2_gather_d_ps_256(a: m256, b: *const i8, c: i32x8, d: m256, e: i8) -> m256;
+    #[link_name = "llvm.x86.avx2.gather.q.ps"]
+    fn avx2_gather_q_ps(a: m128, b: *const i8, c: i64x2, d: m128, e: i8) -> m128;
+    #[link_name = "llvm.x86.avx2.gather.q.ps.256"]
+    fn avx2_gather_q_ps_256(a: m128, b: *const i8, c: i64x4, d: m128, e: i8) -> m128;
+    #[link_name = "llvm.x86.avx2.gather.d.q"]
+    fn avx2_gather_d_q(a: i64x2, b: *const i8, c: i32x4, d: i64x2, e: i8) -> i64x2;
+    #[link_name = "llvm.x86.avx2.gather.d.q.256"]
+    fn avx2_gather_d_q_256(a: i64x4, b: *const i8, c: i32x4, d: i64x4, e: i8) -> i64x4;
+    #[link_name = "llvm.x86.avx2.gather.q.q"]
+    fn avx2_gather_q_q(a: i64x2, b: *const i8, c: i64x2, d: i64x2, e: i8) -> i64x2;
+    #[link_name = "llvm.x86.avx2.gather.q.q.256"]
+    fn avx2_gather_q_q_256(a: i64x4, b: *const i8, c: i64x4, d: i64x4, e: i8) -> i64x4;
+    #[link_name = "llvm.x86.avx2.gather.d.d"]
+    fn avx2_gather_d_d(a: i32x4, b: *const i8, c: i32x4, d: i32x4, e: i8) -> i32x4;
+    #[link_name = "llvm.x86.avx2.gather.d.d.256"]
+    fn avx2_gather_d_d_256(a: i32x8, b: *const i8, c: i32x8, d: i32x8, e: i8) -> i32x8;
+    #[link_name = "llvm.x86.avx2.gather.q.d"]
+    fn avx2_gather_q_d(a: i32x4, b: *const i8, c: i64x2, d: i32x4, e: i8) -> i32x4;
+    #[link_name = "llvm.x86.avx2.gather.q.d.256"]
+    fn avx2_gather_q_d_256(a: i32x4, b: *const i8, c: i64x4, d: i32x4, e: i8) -> i32x4;
 }
 
 // vpabsw
@@ -579,70 +630,261 @@ pub fn mm256_hsubs_epi16(a: m256i, b: m256i) -> m256i {
     unsafe { x86_mm256_hsubs_epi16(a.as_i16x16(), b.as_i16x16()).as_m256i() }
 }
 
+// Since scale must be immediate, and its value must be 1, 2, 4 or 8.
+macro_rules! gather_impl {
+    ($fname: expr, $src: expr, $base_addr: expr, $vindex: expr, $mask: expr, $scale: expr) => {
+        match $scale {
+            1 => $fname($src, $base_addr, $vindex, $mask, 1),
+            2 => $fname($src, $base_addr, $vindex, $mask, 2),
+            4 => $fname($src, $base_addr, $vindex, $mask, 4),
+            8 => $fname($src, $base_addr, $vindex, $mask, 8),
+            _ => {
+                assert!(false, "scale should be 1, 2, 4 or 8");
+                unreachable!()
+            }
+        }
+    }
+}
+
 // vpgatherdd
 // __m128i _mm_i32gather_epi32 (int const* base_addr, __m128i vindex, const int scale)
+#[inline]
+pub unsafe fn mm_i32gather_epi32(base_addr: *const i32, vindex: m128i, scale: i32) -> m128i {
+    mm_mask_i32gather_epi32(mm_setzero_si128(), base_addr, vindex, mm_set1_epi32(-1), scale)
+}
+
 // vpgatherdd
 // __m128i _mm_mask_i32gather_epi32 (__m128i src, int const* base_addr, __m128i vindex, __m128i mask, const int scale)
+#[inline]
+pub unsafe fn mm_mask_i32gather_epi32(src: m128i, base_addr: *const i32, vindex: m128i, mask: m128i, scale: i32) -> m128i {
+    // x86_mm_mask_i32gather_epi32(src.as_i32x4(), base_addr, vindex.as_i32x4(), mask.as_i32x4(), scale).as_m128i()
+    gather_impl!(avx2_gather_d_d, src.as_i32x4(), base_addr as *const i8, vindex.as_i32x4(), mask.as_i32x4(), scale).as_m128i()
+}
+
 // vpgatherdd
 // __m256i _mm256_i32gather_epi32 (int const* base_addr, __m256i vindex, const int scale)
+#[inline]
+pub unsafe fn mm256_i32gather_epi32(base_addr: *const i32, vindex: m256i, scale: i32) -> m256i {
+    mm256_mask_i32gather_epi32(mm256_setzero_si256(), base_addr, vindex, mm256_set1_epi32(-1), scale)
+}
+
 // vpgatherdd
 // __m256i _mm256_mask_i32gather_epi32 (__m256i src, int const* base_addr, __m256i vindex, __m256i mask, const int scale)
+#[inline]
+pub unsafe fn mm256_mask_i32gather_epi32(src: m256i, base_addr: *const i32, vindex: m256i, mask: m256i, scale: i32) -> m256i {
+    // x86_mm256_mask_i32gather_epi32(src.as_i32x8(), base_addr, vindex.as_i32x8(), mask.as_i32x8(), scale).as_m256i()
+    gather_impl!(avx2_gather_d_d_256, src.as_i32x8(), base_addr as *const i8, vindex.as_i32x8(), mask.as_i32x8(), scale).as_m256i()
+}
+
 // vpgatherdq
 // __m128i _mm_i32gather_epi64 (__int64 const* base_addr, __m128i vindex, const int scale)
+#[inline]
+pub unsafe fn mm_i32gather_epi64(base_addr: *const i64, vindex: m128i, scale: i32) -> m128i {
+    mm_mask_i32gather_epi64(mm_setzero_si128(), base_addr, vindex, mm_set1_epi32(-1), scale)
+}
+
 // vpgatherdq
 // __m128i _mm_mask_i32gather_epi64 (__m128i src, __int64 const* base_addr, __m128i vindex, __m128i mask, const int scale)
+#[inline]
+pub unsafe fn mm_mask_i32gather_epi64(src: m128i, base_addr: *const i64, vindex: m128i, mask: m128i, scale: i32) -> m128i {
+    // x86_mm_mask_i32gather_epi64(src.as_i64x2(), base_addr, vindex.as_i32x4(), mask.as_i64x2(), scale).as_m128i()
+    gather_impl!(avx2_gather_d_q, src.as_i64x2(), base_addr as *const i8, vindex.as_i32x4(), mask.as_i64x2(), scale).as_m128i()
+}
+
 // vpgatherdq
 // __m256i _mm256_i32gather_epi64 (__int64 const* base_addr, __m128i vindex, const int scale)
+#[inline]
+pub unsafe fn mm256_i32gather_epi64(base_addr: *const i64, vindex: m128i, scale: i32) -> m256i {
+    mm256_mask_i32gather_epi64(mm256_setzero_si256(), base_addr, vindex, mm256_set1_epi64x(-1), scale)
+}
+
 // vpgatherdq
 // __m256i _mm256_mask_i32gather_epi64 (__m256i src, __int64 const* base_addr, __m128i vindex, __m256i mask, const int scale)
+#[inline]
+pub unsafe fn mm256_mask_i32gather_epi64(src: m256i, base_addr: *const i64, vindex: m128i, mask: m256i, scale: i32) -> m256i {
+    // x86_mm256_mask_i32gather_epi64(src.as_i64x4(), base_addr, vindex.as_i32x4(), mask.as_i64x4(), scale).as_m256i()
+    gather_impl!(avx2_gather_d_q_256, src.as_i64x4(), base_addr as *const i8, vindex.as_i32x4(), mask.as_i64x4(), scale).as_m256i()
+}
+
 // vgatherdpd
 // __m128d _mm_i32gather_pd (double const* base_addr, __m128i vindex, const int scale)
+#[inline]
+pub unsafe fn mm_i32gather_pd(base_addr: *const f64, vindex: m128i, scale: i32) -> m128d {
+    mm_mask_i32gather_pd(mm_setzero_pd(), base_addr, vindex, mm_set1_pd(-1.0), scale)
+}
+
 // vgatherdpd
 // __m128d _mm_mask_i32gather_pd (__m128d src, double const* base_addr, __m128i vindex, __m128d mask, const int scale)
+#[inline]
+pub unsafe fn mm_mask_i32gather_pd(src: m128d, base_addr: *const f64, vindex: m128i, mask: m128d, scale: i32) -> m128d {
+    // x86_mm_mask_i32gather_pd(src, base_addr, vindex.as_i32x4(), mask.as_m128i().as_i64x2(), scale)
+    gather_impl!(avx2_gather_d_pd, src, base_addr as *const i8, vindex.as_i32x4(), mask, scale)
+}
+
 // vgatherdpd
 // __m256d _mm256_i32gather_pd (double const* base_addr, __m128i vindex, const int scale)
+#[inline]
+pub unsafe fn mm256_i32gather_pd(base_addr: *const f64, vindex: m128i, scale: i32) -> m256d {
+    mm256_mask_i32gather_pd(mm256_setzero_pd(), base_addr, vindex, mm256_set1_pd(-1.0), scale)
+}
+
 // vgatherdpd
 // __m256d _mm256_mask_i32gather_pd (__m256d src, double const* base_addr, __m128i vindex, __m256d mask, const int scale)
+#[inline]
+pub unsafe fn mm256_mask_i32gather_pd(src: m256d, base_addr: *const f64, vindex: m128i, mask: m256d, scale: i32) -> m256d {
+    // x86_mm256_mask_i32gather_pd(src, base_addr, vindex.as_i32x4(), mask.as_m256i().as_i64x4(), scale)
+    gather_impl!(avx2_gather_d_pd_256, src, base_addr as *const i8, vindex.as_i32x4(), mask, scale)
+}
+
 // vgatherdps
 // __m128 _mm_i32gather_ps (float const* base_addr, __m128i vindex, const int scale)
+#[inline]
+pub unsafe fn mm_i32gather_ps(base_addr: *const f32, vindex: m128i, scale: i32) -> m128 {
+    mm_mask_i32gather_ps(mm_setzero_ps(), base_addr, vindex, mm_set1_ps(-1.0), scale)
+}
+
 // vgatherdps
 // __m128 _mm_mask_i32gather_ps (__m128 src, float const* base_addr, __m128i vindex, __m128 mask, const int scale)
+#[inline]
+pub unsafe fn mm_mask_i32gather_ps(src: m128, base_addr: *const f32, vindex: m128i, mask: m128, scale: i32) -> m128 {
+    // x86_mm_mask_i32gather_ps(src, base_addr, vindex.as_i32x4(), mask.as_m128i().as_i32x4(), scale)
+    gather_impl!(avx2_gather_d_ps, src, base_addr as *const i8, vindex.as_i32x4(), mask, scale)
+}
+
 // vgatherdps
 // __m256 _mm256_i32gather_ps (float const* base_addr, __m256i vindex, const int scale)
+#[inline]
+pub unsafe fn mm256_i32gather_ps(base_addr: *const f32, vindex: m256i, scale: i32) -> m256 {
+    mm256_mask_i32gather_ps(mm256_setzero_ps(), base_addr, vindex, mm256_set1_ps(-1.0), scale)
+}
+
 // vgatherdps
 // __m256 _mm256_mask_i32gather_ps (__m256 src, float const* base_addr, __m256i vindex, __m256 mask, const int scale)
+#[inline]
+pub unsafe fn mm256_mask_i32gather_ps(src: m256, base_addr: *const f32, vindex: m256i, mask: m256, scale: i32) -> m256 {
+    // x86_mm256_mask_i32gather_ps(src, base_addr, vindex.as_i32x8(), mask.as_m256i().as_i32x8(), scale)
+    gather_impl!(avx2_gather_d_ps_256, src, base_addr as *const i8, vindex.as_i32x8(), mask, scale)
+}
+
 // vpgatherqd
 // __m128i _mm_i64gather_epi32 (int const* base_addr, __m128i vindex, const int scale)
+#[inline]
+pub unsafe fn mm_i64gather_epi32(base_addr: *const i32, vindex: m128i, scale: i32) -> m128i {
+    mm_mask_i64gather_epi32(mm_setzero_si128(), base_addr, vindex, mm_set1_epi32(-1), scale)
+}
+
 // vpgatherqd
 // __m128i _mm_mask_i64gather_epi32 (__m128i src, int const* base_addr, __m128i vindex, __m128i mask, const int scale)
+#[inline]
+pub unsafe fn mm_mask_i64gather_epi32(src: m128i, base_addr: *const i32, vindex: m128i, mask: m128i, scale: i32) -> m128i {
+    // x86_mm_mask_i64gather_epi32(src.as_i32x4(), base_addr, vindex.as_i64x2(), mask.as_i32x4(), scale).as_m128i()
+    gather_impl!(avx2_gather_q_d, src.as_i32x4(), base_addr as *const i8, vindex.as_i64x2(), mask.as_i32x4(), scale).as_m128i()
+}
+
 // vpgatherqd
 // __m128i _mm256_i64gather_epi32 (int const* base_addr, __m256i vindex, const int scale)
+#[inline]
+pub unsafe fn mm256_i64gather_epi32(base_addr: *const i32, vindex: m256i, scale: i32) -> m128i {
+    mm256_mask_i64gather_epi32(mm_setzero_si128(), base_addr, vindex, mm_set1_epi32(-1), scale)
+}
+
 // vpgatherqd
 // __m128i _mm256_mask_i64gather_epi32 (__m128i src, int const* base_addr, __m256i vindex, __m128i mask, const int scale)
+#[inline]
+pub unsafe fn mm256_mask_i64gather_epi32(src: m128i, base_addr: *const i32, vindex: m256i, mask: m128i, scale: i32) -> m128i {
+    // x86_mm256_mask_i64gather_epi32(src.as_i32x4(), base_addr, vindex.as_i64x4(), mask.as_i32x4(), scale).as_m128i()
+    gather_impl!(avx2_gather_q_d_256, src.as_i32x4(), base_addr as *const i8, vindex.as_i64x4(), mask.as_i32x4(), scale).as_m128i()
+}
+
 // vpgatherqq
 // __m128i _mm_i64gather_epi64 (__int64 const* base_addr, __m128i vindex, const int scale)
+#[inline]
+pub unsafe fn mm_i64gather_epi64(base_addr: *const i64, vindex: m128i, scale: i32) -> m128i {
+    mm_mask_i64gather_epi64(mm_setzero_si128(), base_addr, vindex, mm_set1_epi64x(-1), scale)
+}
+
 // vpgatherqq
 // __m128i _mm_mask_i64gather_epi64 (__m128i src, __int64 const* base_addr, __m128i vindex, __m128i mask, const int scale)
+#[inline]
+pub unsafe fn mm_mask_i64gather_epi64(src: m128i, base_addr: *const i64, vindex: m128i, mask: m128i, scale: i32) -> m128i {
+    // x86_mm_mask_i64gather_epi64(src.as_i64x2(), base_addr, vindex.as_i64x2(), mask.as_i64x2(), scale).as_m128i()
+    gather_impl!(avx2_gather_q_q, src.as_i64x2(), base_addr as *const i8, vindex.as_i64x2(), mask.as_i64x2(), scale).as_m128i()
+}
+
 // vpgatherqq
 // __m256i _mm256_i64gather_epi64 (__int64 const* base_addr, __m256i vindex, const int scale)
+#[inline]
+pub unsafe fn mm256_i64gather_epi64(base_addr: *const i64, vindex: m256i, scale: i32) -> m256i {
+    mm256_mask_i64gather_epi64(mm256_setzero_si256(), base_addr, vindex, mm256_set1_epi64x(-1), scale)
+}
+
 // vpgatherqq
 // __m256i _mm256_mask_i64gather_epi64 (__m256i src, __int64 const* base_addr, __m256i vindex, __m256i mask, const int scale)
+#[inline]
+pub unsafe fn mm256_mask_i64gather_epi64(src: m256i, base_addr: *const i64, vindex: m256i, mask: m256i, scale: i32) -> m256i {
+    // x86_mm256_mask_i64gather_epi64(src.as_i64x4(), base_addr, vindex.as_i64x4(), mask.as_i64x4(), scale).as_m256i()
+    gather_impl!(avx2_gather_q_q_256, src.as_i64x4(), base_addr as *const i8, vindex.as_i64x4(), mask.as_i64x4(), scale).as_m256i()
+}
+
 // vgatherqpd
 // __m128d _mm_i64gather_pd (double const* base_addr, __m128i vindex, const int scale)
+#[inline]
+pub unsafe fn mm_i64gather_pd(base_addr: *const f64, vindex: m128i, scale: i32) -> m128d {
+    mm_mask_i64gather_pd(mm_setzero_pd(), base_addr, vindex, mm_set1_pd(-1.0), scale)
+}
+
 // vgatherqpd
 // __m128d _mm_mask_i64gather_pd (__m128d src, double const* base_addr, __m128i vindex, __m128d mask, const int scale)
+#[inline]
+pub unsafe fn mm_mask_i64gather_pd(src: m128d, base_addr: *const f64, vindex: m128i, mask: m128d, scale: i32) -> m128d {
+    // x86_mm_mask_i64gather_pd(src, base_addr, vindex.as_i64x2(), mask.as_m128i().as_i64x2(), scale)
+    gather_impl!(avx2_gather_q_pd, src, base_addr as *const i8, vindex.as_i64x2(), mask, scale)
+}
+
 // vgatherqpd
 // __m256d _mm256_i64gather_pd (double const* base_addr, __m256i vindex, const int scale)
+#[inline]
+pub unsafe fn mm256_i64gather_pd(base_addr: *const f64, vindex: m256i, scale: i32) -> m256d {
+    mm256_mask_i64gather_pd(mm256_setzero_pd(), base_addr, vindex, mm256_set1_pd(-1.0), scale)
+}
+
 // vgatherqpd
 // __m256d _mm256_mask_i64gather_pd (__m256d src, double const* base_addr, __m256i vindex, __m256d mask, const int scale)
+#[inline]
+pub unsafe fn mm256_mask_i64gather_pd(src: m256d, base_addr: *const f64, vindex: m256i, mask: m256d, scale: i32) -> m256d {
+    // x86_mm256_mask_i64gather_pd(src, base_addr, vindex.as_i64x4(), mask.as_m256i().as_i64x4(), scale)
+    gather_impl!(avx2_gather_q_pd_256, src, base_addr as *const i8, vindex.as_i64x4(), mask, scale)
+}
+
 // vgatherqps
 // __m128 _mm_i64gather_ps (float const* base_addr, __m128i vindex, const int scale)
+#[inline]
+pub unsafe fn mm_i64gather_ps(base_addr: *const f32, vindex: m128i, scale: i32) -> m128 {
+    mm_mask_i64gather_ps(mm_setzero_ps(), base_addr, vindex, mm_set1_ps(-1.0), scale)
+}
+
 // vgatherqps
 // __m128 _mm_mask_i64gather_ps (__m128 src, float const* base_addr, __m128i vindex, __m128 mask, const int scale)
+#[inline]
+pub unsafe fn mm_mask_i64gather_ps(src: m128, base_addr: *const f32, vindex: m128i, mask: m128, scale: i32) -> m128 {
+    // x86_mm_mask_i64gather_ps(src, base_addr, vindex.as_i64x2(), mask.as_m128i().as_i32x4(), scale)
+    gather_impl!(avx2_gather_q_ps, src, base_addr as *const i8, vindex.as_i64x2(), mask, scale)
+}
+
 // vgatherqps
 // __m128 _mm256_i64gather_ps (float const* base_addr, __m256i vindex, const int scale)
+#[inline]
+pub unsafe fn mm256_i64gather_ps(base_addr: *const f32, vindex: m256i, scale: i32) -> m128 {
+    mm256_mask_i64gather_ps(mm_setzero_ps(), base_addr, vindex, mm_set1_ps(-1.0), scale)
+}
+
 // vgatherqps
 // __m128 _mm256_mask_i64gather_ps (__m128 src, float const* base_addr, __m256i vindex, __m128 mask, const int scale)
+#[inline]
+pub unsafe fn mm256_mask_i64gather_ps(src: m128, base_addr: *const f32, vindex: m256i, mask: m128, scale: i32) -> m128 {
+    // x86_mm256_mask_i64gather_ps(src, base_addr, vindex.as_i64x4(), mask.as_m128i().as_i32x4(), scale)
+    gather_impl!(avx2_gather_q_ps_256, src, base_addr as *const i8, vindex.as_i64x4(), mask, scale)
+}
 
 // vinserti128
 // __m256i _mm256_inserti128_si256 (__m256i a, __m128i b, const int imm8)
@@ -2197,4 +2439,129 @@ mod tests {
         assert_eq!(mm256_unpackhi_epi64(seq64(), mseq64()).as_i64x4().as_array(),
                    [2, -2, 4, -4]);
     }
+
+    #[test]
+    fn test_gather_epi32() {
+        let mut a = [0i32; 128];
+        for i in 0..128 {
+            a[i] = i as i32
+        }
+
+        let p = &a as *const [i32; 128] as *const i32;
+
+        unsafe {
+            let index = mm_setr_epi32(6, 10, 4, 8);
+            let x = mm_i32gather_epi32(p, index, 4);
+            assert_eq!(x.as_i32x4().as_array(), [6, 10, 4, 8])
+        };
+        unsafe {
+            let index = mm256_setr_epi32(6, 10, 4, 8, 1, 4, 2, 3);
+            let x = mm256_i32gather_epi32(p, index, 4);
+            assert_eq!(x.as_i32x8().as_array(), [6, 10, 4, 8, 1, 4, 2, 3])
+        };
+        unsafe {
+            let index = mm_setr_epi64x(6, 10);
+            let x = mm_i64gather_epi32(p, index, 4);
+            assert_eq!(x.as_i32x4().as_array(), [6, 10, 0, 0])
+        };
+        unsafe {
+            let index = mm256_setr_epi64x(6, 10, 4, 8);
+            let x = mm256_i64gather_epi32(p, index, 4);
+            assert_eq!(x.as_i32x4().as_array(), [6, 10, 4, 8])
+        }
+    }
+
+    #[test]
+    fn test_gather_epi64() {
+        let mut a = [0i64; 128];
+        for i in 0..128 {
+            a[i] = i as i64
+        }
+
+        let p = &a as *const [i64; 128] as *const i64;
+
+        unsafe {
+            let index = mm_setr_epi32(6, 10, 4, 8);
+            let x = mm_i32gather_epi64(p, index, 8);
+            assert_eq!(x.as_i64x2().as_array(), [6, 10])
+        };
+        unsafe {
+            let index = mm_setr_epi32(6, 10, 4, 8);
+            let x = mm256_i32gather_epi64(p, index, 8);
+            assert_eq!(x.as_i64x4().as_array(), [6, 10, 4, 8])
+        };
+        unsafe {
+            let index = mm_setr_epi64x(6, 10);
+            let x = mm_i64gather_epi64(p, index, 8);
+            assert_eq!(x.as_i64x2().as_array(), [6, 10])
+        };
+        unsafe {
+            let index = mm256_setr_epi64x(6, 10, 4, 8);
+            let x = mm256_i64gather_epi64(p, index, 8);
+            assert_eq!(x.as_i64x4().as_array(), [6, 10, 4, 8])
+        }
+    }
+
+    #[test]
+    fn test_gather_f32() {
+        let mut a = [0.0f32; 128];
+        for i in 0..128 {
+            a[i] = i as f32
+        }
+
+        let p = &a as *const [f32; 128] as *const f32;
+
+        unsafe {
+            let index = mm_setr_epi32(6, 10, 4, 8);
+            let x = mm_i32gather_ps(p, index, 4);
+            assert_eq!(x.as_f32x4().as_array(), [6.0, 10.0, 4.0, 8.0])
+        };
+        unsafe {
+            let index = mm256_setr_epi32(6, 10, 4, 8, 1, 2, 3, 4);
+            let x = mm256_i32gather_ps(p, index, 4);
+            assert_eq!(x.as_f32x8().as_array(), [6.0, 10.0, 4.0, 8.0, 1.0, 2.0, 3.0, 4.0])
+        };
+        unsafe {
+            let index = mm_setr_epi64x(6, 10);
+            let x = mm_i64gather_ps(p, index, 4);
+            assert_eq!(x.as_f32x4().as_array(), [6.0, 10.0, 0.0, 0.0])
+        };
+        unsafe {
+            let index = mm256_setr_epi64x(6, 10, 4, 8);
+            let x = mm256_i64gather_ps(p, index, 4);
+            assert_eq!(x.as_f32x4().as_array(), [6.0, 10.0, 4.0, 8.0])
+        }
+    }
+
+    #[test]
+    fn test_gather_f64() {
+        let mut a = [0.0f64; 128];
+        for i in 0..128 {
+            a[i] = i as f64
+        }
+
+        let p = &a as *const [f64; 128] as *const f64;
+
+        unsafe {
+            let index = mm_setr_epi32(6, 10, 4, 8);
+            let x = mm_i32gather_pd(p, index, 8);
+            assert_eq!(x.as_f64x2().as_array(), [6.0, 10.0])
+        };
+        unsafe {
+            let index = mm_setr_epi32(6, 10, 4, 8);
+            let x = mm256_i32gather_pd(p, index, 8);
+            assert_eq!(x.as_f64x4().as_array(), [6.0, 10.0, 4.0, 8.0])
+        };
+        unsafe {
+            let index = mm_setr_epi64x(6, 10);
+            let x = mm_i64gather_pd(p, index, 8);
+            assert_eq!(x.as_f64x2().as_array(), [6.0, 10.0])
+        };
+        unsafe {
+            let index = mm256_setr_epi64x(6, 10, 4, 8);
+            let x = mm256_i64gather_pd(p, index, 8);
+            assert_eq!(x.as_f64x4().as_array(), [6.0, 10.0, 4.0, 8.0])
+        }
+    }
+
 }

@@ -1270,6 +1270,12 @@ pub fn mm_setr_epi32(e0: i32, e1: i32, e2: i32, e3: i32) -> m128i {
     i32x4(e0, e1, e2, e3).as_m128i()
 }
 
+// NOTE: This is not defined in intel intrin.
+#[inline]
+pub fn mm_setr_epi64x(e0: i64, e1: i64) -> m128i {
+    i64x2(e0, e1).as_m128i()
+}
+
 // ...
 // __m128i _mm_setr_epi8 (char e15, char e14, char e13, char e12, char e11, char e10, char e9, char e8, char e7, char e6, char e5, char e4, char e3, char e2, char e1, char e0)
 #[inline]
