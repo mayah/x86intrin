@@ -37,6 +37,7 @@ extern "platform-intrinsic" {
 #[cfg(any(feature = "doc", target_feature = "avx2"))]
 extern "platform-intrinsic" {
     fn simd_shuffle32<T, U>(x: T, y: T, idx: [u32; 32]) -> U;
+    fn simd_cast<T, U>(x: T) -> U;
 }
 
 #[inline]

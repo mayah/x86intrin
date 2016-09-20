@@ -1,8 +1,10 @@
+use std;
 use super::*;
 use super::{simd_add, simd_sub, simd_mul,
             simd_and, simd_or, simd_xor,
             simd_eq, simd_gt,
-            simd_shuffle2, simd_shuffle4, simd_shuffle8, simd_shuffle16, simd_shuffle32};
+            simd_shuffle2, simd_shuffle4, simd_shuffle8, simd_shuffle16, simd_shuffle32,
+            simd_cast};
 
 extern "platform-intrinsic" {
     fn x86_mm256_abs_epi8(x: i8x32) -> i8x32;
@@ -206,6 +208,48 @@ extern {
     fn avx2_gather_q_d(a: i32x4, b: *const i8, c: i64x2, d: i32x4, e: i8) -> i32x4;
     #[link_name = "llvm.x86.avx2.gather.q.d.256"]
     fn avx2_gather_q_d_256(a: i32x4, b: *const i8, c: i64x4, d: i32x4, e: i8) -> i32x4;
+}
+
+#[allow(non_camel_case_types)]
+#[derive(Debug, Copy, Clone)]
+#[repr(simd)]
+#[repr(C)]
+struct i8x4(i8, i8, i8, i8);
+
+#[allow(non_camel_case_types)]
+#[derive(Debug, Copy, Clone)]
+#[repr(simd)]
+#[repr(C)]
+struct u8x4(u8, u8, u8, u8);
+
+#[allow(non_camel_case_types)]
+#[derive(Debug, Copy, Clone)]
+#[repr(simd)]
+#[repr(C)]
+struct i8x8(i8, i8, i8, i8, i8, i8, i8, i8);
+
+#[allow(non_camel_case_types)]
+#[derive(Debug, Copy, Clone)]
+#[repr(simd)]
+#[repr(C)]
+struct u8x8(u8, u8, u8, u8, u8, u8, u8, u8);
+
+#[allow(non_camel_case_types)]
+#[derive(Debug, Copy, Clone)]
+#[repr(simd)]
+#[repr(C)]
+struct i16x4(i16, i16, i16, i16);
+
+#[allow(non_camel_case_types)]
+#[derive(Debug, Copy, Clone)]
+#[repr(simd)]
+#[repr(C)]
+struct u16x4(u16, u16, u16, u16);
+
+#[inline]
+unsafe fn trunc_cast<T, U>(x: T) -> U {
+    debug_assert!(std::mem::size_of::<T>() >= std::mem::size_of::<U>());
+    std::mem::transmute_copy(&x)
 }
 
 // vpabsw
@@ -549,31 +593,107 @@ pub fn mm256_cmpgt_epi8(a: m256i, b: m256i) -> m256i {
     x.as_m256i()
 }
 
-// TODO(mayah): rust does not have avx2 cvt functions yet.
 // vpmovsxwd
 // __m256i _mm256_cvtepi16_epi32 (__m128i a)
+#[inline]
+pub fn mm256_cvtepi16_epi32(a: m128i) -> m256i {
+    let x: i32x8 = unsafe { simd_cast(a.as_i16x8()) };
+    x.as_m256i()
+}
+
 // vpmovsxwq
 // __m256i _mm256_cvtepi16_epi64 (__m128i a)
+#[inline]
+pub fn mm256_cvtepi16_epi64(a: m128i) -> m256i {
+    let b: i16x4 = unsafe { trunc_cast(a) };
+    let x: i64x4 = unsafe { simd_cast(b) };
+    x.as_m256i()
+}
+
 // vpmovsxdq
 // __m256i _mm256_cvtepi32_epi64 (__m128i a)
+#[inline]
+pub fn mm256_cvtepi32_epi64(a: m128i) -> m256i {
+    let x: i64x4 = unsafe { simd_cast(a.as_i32x4()) };
+    x.as_m256i()
+}
+
 // vpmovsxbw
 // __m256i _mm256_cvtepi8_epi16 (__m128i a)
+#[inline]
+pub fn mm256_cvtepi8_epi16(a: m128i) -> m256i {
+    let x: i16x16 = unsafe { simd_cast(a.as_i8x16()) };
+    x.as_m256i()
+}
+
 // vpmovsxbd
 // __m256i _mm256_cvtepi8_epi32 (__m128i a)
+#[inline]
+pub fn mm256_cvtepi8_epi32(a: m128i) -> m256i {
+    let b: i8x8 = unsafe { trunc_cast(a) };
+    let x: i32x8 = unsafe { simd_cast(b) };
+    x.as_m256i()
+}
+
 // vpmovsxbq
 // __m256i _mm256_cvtepi8_epi64 (__m128i a)
+#[inline]
+pub fn mm256_cvtepi8_epi64(a: m128i) -> m256i {
+    let b: i8x4 = unsafe { trunc_cast(a) };
+    let x: i64x4 = unsafe { simd_cast(b) };
+    x.as_m256i()
+}
+
 // vpmovzxwd
 // __m256i _mm256_cvtepu16_epi32 (__m128i a)
+#[inline]
+pub fn mm256_cvtepu16_epi32(a: m128i) -> m256i {
+    let x: i32x8 = unsafe { simd_cast(a.as_u16x8()) };
+    x.as_m256i()
+}
+
 // vpmovzxwq
 // __m256i _mm256_cvtepu16_epi64 (__m128i a)
+#[inline]
+pub fn mm256_cvtepu16_epi64(a: m128i) -> m256i {
+    let b: u16x4 = unsafe { trunc_cast(a) };
+    let x: i64x4 = unsafe { simd_cast(b) };
+    x.as_m256i()
+}
+
 // vpmovzxdq
 // __m256i _mm256_cvtepu32_epi64 (__m128i a)
+#[inline]
+pub fn mm256_cvtepu32_epi64(a: m128i) -> m256i {
+    let x: i64x4 = unsafe { simd_cast(a.as_u32x4()) };
+    x.as_m256i()
+}
+
 // vpmovzxbw
 // __m256i _mm256_cvtepu8_epi16 (__m128i a)
+#[inline]
+pub fn mm256_cvtepu8_epi16(a: m128i) -> m256i {
+    let x: i16x16 = unsafe { simd_cast(a.as_u8x16()) };
+    x.as_m256i()
+}
+
 // vpmovzxbd
 // __m256i _mm256_cvtepu8_epi32 (__m128i a)
+#[inline]
+pub fn mm256_cvtepu8_epi32(a: m128i) -> m256i {
+    let b: u8x8 = unsafe { trunc_cast(a) };
+    let x: i32x8 = unsafe { simd_cast(b) };
+    x.as_m256i()
+}
+
 // vpmovzxbq
 // __m256i _mm256_cvtepu8_epi64 (__m128i a)
+#[inline]
+pub fn mm256_cvtepu8_epi64(a: m128i) -> m256i {
+    let b: u8x4 = unsafe { trunc_cast(a) };
+    let x: i64x4 = unsafe { simd_cast(b) };
+    x.as_m256i()
+}
 
 // vextracti128
 // __m128i _mm256_extracti128_si256 (__m256i a, const int imm8)
@@ -1791,6 +1911,9 @@ mod tests {
         mm256_setr_epi8(-1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -13, -14, -15, -16,
                         -17, -18, -19, -20, -21, -22, -23, -24, -25, -26, -27, -28, -29, -30, -31, -32)
     }
+    fn mseq8_128() -> m128i {
+        mm_setr_epi8(-1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -13, -14, -15, -16)
+    }
 
     fn seq16() -> m256i {
         mm256_setr_epi16(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)
@@ -1801,6 +1924,9 @@ mod tests {
     fn mseq16() -> m256i {
         mm256_setr_epi16(-1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -13, -14, -15, -16)
     }
+    fn mseq16_128() -> m128i {
+        mm_setr_epi16(-1, -2, -3, -4, -5, -6, -7, -8)
+    }
 
     fn seq32() -> m256i {
         mm256_setr_epi32(1, 2, 3, 4, 5, 6, 7, 8)
@@ -1808,11 +1934,11 @@ mod tests {
     fn seq32_128() -> m128i {
         mm_setr_epi32(1, 2, 3, 4)
     }
-    fn mseq32_128() -> m128i {
-        mm_setr_epi32(-1, -2, -3, -4)
-    }
     fn mseq32() -> m256i {
         mm256_setr_epi32(-1, -2, -3, -4, -5, -6, -7, -8)
+    }
+    fn mseq32_128() -> m128i {
+        mm_setr_epi32(-1, -2, -3, -4)
     }
 
     fn seq64() -> m256i {
@@ -2564,4 +2690,30 @@ mod tests {
         }
     }
 
+    #[test]
+    fn test_convert() {
+        assert_eq!(mm256_cvtepi16_epi32(seq16_128()).as_i32x8().as_array(),
+                   [1, 2, 3, 4, 5, 6, 7, 8]);
+        assert_eq!(mm256_cvtepi16_epi64(seq16_128()).as_i64x4().as_array(),
+                   [1, 2, 3, 4]);
+        assert_eq!(mm256_cvtepi32_epi64(seq32_128()).as_i64x4().as_array(),
+                   [1, 2, 3, 4]);
+        assert_eq!(mm256_cvtepi8_epi16(seq8_128()).as_i16x16().as_array(),
+                   [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
+        assert_eq!(mm256_cvtepi8_epi32(seq8_128()).as_i32x8().as_array(),
+                   [1, 2, 3, 4, 5, 6, 7, 8]);
+        assert_eq!(mm256_cvtepi8_epi64(seq8_128()).as_i64x4().as_array(),
+                   [1, 2, 3, 4]);
+
+        assert_eq!(mm256_cvtepu16_epi32(mseq16_128()).as_i32x8().as_array(),
+                   [0xFFFF, 0xFFFE, 0xFFFD, 0xFFFC, 0xFFFB, 0xFFFA, 0xFFF9, 0xFFF8]);
+        assert_eq!(mm256_cvtepu16_epi64(mseq16_128()).as_i64x4().as_array(),
+                   [0xFFFF, 0xFFFE, 0xFFFD, 0xFFFC]);
+        assert_eq!(mm256_cvtepu8_epi16(mseq8_128()).as_i16x16().as_array(),
+                   [0xFF, 0xFE, 0xFD, 0xFC, 0xFB, 0xFA, 0xF9, 0xF8, 0xF7, 0xF6, 0xF5, 0xF4, 0xF3, 0xF2, 0xF1, 0xF0]);
+        assert_eq!(mm256_cvtepu8_epi32(mseq8_128()).as_i32x8().as_array(),
+                   [0xFF, 0xFE, 0xFD, 0xFC, 0xFB, 0xFA, 0xF9, 0xF8]);
+        assert_eq!(mm256_cvtepu8_epi64(mseq8_128()).as_i64x4().as_array(),
+                   [0xFF, 0xFE, 0xFD, 0xFC]);
+    }
 }
