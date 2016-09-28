@@ -113,6 +113,15 @@ extern {
     #[link_name = "llvm.x86.avx2.pmadd.ub.sw"]
     fn avx2_pmadd_ub_sw(a: i8x32, b: i8x32) -> i16x16;
 
+    #[link_name = "llvm.x86.avx2.pmul.dq"]
+    fn avx2_pmul_dq(a: i32x8, b: i32x8) -> i64x4;
+    #[link_name = "llvm.x86.avx2.pmulu.dq"]
+    fn avx2_pmulu_dq(a: i32x8, b: i32x8) -> i64x4;
+    #[link_name = "llvm.x86.avx2.pmulh.w"]
+    fn avx2_pmulh_w(a: i16x16, b: i16x16) -> i16x16;
+    #[link_name = "llvm.x86.avx2.pmulhu.w"]
+    fn avx2_pmulhu_w(a: i16x16, b: i16x16) -> i16x16;
+
     #[link_name = "llvm.x86.avx2.psad.bw"]
     fn avx2_psad_bw(a: u8x32, b: u8x32) -> u64x4;
 
@@ -1232,45 +1241,29 @@ pub fn mm256_mpsadbw_epu8(a: m256i, b: m256i, imm8: i32) -> m256i {
 // vpmuldq
 // __m256i _mm256_mul_epi32 (__m256i a, __m256i b)
 #[inline]
-#[allow(unused_variables)]
 pub fn mm256_mul_epi32(a: m256i, b: m256i) -> m256i {
-    // TODO(mayah): rustc uses `mm256_mul_epi64`, which is the same as mm256_mul_epi32 (in intel).
-    // unsafe { x86_mm256_mul_epi64(a.as_i32x8(), b.as_i32x8()).as_m256i() }
-
-    // Also, when we use mm256_mul_epi64, rust says undefined reference to `llvm.x86.avx2.pmulq.dq'
-    unimplemented!()
+    unsafe { avx2_pmul_dq(a.as_i32x8(), b.as_i32x8()).as_m256i() }
 }
 
 // vpmuludq
 // __m256i _mm256_mul_epu32 (__m256i a, __m256i b)
 #[inline]
-#[allow(unused_variables)]
 pub fn mm256_mul_epu32(a: m256i, b: m256i) -> m256i {
-    // TODO(mayah): rustc uses `mm256_mul_epu64`, which is the same as mm256_mul_epu32 (in intel).
-    // unsafe { x86_mm256_mul_epu64(a.as_u32x8(), b.as_u32x8()).as_m256i() }
-
-    // Also, when we use mm256_mul_epu64, rust says undefined reference to `llvm.x86.avx2.pmulq.dq'
-    unimplemented!()
+    unsafe { avx2_pmulu_dq(a.as_i32x8(), b.as_i32x8()).as_m256i() }
 }
 
 // vpmulhw
 // __m256i _mm256_mulhi_epi16 (__m256i a, __m256i b)
 #[inline]
-#[allow(unused_variables)]
 pub fn mm256_mulhi_epi16(a: m256i, b: m256i) -> m256i {
-    // rustc complains "undefined reference to `llvm.x86.avx2.pmulhw.w'".
-    // unsafe { x86_mm256_mulhi_epi16(a.as_i16x16(), b.as_i16x16()).as_m256i() }
-    unimplemented!()
+    unsafe { avx2_pmulh_w(a.as_i16x16(), b.as_i16x16()).as_m256i() }
 }
 
 // vpmulhuw
 // __m256i _mm256_mulhi_epu16 (__m256i a, __m256i b)
 #[inline]
-#[allow(unused_variables)]
 pub fn mm256_mulhi_epu16(a: m256i, b: m256i) -> m256i {
-    // rustc complains "undefined reference to `llvm.x86.avx2.pmulhw.w'".
-    // unsafe { x86_mm256_mulhi_epu16(a.as_u16x16(), b.as_u16x16()).as_m256i() }
-    unimplemented!()
+    unsafe { avx2_pmulhu_w(a.as_i16x16(), b.as_i16x16()).as_m256i() }
 }
 
 // vpmulhrsw
@@ -2464,18 +2457,18 @@ mod tests {
 
     #[test]
     fn test_mul() {
-        //assert_eq!(mm256_mul_epi32(seq32(), mseq32()).as_i64x4().as_array(),
-        //           [-1, -9, -25, -49]);
-        //assert_eq!(mm256_mul_epu32(seq32(), mseq32()).as_u64x4().as_array(),
-        //           [1 * (-1i64 as u64), 3 * (-3i64 as u64), 5 * (-5i64 as u64), 7 * (-7i64 as u64)]);
+        assert_eq!(mm256_mul_epi32(seq32(), mseq32()).as_i64x4().as_array(),
+                   [-1, -9, -25, -49]);
+        assert_eq!(mm256_mul_epu32(seq32(), mseq32()).as_u64x4().as_array(),
+                   [4294967295, 12884901879, 21474836455, 30064771023]);
 
         let x = mm256_setr_epi16(0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4, 5, 6, 7);
         let y = mm256_setr_epi16(0, 1, 2, 3, -4, -5, -6, -7, 0, 1, 2, 3, -4, -5, -6, -7);
 
-        //assert_eq!(mm256_mulhi_epi16(x, y).as_i16x16().as_array(),
-        //           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
-        //assert_eq!(mm256_mulhi_epu16(x, y).as_u16x16().as_array(),
-        //           [0, 0, 0, 0, !0, !0, !0, !0, 0, 0, 0, 0, !0, !0, !0, !0]);
+        assert_eq!(mm256_mulhi_epi16(x, y).as_i16x16().as_array(),
+                   [0, 0, 0, 0, -1, -1, -1, -1, 0, 0, 0, 0, -1, -1, -1, -1]);
+        assert_eq!(mm256_mulhi_epu16(x, y).as_u16x16().as_array(),
+                   [0, 0, 0, 0, 3, 4, 5, 6, 0, 0, 0, 0, 3, 4, 5, 6]);
 
         assert_eq!(mm256_mullo_epi16(x, y).as_i16x16().as_array(),
                    [0, 1, 4, 9, -16, -25, -36, -49, 0, 1, 4, 9, -16, -25, -36, -49]);
