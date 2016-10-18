@@ -1423,29 +1423,31 @@ mod tests {
     fn test_store() {
         let ps = mm_setr_ps(1.0, 2.0, 3.0, 4.0);
 
-        let mut buf: [f32; 4] = [0.0; 4];
-        let p: *mut f32 = unsafe { std::mem::transmute(&mut buf) };
+        // buf must be 128bit aligned.
+        let mut buf = mm_setr_ps(0.0, 0.0, 0.0, 0.0);
+        let p = &mut buf as *mut m128 as *mut f32;
 
         unsafe { mm_store_ps(p, ps) };
-        assert_eq!(buf, [1.0, 2.0, 3.0, 4.0]);
+        assert_eq!(buf.as_f32x4().as_array(), [1.0, 2.0, 3.0, 4.0]);
 
         unsafe { mm_store1_ps(p, ps) };
-        assert_eq!(buf, [1.0, 1.0, 1.0, 1.0]);
+        assert_eq!(buf.as_f32x4().as_array(), [1.0, 1.0, 1.0, 1.0]);
 
         unsafe { mm_storer_ps(p, ps) };
-        assert_eq!(buf, [4.0, 3.0, 2.0, 1.0]);
+        assert_eq!(buf.as_f32x4().as_array(), [4.0, 3.0, 2.0, 1.0]);
 
         unsafe { mm_store_ss(p, ps) };
-        assert_eq!(buf, [1.0, 3.0, 2.0, 1.0]);
+        assert_eq!(buf.as_f32x4().as_array(), [1.0, 3.0, 2.0, 1.0]);
 
         unsafe { mm_storeu_ps(p, ps) };
-        assert_eq!(buf, [1.0, 2.0, 3.0, 4.0]);
+        assert_eq!(buf.as_f32x4().as_array(), [1.0, 2.0, 3.0, 4.0]);
     }
 
     #[test]
     fn test_load() {
-        let buf: [f32; 4] = [1.0, 2.0, 3.0, 4.0];
-        let p = &buf as *const [f32; 4] as *const f32;
+        // buf must be 128 bit aligned.
+        let buf = mm_setr_ps(1.0, 2.0, 3.0, 4.0);
+        let p = &buf as *const m128 as *const f32;
 
         assert_eq!(unsafe { mm_load_ps(p) }.as_f32x4().as_array(), [1.0, 2.0, 3.0, 4.0]);
         assert_eq!(unsafe { mm_load_ps1(p) }.as_f32x4().as_array(), [1.0, 1.0, 1.0, 1.0]);

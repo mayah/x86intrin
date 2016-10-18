@@ -2739,8 +2739,9 @@ mod tests {
 
     #[test]
     fn test_load_pd() {
-        let buf: [f64; 2] = [1.0, 2.0];
-        let p = &buf as *const [f64; 2] as *const f64;
+        // Note: buf must be 128-bit aligned.
+        let buf = mm_setr_pd(1.0, 2.0);
+        let p = &buf as *const m128d as *const f64;
         let x = mm_setr_pd(3.0, 4.0);
 
         assert_eq!(unsafe { mm_load_pd(p) }.as_f64x2().as_array(), [1.0, 2.0]);
@@ -2767,40 +2768,41 @@ mod tests {
     fn test_store_pd() {
         let ps = mm_setr_pd(1.0, 2.0);
 
-        let mut buf: [f64; 2] = [0.0; 2];
-        let p: *mut f64 = unsafe { std::mem::transmute(&mut buf) };
+        // buf must be 128bit aligned.
+        let mut buf = mm_setr_pd(0.0, 0.0);
+        let p = &mut buf as *mut m128d as *mut f64;
 
-        buf = [0.0; 2];
+        buf = mm_setr_pd(0.0, 0.0);
         unsafe { mm_store_pd(p, ps) };
-        assert_eq!(buf, [1.0, 2.0]);
+        assert_eq!(buf.as_f64x2().as_array(), [1.0, 2.0]);
 
-        buf = [0.0; 2];
+        buf = mm_setr_pd(0.0, 0.0);
         unsafe { mm_store_pd1(p, ps) };
-        assert_eq!(buf, [1.0, 1.0]);
+        assert_eq!(buf.as_f64x2().as_array(), [1.0, 1.0]);
 
-        buf = [0.0; 2];
+        buf = mm_setr_pd(0.0, 0.0);
         unsafe { mm_store_sd(p, ps) };
-        assert_eq!(buf, [1.0, 0.0]);
+        assert_eq!(buf.as_f64x2().as_array(), [1.0, 0.0]);
 
-        buf = [0.0; 2];
+        buf = mm_setr_pd(0.0, 0.0);
         unsafe { mm_store1_pd(p, ps) };
-        assert_eq!(buf, [1.0, 1.0]);
+        assert_eq!(buf.as_f64x2().as_array(), [1.0, 1.0]);
 
-        buf = [0.0; 2];
+        buf = mm_setr_pd(0.0, 0.0);
         unsafe { mm_storeh_pd(p, ps) };
-        assert_eq!(buf, [2.0, 0.0]);
+        assert_eq!(buf.as_f64x2().as_array(), [2.0, 0.0]);
 
-        buf = [0.0; 2];
+        buf = mm_setr_pd(0.0, 0.0);
         unsafe { mm_storel_pd(p, ps) };
-        assert_eq!(buf, [1.0, 0.0]);
+        assert_eq!(buf.as_f64x2().as_array(), [1.0, 0.0]);
 
-        buf = [0.0; 2];
+        buf = mm_setr_pd(0.0, 0.0);
         unsafe { mm_storer_pd(p, ps) };
-        assert_eq!(buf, [2.0, 1.0]);
+        assert_eq!(buf.as_f64x2().as_array(), [2.0, 1.0]);
 
-        buf = [0.0; 2];
+        buf = mm_setr_pd(0.0, 0.0);
         unsafe { mm_storeu_pd(p, ps) };
-        assert_eq!(buf, [1.0, 2.0]);
+        assert_eq!(buf.as_f64x2().as_array(), [1.0, 2.0]);
     }
 
     #[test]
