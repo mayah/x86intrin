@@ -459,6 +459,11 @@ pub mod avx2;
 #[cfg(any(feature = "doc", target_feature = "avx2"))]
 pub use avx2::*;
 
+#[cfg(any(feature = "doc", target_feature = "bmi2"))]
+pub mod bmi2;
+#[cfg(any(feature = "doc", target_feature = "bmi2"))]
+pub use bmi2::*;
+
 #[cfg(test)]
 mod tests {
     use super::*;
