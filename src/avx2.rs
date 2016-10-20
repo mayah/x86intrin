@@ -255,6 +255,24 @@ struct i16x4(i16, i16, i16, i16);
 #[repr(C)]
 struct u16x4(u16, u16, u16, u16);
 
+// Add &, |, ^ operators for m256i.
+
+macro_rules! m256i_operators {
+    ($name: ident, $method: ident, $func: ident) => {
+        impl std::ops::$name for m256i {
+            type Output = Self;
+
+            #[inline]
+            fn $method(self, x: Self) -> Self {
+                unsafe { $func(self, x) }
+            }
+        }
+    }
+}
+m256i_operators! { BitAnd, bitand, simd_and }
+m256i_operators! { BitOr,  bitor,  simd_or  }
+m256i_operators! { BitXor, bitxor, simd_xor }
+
 #[inline]
 unsafe fn trunc_cast<T, U>(x: T) -> U {
     debug_assert!(std::mem::size_of::<T>() >= std::mem::size_of::<U>());
