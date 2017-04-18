@@ -754,10 +754,10 @@ pub fn mm_shuffle_ps(a: m128, b: m128, imm8: u32) -> m128 {
     macro_rules! shuffle3 {
         ($a: expr, $b: expr, $c: expr) => {
             match (imm8 >> 6) & 0x3 {
-                0 => shuffle4!($a, $b, $c, 0),
-                1 => shuffle4!($a, $b, $c, 1),
-                2 => shuffle4!($a, $b, $c, 2),
-                3 => shuffle4!($a, $b, $c, 3),
+                0 => shuffle4!($a, $b, $c, 4),
+                1 => shuffle4!($a, $b, $c, 5),
+                2 => shuffle4!($a, $b, $c, 6),
+                3 => shuffle4!($a, $b, $c, 7),
                 _ => unreachable!()
             }
         }
@@ -766,10 +766,10 @@ pub fn mm_shuffle_ps(a: m128, b: m128, imm8: u32) -> m128 {
     macro_rules! shuffle2 {
         ($a: expr, $b: expr) => {
             match (imm8 >> 4) & 0x3 {
-                0 => shuffle3!($a, $b, 0),
-                1 => shuffle3!($a, $b, 1),
-                2 => shuffle3!($a, $b, 2),
-                3 => shuffle3!($a, $b, 3),
+                0 => shuffle3!($a, $b, 4),
+                1 => shuffle3!($a, $b, 5),
+                2 => shuffle3!($a, $b, 6),
+                3 => shuffle3!($a, $b, 7),
                 _ => unreachable!()
             }
         }
@@ -1165,6 +1165,22 @@ mod tests {
         assert_eq!(x4.as_array(), [7.0, 7.0, 7.0, 7.0]);
         assert_eq!(x5.as_array(), [1.0, 2.0, 3.0, 4.0]);
         assert_eq!(x6.as_array(), [0.0, 0.0, 0.0, 0.0]);
+    }
+
+    #[test]
+    fn test_mm_shuffle() {
+        //      MSB         LSB
+        //  x = 4.0 3.0 2.0 1.0
+        //  y = 8.0 7.0 6.0 5.0
+        //
+        //       1   0   3   2
+        //
+        //  z = 6.0 5.0 4.0 3.0
+        let x = mm_setr_ps(1.0, 2.0, 3.0, 4.0);
+        let y = mm_setr_ps(5.0, 6.0, 7.0, 8.0);
+
+        let z = mm_shuffle_ps(x, y, mm_shuffle(1, 0, 3, 2));
+        assert_eq!(z.as_f32x4().as_array(), [3.0, 4.0, 5.0, 6.0]);
     }
 
     #[test]
