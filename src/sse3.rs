@@ -95,6 +95,25 @@ pub fn mm_moveldup_ps(a: m128) -> m128 {
     unsafe { simd_shuffle4(a32, a32, [0, 0, 2, 2]) }
 }
 
+// #define _MM_DENORMALS_ZERO_ON   (0x0040)
+pub const MM_DENORMALS_ZERO_ON: u32 = 0x0040;
+// #define _MM_DENORMALS_ZERO_OFF  (0x0000)
+pub const MM_DENORMALS_ZERO_OFF: u32 = 0x0000;
+// #define _MM_DENORMALS_ZERO_MASK (0x0040)
+pub const MM_DENORMALS_ZERO_MASK: u32 = 0x0040;
+
+// #define _MM_GET_DENORMALS_ZERO_MODE() (_mm_getcsr() & _MM_DENORMALS_ZERO_MASK)
+#[inline]
+pub fn mm_get_denormals_zero_mode() -> u32 {
+    mm_getcsr() & MM_DENORMALS_ZERO_MASK
+}
+
+// #define _MM_SET_DENORMALS_ZERO_MODE(x) (_mm_setcsr((_mm_getcsr() & ~_MM_DENORMALS_ZERO_MASK) | (x)))
+#[inline]
+pub fn mm_set_denormals_zero_mode(x: u32) {
+    mm_setcsr((mm_getcsr() & !MM_DENORMALS_ZERO_MASK) | x)
+}
+
 #[cfg(test)]
 mod test {
     use super::super::*;
@@ -139,5 +158,15 @@ mod test {
 
         let r = unsafe { mm_lddqu_si128(p) };
         assert_eq!(r.as_i32x4().as_array(), [1, 2, 3, 4]);
+    }
+
+    #[test]
+    fn test_denormal() {
+        let initial = mm_get_denormals_zero_mode();
+        mm_set_denormals_zero_mode(MM_DENORMALS_ZERO_ON);
+        assert_eq!(mm_get_denormals_zero_mode(), MM_DENORMALS_ZERO_ON);
+        mm_set_denormals_zero_mode(MM_DENORMALS_ZERO_OFF);
+        assert_eq!(mm_get_denormals_zero_mode(), MM_DENORMALS_ZERO_OFF);
+        mm_set_denormals_zero_mode(initial);
     }
 }
