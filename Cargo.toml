@@ -1,6 +1,6 @@
 [package]
 name = "x86intrin"
-version = "0.4.4"
+version = "0.4.5"
 authors = ["mayah"]
 
 license = "MIT/Apache-2.0"
