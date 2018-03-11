@@ -1,3 +1,5 @@
+// necessary for sse4.1 or later
+#[cfg(any(feature = "doc", target_feature = "sse4.1"))]
 macro_rules! blend_shuffle4 {
     ($a: expr, $b: expr, $imm8: expr) => {
         unsafe {
@@ -24,6 +26,8 @@ macro_rules! blend_shuffle4 {
     }
 }
 
+// necessary for sse4.1 or later
+#[cfg(any(feature = "doc", target_feature = "sse4.1"))]
 macro_rules! blend_shuffle8 {
     ($a: expr, $b: expr, $imm8: expr) => {
         unsafe {
@@ -290,6 +294,8 @@ macro_rules! blend_shuffle8 {
     }
 }
 
+// necessary for avx2 or later
+#[cfg(any(feature = "doc", target_feature = "avx2"))]
 macro_rules! blend_shuffle16 {
     ($a: expr, $b: expr, $imm8: expr) => {
         unsafe {
@@ -556,6 +562,8 @@ macro_rules! blend_shuffle16 {
     }
 }
 
+// necessary for avx or later
+#[cfg(any(feature = "doc", target_feature = "avx"))]
 macro_rules! permute_shuffle4 {
     ($a: expr, $b: expr, $imm8: expr) => {
         unsafe {
@@ -822,6 +830,8 @@ macro_rules! permute_shuffle4 {
     }
 }
 
+// necessary for sse4.1 or later
+#[cfg(any(feature = "doc", target_feature = "sse4.1"))]
 macro_rules! fn_imm8_arg1 {
     ($fn_name: expr, $a: expr, $imm8: expr) => {
         unsafe {
@@ -1088,6 +1098,8 @@ macro_rules! fn_imm8_arg1 {
     }
 }
 
+// necessary for avx or later
+#[cfg(any(feature = "doc", target_feature = "avx"))]
 macro_rules! fn_imm6_arg2 {
     ($fn_name: expr, $a: expr, $b: expr, $imm8: expr) => {
         unsafe {
@@ -1130,6 +1142,8 @@ macro_rules! fn_imm6_arg2 {
     }
 }
 
+// necessary for sse4.1 or later
+#[cfg(any(feature = "doc", target_feature = "sse4.1"))]
 macro_rules! fn_imm8_arg2 {
     ($fn_name: expr, $a: expr, $b: expr, $imm8: expr) => {
         unsafe {
@@ -1396,6 +1410,8 @@ macro_rules! fn_imm8_arg2 {
     }
 }
 
+// necessary for sse4.2 or later
+#[cfg(any(feature = "doc", target_feature = "sse4.2"))]
 macro_rules! fn_imm8_arg4 {
     ($fn_name: expr, $a: expr, $b: expr, $c: expr, $d: expr, $imm8: expr) => {
         unsafe {
