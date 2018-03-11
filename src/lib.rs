@@ -49,7 +49,6 @@ unsafe fn bitcast<T, U>(x: T) -> U {
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(simd)]
-#[repr(C)]
 pub struct m128i(i64, i64);
 
 impl m128i {
@@ -81,7 +80,6 @@ impl m128i {
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(simd)]
-#[repr(C)]
 pub struct m128(f32, f32, f32, f32);
 
 impl m128 {
@@ -99,7 +97,6 @@ impl m128 {
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(simd)]
-#[repr(C)]
 pub struct m128d(f64, f64);
 
 impl m128d {
@@ -117,7 +114,6 @@ impl m128d {
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(simd)]
-#[repr(C)]
 pub struct m256i(i32, i32, i32, i32, i32, i32, i32, i32);
 
 impl m256i {
@@ -149,7 +145,6 @@ impl m256i {
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(simd)]
-#[repr(C)]
 pub struct m256(f32, f32, f32, f32, f32, f32, f32, f32);
 
 impl m256 {
@@ -167,7 +162,6 @@ impl m256 {
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(simd)]
-#[repr(C)]
 pub struct m256d(f64, f64, f64, f64);
 
 impl m256d {
@@ -185,122 +179,102 @@ impl m256d {
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(simd)]
-#[repr(C)]
 pub struct i64x2(i64, i64);
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(simd)]
-#[repr(C)]
 pub struct u64x2(u64, u64);
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(simd)]
-#[repr(C)]
 pub struct f64x2(f64, f64);
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(simd)]
-#[repr(C)]
 pub struct i32x4(i32, i32, i32, i32);
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(simd)]
-#[repr(C)]
 pub struct u32x4(u32, u32, u32, u32);
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(simd)]
-#[repr(C)]
 pub struct f32x4(f32, f32, f32, f32);
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(simd)]
-#[repr(C)]
 pub struct i16x8(i16, i16, i16, i16, i16, i16, i16, i16);
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(simd)]
-#[repr(C)]
 pub struct u16x8(u16, u16, u16, u16, u16, u16, u16, u16);
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(simd)]
-#[repr(C)]
 pub struct i8x16(i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8);
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(simd)]
-#[repr(C)]
 pub struct u8x16(u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8);
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(simd)]
-#[repr(C)]
 pub struct i64x4(i64, i64, i64, i64);
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(simd)]
-#[repr(C)]
 pub struct u64x4(u64, u64, u64, u64);
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(simd)]
-#[repr(C)]
 pub struct f64x4(f64, f64, f64, f64);
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(simd)]
-#[repr(C)]
 pub struct i32x8(i32, i32, i32, i32, i32, i32, i32, i32);
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(simd)]
-#[repr(C)]
 pub struct u32x8(u32, u32, u32, u32, u32, u32, u32, u32);
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(simd)]
-#[repr(C)]
 pub struct f32x8(f32, f32, f32, f32, f32, f32, f32, f32);
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(simd)]
-#[repr(C)]
 pub struct i16x16(i16, i16, i16, i16, i16, i16, i16, i16, i16, i16, i16, i16, i16, i16, i16, i16);
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(simd)]
-#[repr(C)]
 pub struct u16x16(u16, u16, u16, u16, u16, u16, u16, u16, u16, u16, u16, u16, u16, u16, u16, u16);
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(simd)]
-#[repr(C)]
 pub struct i8x32(i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8,
                  i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8, i8);
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(simd)]
-#[repr(C)]
 pub struct u8x32(u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8,
                  u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8);
 

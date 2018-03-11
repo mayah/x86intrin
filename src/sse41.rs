@@ -1,3 +1,5 @@
+#![allow(improper_ctypes)]  // TODO(mayah): Remove this flag
+
 use super::*;
 use super::{simd_mul,
             simd_eq,

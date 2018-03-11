@@ -1,3 +1,5 @@
+#![allow(improper_ctypes)]  // TODO(mayah): Remove this flag
+
 use std;
 use super::*;
 use super::{simd_add, simd_sub, simd_mul,
@@ -222,37 +224,31 @@ extern {
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(simd)]
-#[repr(C)]
 struct i8x4(i8, i8, i8, i8);
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(simd)]
-#[repr(C)]
 struct u8x4(u8, u8, u8, u8);
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(simd)]
-#[repr(C)]
 struct i8x8(i8, i8, i8, i8, i8, i8, i8, i8);
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(simd)]
-#[repr(C)]
 struct u8x8(u8, u8, u8, u8, u8, u8, u8, u8);
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(simd)]
-#[repr(C)]
 struct i16x4(i16, i16, i16, i16);
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(simd)]
-#[repr(C)]
 struct u16x4(u16, u16, u16, u16);
 
 // Add &, |, ^ operators for m256i.

@@ -1,3 +1,7 @@
+// TODO(mayah): Remove this flag if all external llvm external function can be
+// implemented with platform-intrinsic.
+#![allow(improper_ctypes)]
+
 use std;
 use super::*;
 use super::{simd_add, simd_sub, simd_mul, simd_div,
@@ -134,7 +138,7 @@ pub fn mm_add_ps(a: m128, b: m128) -> m128 {
 // __m128 _mm_add_ss (__m128 a, __m128 b)
 #[inline]
 pub fn mm_add_ss(a: m128, b: m128) -> m128 {
-    a.as_f32x4().insert(0, (a.as_f32x4().extract(0) + b.as_f32x4().extract(0))).as_m128()
+    a.as_f32x4().insert(0, a.as_f32x4().extract(0) + b.as_f32x4().extract(0)).as_m128()
 }
 
 // andps
@@ -461,7 +465,7 @@ pub fn mm_div_ps(a: m128, b: m128) -> m128 {
 // __m128 _mm_div_ss (__m128 a, __m128 b)
 #[inline]
 pub fn mm_div_ss(a: m128, b: m128) -> m128 {
-    a.as_f32x4().insert(0, (a.as_f32x4().extract(0) / b.as_f32x4().extract(0))).as_m128()
+    a.as_f32x4().insert(0, a.as_f32x4().extract(0) / b.as_f32x4().extract(0)).as_m128()
 }
 
 // unsigned int _MM_GET_EXCEPTION_MASK ()
@@ -619,7 +623,7 @@ pub fn mm_mul_ps(a: m128, b: m128) -> m128 {
 // __m128 _mm_mul_ss (__m128 a, __m128 b)
 #[inline]
 pub fn mm_mul_ss(a: m128, b: m128) -> m128 {
-    a.as_f32x4().insert(0, (a.as_f32x4().extract(0) * b.as_f32x4().extract(0))).as_m128()
+    a.as_f32x4().insert(0, a.as_f32x4().extract(0) * b.as_f32x4().extract(0)).as_m128()
 }
 
 // orps
@@ -881,7 +885,7 @@ pub fn mm_sub_ps(a: m128, b: m128) -> m128 {
 // __m128 _mm_sub_ss (__m128 a, __m128 b)
 #[inline]
 pub fn mm_sub_ss(a: m128, b: m128) -> m128 {
-    a.as_f32x4().insert(0, (a.as_f32x4().extract(0) - b.as_f32x4().extract(0))).as_m128()
+    a.as_f32x4().insert(0, a.as_f32x4().extract(0) - b.as_f32x4().extract(0)).as_m128()
 }
 
 // ...

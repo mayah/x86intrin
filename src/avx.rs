@@ -1,3 +1,5 @@
+#![allow(improper_ctypes)]  // TODO(mayah): Remove this flag
+
 use std;
 use super::*;
 use super::{simd_add, simd_sub, simd_mul, simd_div,
@@ -2903,9 +2905,9 @@ mod tests {
         let s = mm256_setr_ps(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0);
         let d = mm256_setr_pd(1.0, 2.0, 3.0, 4.0);
 
-        assert_eq!(mm256_shuffle_ps(s, s, (3 << 0 | 0 << 2 | 1 << 4 | 2 << 6)).as_f32x8().as_array(),
+        assert_eq!(mm256_shuffle_ps(s, s, 3 << 0 | 0 << 2 | 1 << 4 | 2 << 6).as_f32x8().as_array(),
                    [4.0, 1.0, 2.0, 3.0, 8.0, 5.0, 6.0, 7.0]);
-        assert_eq!(mm256_shuffle_pd(d, d, (0 << 0 | 1 << 1 | 1 << 2 | 0 << 3)).as_f64x4().as_array(),
+        assert_eq!(mm256_shuffle_pd(d, d, 0 << 0 | 1 << 1 | 1 << 2 | 0 << 3).as_f64x4().as_array(),
                    [1.0, 2.0, 4.0, 3.0]);
     }
 
